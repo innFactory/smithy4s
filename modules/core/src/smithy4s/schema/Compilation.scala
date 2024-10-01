@@ -22,6 +22,11 @@ object Compilation {
   ): Compilation[F[A]] = Cyclic(compiler, lazySchema, make)
   def traverse[F[_], A, B](list: List[A])(f: A => Compilation[B]): Compilation[List[B]] = Traverse(list, f)
 
+  def map2[F[_], A0, A1, Z](a0: Compilation[A0], a1: Compilation[A1])(f: (A0, A1) => Z): Compilation[Z] =
+    traverse(List(a0, a1).asInstanceOf[List[Compilation[Any]]])(identity(_)).map { list =>
+      f(list(0).asInstanceOf[A0], list(1).asInstanceOf[A1])
+    }
+
   private final case class Pure[A](a: A) extends Compilation[A] {
     private[schema] def visit[C[_]](visitor: Compilation.Visitor[C]): C[A] = visitor.pure(a)
   }

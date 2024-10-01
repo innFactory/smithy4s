@@ -21,12 +21,11 @@ import smithy4s.capability.MonadThrowLike
 import smithy4s.client.UnaryClientCodecs
 import smithy4s.codecs.BlobDecoder
 import smithy4s.codecs.BlobEncoder
-import smithy4s.codecs.Decoder
-import smithy4s.codecs.PayloadError
 import smithy4s.codecs.Writer
 import smithy4s.kinds.PolyFunction5
-import smithy4s.schema.CachedSchemaCompiler
 import smithy4s.schema.OperationSchema
+import smithy4s.schema.Compiler
+import smithy4s.schema.Compilation
 
 // scalafmt: { maxColumn = 120 }
 object HttpUnaryClientCodecs {
@@ -35,9 +34,9 @@ object HttpUnaryClientCodecs {
     HttpUnaryClientCodecsBuilderImpl[F, HttpRequest[Blob], HttpResponse[Blob]](
       operationPreprocessor = PolyFunction5.identity,
       baseRequest = _ => F.raiseError(new Exception("Undefined base request")),
-      requestBodyEncoders = BlobEncoder.noop,
-      successResponseBodyDecoders = BlobDecoder.noop,
-      errorResponseBodyDecoders = BlobDecoder.noop,
+      requestBodyEncoders = Compiler.contravariantStatic(BlobEncoder.noop),
+      successResponseBodyDecoders = Compiler.covariantStatic(BlobDecoder.noop),
+      errorResponseBodyDecoders = Compiler.covariantStatic(BlobDecoder.noop),
       errorDiscriminator = _ => F.pure(HttpDiscriminator.Undetermined),
       metadataEncoders = None,
       metadataDecoders = None,
@@ -52,9 +51,9 @@ object HttpUnaryClientCodecs {
   trait Builder[F[_], Request, Response] {
     def withOperationPreprocessor(fk: PolyFunction5[OperationSchema, OperationSchema]): Builder[F, Request, Response]
     def withBaseRequest(f: OperationSchema[_, _, _, _, _] => F[HttpRequest[Blob]]): Builder[F, Request, Response]
-    def withBodyEncoders(encoders: BlobEncoder.Compiler): Builder[F, Request, Response]
-    def withSuccessBodyDecoders(decoders: BlobDecoder.Compiler): Builder[F, Request, Response]
-    def withErrorBodyDecoders(decoders: BlobDecoder.Compiler): Builder[F, Request, Response]
+    def withBodyEncoders(encoders: Compiler[BlobEncoder]): Builder[F, Request, Response]
+    def withSuccessBodyDecoders(decoders: Compiler[BlobDecoder]): Builder[F, Request, Response]
+    def withErrorBodyDecoders(decoders: Compiler[BlobDecoder]): Builder[F, Request, Response]
     def withErrorDiscriminator(f: HttpResponse[Blob] => F[HttpDiscriminator]): Builder[F, Request, Response]
     def withMetadataEncoders(encoders: Metadata.Encoder.Compiler): Builder[F, Request, Response]
     def withMetadataDecoders(decoders: Metadata.Decoder.Compiler): Builder[F, Request, Response]
@@ -70,9 +69,9 @@ object HttpUnaryClientCodecs {
   private case class HttpUnaryClientCodecsBuilderImpl[F[_], Request, Response](
       operationPreprocessor: PolyFunction5[OperationSchema, OperationSchema],
       baseRequest: OperationSchema[_, _, _, _, _] => F[HttpRequest[Blob]],
-      requestBodyEncoders: BlobEncoder.Compiler,
-      successResponseBodyDecoders: BlobDecoder.Compiler,
-      errorResponseBodyDecoders: BlobDecoder.Compiler,
+      requestBodyEncoders: Compiler[BlobEncoder],
+      successResponseBodyDecoders: Compiler[BlobDecoder],
+      errorResponseBodyDecoders: Compiler[BlobDecoder],
       errorDiscriminator: HttpResponse[Blob] => F[HttpDiscriminator],
       metadataEncoders: Option[Metadata.Encoder.Compiler],
       metadataDecoders: Option[Metadata.Decoder.Compiler],
@@ -88,11 +87,11 @@ object HttpUnaryClientCodecs {
       copy(operationPreprocessor = fk)
     def withBaseRequest(f: OperationSchema[_, _, _, _, _] => F[HttpRequest[Blob]]): Builder[F, Request, Response] =
       copy(baseRequest = f)
-    def withBodyEncoders(encoders: BlobEncoder.Compiler): Builder[F, Request, Response] =
+    def withBodyEncoders(encoders: Compiler[BlobEncoder]): Builder[F, Request, Response] =
       copy(requestBodyEncoders = encoders)
-    def withSuccessBodyDecoders(decoders: BlobDecoder.Compiler): Builder[F, Request, Response] =
+    def withSuccessBodyDecoders(decoders: Compiler[BlobDecoder]): Builder[F, Request, Response] =
       copy(successResponseBodyDecoders = decoders)
-    def withErrorBodyDecoders(decoders: BlobDecoder.Compiler): Builder[F, Request, Response] =
+    def withErrorBodyDecoders(decoders: Compiler[BlobDecoder]): Builder[F, Request, Response] =
       copy(errorResponseBodyDecoders = decoders)
     def withErrorDiscriminator(f: HttpResponse[Blob] => F[HttpDiscriminator]): Builder[F, Request, Response] =
       copy(errorDiscriminator = f)
@@ -118,8 +117,8 @@ object HttpUnaryClientCodecs {
       val setBody: HttpRequest.Writer[Blob, Blob] = Writer.lift((req, blob) => req.copy(body = blob))
       val setBodyK = smithy4s.codecs.Encoder.pipeToWriterK[HttpRequest[Blob], Blob](setBody)
 
-      val mediaTypeWriters = new CachedSchemaCompiler.Uncached[HttpRequest.Writer[Blob, *]] {
-        def fromSchema[A](schema: Schema[A]): HttpRequest.Writer[Blob, A] = {
+      val mediaTypeWriters = new Compiler[HttpRequest.Writer[Blob, *]] {
+        def apply[A](schema: Schema[A]): Compilation[HttpRequest.Writer[Blob, A]] = Compilation.pure {
           val maybeRawMediaType = if (rawStringsAndBlobPayloads) HttpMediaType.fromSchema(schema).map(_.value) else None
           maybeRawMediaType match {
             case Some(mt) =>
@@ -137,8 +136,8 @@ object HttpUnaryClientCodecs {
         }
       }
 
-      val httpBodyWriters: CachedSchemaCompiler[HttpRequest.Writer[Blob, *]] = if (rawStringsAndBlobPayloads) {
-        val finalBodyEncoders = CachedSchemaCompiler
+      val httpBodyWriters: Compiler[HttpRequest.Writer[Blob, *]] = if (rawStringsAndBlobPayloads) {
+        val finalBodyEncoders = Compiler
           .getOrElse(smithy4s.codecs.StringAndBlobCodecs.encoders, requestBodyEncoders)
         finalBodyEncoders.mapK(setBodyK)
       } else requestBodyEncoders.mapK(setBodyK)

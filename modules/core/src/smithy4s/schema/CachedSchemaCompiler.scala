@@ -74,7 +74,6 @@ object CachedSchemaCompiler { outer =>
     def fromSchema[A](schema: Schema[A], cache: Cache): F[A] = possible
       .fromSchema(schema, cache._1)
       .getOrElse(default.fromSchema(schema, cache._2))
-
   }
 
   implicit val cachedSchemaCompilerFunctorK: FunctorK[CachedSchemaCompiler] =

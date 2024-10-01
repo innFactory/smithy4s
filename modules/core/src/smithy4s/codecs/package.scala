@@ -16,36 +16,21 @@
 
 package smithy4s
 
-import smithy4s.schema.CachedSchemaCompiler
-
 package object codecs {
 
-  type BlobEncoder[A] = Encoder[Blob, A]
+  type BlobEncoder[-A] = Encoder[Blob, A]
   object BlobEncoder {
-    type Compiler = CachedSchemaCompiler[BlobEncoder]
-    val noop: Compiler = new CachedSchemaCompiler.Uncached[BlobEncoder] {
-      def fromSchema[A](schema: Schema[A]) = Encoder.static(Blob.empty)
-    }
+    val noop: BlobEncoder[Any] = Encoder.static(Blob.empty)
   }
 
-  type BlobDecoder[A] = Decoder[Either[PayloadError, *], Blob, A]
+  type BlobDecoder[+A] = Decoder[Either[PayloadError, *], Blob, A]
   object BlobDecoder {
-    type Compiler = CachedSchemaCompiler[BlobDecoder]
-    val noop: Compiler = new CachedSchemaCompiler.Uncached[BlobDecoder] {
-      def fromSchema[A](schema: Schema[A]) = Decoder.lift(_ =>
-        Left(PayloadError(PayloadPath.root, "nothing", "always failing"))
-      )
-    }
+    val noop: BlobDecoder[Nothing] = Decoder.lift(_ =>
+      Left(PayloadError(PayloadPath.root, "nothing", "always failing"))
+    )
   }
 
   type PayloadDecoder[A] = Decoder[Either[PayloadError, *], Blob, A]
-  object PayloadDecoder {
-    type CachedCompiler = CachedSchemaCompiler[PayloadDecoder]
-  }
-
   type PayloadEncoder[A] = Encoder[Blob, A]
-  object PayloadEncoder {
-    type CachedCompiler = CachedSchemaCompiler[PayloadEncoder]
-  }
 
 }

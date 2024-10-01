@@ -1,6 +1,7 @@
 package smithy4s.schema
 
 import smithy4s.Lazy
+import smithy4s.kinds.OptionK
 
 /** This is what the integrations provider have to implement. Unlike smithy4s 0.18, the algebra ensures that
   * cross-cutting concern (like caching and recursion) are not leaking into what the users is required to provide.
@@ -16,6 +17,28 @@ trait Compiler[F[_]] {
 }
 
 object Compiler {
+
+  type Optional[F[_]] = Compiler[OptionK[F, *]]
+
+  def getOrElse[F[_]](
+      possible: Compiler.Optional[F],
+      default: Compiler[F]
+  ): Compiler[F] = new Compiler[F] {
+    def apply[A](schema: Schema[A]): Compilation[F[A]] =
+      Compilation.map2(possible(schema), default(schema))(_.getOrElse(_))
+  }
+
+  def covariantStatic[F[+_]](alwaysFail: F[Nothing]): Compiler[F] =
+    new Compiler[F] {
+      def apply[A](fa: Schema[A]): Compilation[F[A]] =
+        Compilation.pure(alwaysFail)
+    }
+
+  def contravariantStatic[F[-_]](empty: F[Any]): Compiler[F] =
+    new Compiler[F] {
+      def apply[A](fa: Schema[A]): Compilation[F[A]] =
+        Compilation.pure(empty)
+    }
 
   final case class CompileTime[A](run: CallMap => (CallMap, A)) {
     final def map[B](f: A => B): CompileTime[B] = CompileTime { state =>
@@ -45,7 +68,6 @@ object Compiler {
         f: A => CompileTime[B]
     ): CompileTime[List[B]] = ???
   }
-
 
   private type Result[A] = CompileTime[Runtime[A]]
   private object Visitor extends Compilation.Visitor[Result] {
@@ -78,11 +100,11 @@ object Compiler {
       val wrapped = Schema.LazySchema(lazySchema)
       val memoized = lazySchema.value
       val dynamicCall =
-        Runtime.Dynamic((callMap: CallMap) =>
-          make(() =>
+        Runtime.Dynamic { (callMap: CallMap) =>
+          lazy val compiled =
             callMap.get(compiler, memoized).getOrElse(???).run(callMap)
-          )
-        )
+          make(() => compiled)
+        }
       val recursive = compiler(memoized).visit(Visitor)
       CompileTime { callMap =>
         callMap.get(compiler, wrapped) match {
