@@ -18,7 +18,7 @@ package smithy4s.codecs
 
 import smithy4s.capability.EncoderK
 import smithy4s.kinds.PolyFunction
-import smithy4s.schema.CachedSchemaCompiler
+import smithy4s.schema.Compiler
 
 /**
   * An abstraction that codifies the notion of transforming a piece of data into some output.
@@ -65,7 +65,7 @@ trait Encoder[+Out, -A] { self =>
 
 object Encoder {
 
-  type CachedCompiler[Message] = CachedSchemaCompiler[Encoder[Message, *]]
+  type CachedCompiler[Message] = Compiler[Encoder[Message, *]]
 
   /**
     * Lifts an Output transformation as a higher-kinded function that

@@ -22,8 +22,8 @@ import smithy.api.HttpError
 import smithy4s.capability.Covariant
 import smithy4s.kinds.PolyFunction
 import smithy4s.schema.Alt
-import smithy4s.schema.CachedSchemaCompiler
 import smithy4s.schema.ErrorSchema
+import smithy4s.schema.Compiler
 
 /**
   * Utility function to help find the decoder matching a certain discriminator
@@ -40,7 +40,7 @@ object HttpErrorSelector {
     */
   def apply[F[_]: Covariant, E](
       maybeErrorSchema: Option[ErrorSchema[E]],
-      compiler: CachedSchemaCompiler[F]
+      compiler: Compiler[F]
   ): HttpDiscriminator => Option[F[E]] = maybeErrorSchema match {
     case None => _ => None
     case Some(errorschema) =>
@@ -60,7 +60,7 @@ object HttpErrorSelector {
     */
   def asThrowable[F[_]: Covariant, E](
       maybeErrorSchema: Option[ErrorSchema[E]],
-      compiler: CachedSchemaCompiler[F]
+      compiler: Compiler[F]
   ): HttpDiscriminator => Option[F[Throwable]] = maybeErrorSchema match {
     case None => _ => None
     case Some(errorschema) =>
@@ -74,7 +74,7 @@ object HttpErrorSelector {
 
 private[http] final class HttpErrorSelector[F[_]: Covariant, E](
     alts: Vector[Alt[E, _]],
-    compiler: CachedSchemaCompiler[F]
+    compiler: Compiler[F]
 ) extends (HttpDiscriminator => Option[F[E]]) {
 
   type ConstF[A] = F[E]
@@ -85,8 +85,9 @@ private[http] final class HttpErrorSelector[F[_]: Covariant, E](
         // In the line below, we create a new, ephemeral cache for the dynamic recompilation of the error schema.
         // This is because the "compile body encoder" method can trigger a transformation of hints, which
         // lead to cache-miss and would lead to new entries in existing cache, effectively leading to a memory leak.
-        val cache = compiler.createCache()
-        val errorCodec: F[A] = compiler.fromSchema(schema, cache)
+        //
+        // TODO : can we do this more cleanly with pure compilers ?
+        val errorCodec: F[A] = compiler.compileFull(schema)
         Covariant[F].map[A, E](errorCodec)(alt.inject)
       }
       val builder = Map.newBuilder[Any, Any]

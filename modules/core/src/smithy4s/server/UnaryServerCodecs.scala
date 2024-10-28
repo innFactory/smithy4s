@@ -18,6 +18,7 @@ package smithy4s.server
 
 import smithy4s.capability.MonadThrowLike
 import smithy4s.schema.OperationSchema
+import smithy4s.schema.Compilation
 
 // scalafmt: {maxColumn = 120}
 final class UnaryServerCodecs[F[_], Request, Response, I, E, O](
@@ -56,14 +57,14 @@ object UnaryServerCodecs {
   trait Make[F[_], Request, Response] { self =>
     def apply[I, E, O, SI, SO](
         schema: OperationSchema[I, E, O, SI, SO]
-    ): UnaryServerCodecs[F, Request, Response, I, E, O]
+    ): Compilation[UnaryServerCodecs[F, Request, Response, I, E, O]]
 
     final def transformResponse[Response1](
         f: Response => F[Response1]
     )(implicit F: MonadThrowLike[F]): Make[F, Request, Response1] = new Make[F, Request, Response1] {
       def apply[I, E, O, SI, SO](
           schema: OperationSchema[I, E, O, SI, SO]
-      ): UnaryServerCodecs[F, Request, Response1, I, E, O] = self(schema).transformResponse(f)
+      ): Compilation[UnaryServerCodecs[F, Request, Response1, I, E, O]] = self(schema).map(_.transformResponse(f))
     }
 
     final def transformRequest[Request0](
@@ -71,7 +72,7 @@ object UnaryServerCodecs {
     )(implicit F: MonadThrowLike[F]): Make[F, Request0, Response] = new Make[F, Request0, Response] {
       def apply[I, E, O, SI, SO](
           schema: OperationSchema[I, E, O, SI, SO]
-      ): UnaryServerCodecs[F, Request0, Response, I, E, O] = self(schema).transformRequest(f)
+      ): Compilation[UnaryServerCodecs[F, Request0, Response, I, E, O]] = self(schema).map(_.transformRequest(f))
     }
   }
 

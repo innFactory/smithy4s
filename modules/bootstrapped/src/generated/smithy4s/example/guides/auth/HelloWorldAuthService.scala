@@ -20,7 +20,7 @@ trait HelloWorldAuthServiceGen[F[_, _, _, _, _]] {
   def sayWorld(): F[Unit, HelloWorldAuthServiceOperation.SayWorldError, World, Nothing, Nothing]
   def healthCheck(): F[Unit, HelloWorldAuthServiceOperation.HealthCheckError, HealthCheckOutput, Nothing, Nothing]
 
-  def transform: Transformation.PartiallyApplied[HelloWorldAuthServiceGen[F]] = Transformation.of[HelloWorldAuthServiceGen[F]](this)
+  final def transform: Transformation.PartiallyApplied[HelloWorldAuthServiceGen[F]] = Transformation.of[HelloWorldAuthServiceGen[F]](this)
 }
 
 object HelloWorldAuthServiceGen extends Service.Mixin[HelloWorldAuthServiceGen, HelloWorldAuthServiceOperation] {
@@ -159,7 +159,7 @@ object HelloWorldAuthServiceOperation {
       .withInput(unit)
       .withError(HealthCheckError.errorSchema)
       .withOutput(HealthCheckOutput.schema)
-      .withHints(smithy.api.Auth(Set()), smithy.api.Http(method = smithy.api.NonEmptyString("GET"), uri = smithy.api.NonEmptyString("/health"), code = 200), smithy.api.Readonly())
+      .withHints(smithy.api.Http(method = smithy.api.NonEmptyString("GET"), uri = smithy.api.NonEmptyString("/health"), code = 200), smithy.api.Readonly(), smithy.api.Auth(Set()))
     def wrap(input: Unit): HealthCheck = HealthCheck()
   }
   sealed trait HealthCheckError extends scala.Product with scala.Serializable { self =>

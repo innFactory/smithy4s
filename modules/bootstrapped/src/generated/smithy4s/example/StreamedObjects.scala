@@ -22,7 +22,7 @@ trait StreamedObjectsGen[F[_, _, _, _, _]] {
   /** This operation uses {@literal @}streaming on both the input (data) and the output (data) */
   def putAndGetStreamedObject(key: String): F[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob]
 
-  def transform: Transformation.PartiallyApplied[StreamedObjectsGen[F]] = Transformation.of[StreamedObjectsGen[F]](this)
+  final def transform: Transformation.PartiallyApplied[StreamedObjectsGen[F]] = Transformation.of[StreamedObjectsGen[F]](this)
 }
 
 object StreamedObjectsGen extends Service.Mixin[StreamedObjectsGen, StreamedObjectsOperation] {

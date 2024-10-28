@@ -19,25 +19,20 @@ package codecs
 
 import smithy4s.capability.instances.either._
 import smithy4s.schema.Primitive._
+import smithy4s.schema.Compiler
 
 import schema._
 
 object StringAndBlobCodecs {
 
-  object decoders extends CachedSchemaCompiler.Optional.Impl[BlobDecoder] {
-    def fromSchema[A](
-        schema: Schema[A],
-        cache: Cache
-    ): Option[BlobDecoder[A]] =
-      StringAndBlobReaderVisitor(schema)
+  object decoders extends Compiler.Optional[BlobDecoder] {
+    def apply[A](schema: Schema[A]): Compilation[Option[BlobDecoder[A]]] =
+      Compilation.pure(StringAndBlobReaderVisitor(schema))
   }
 
-  object encoders extends CachedSchemaCompiler.Optional.Impl[BlobEncoder] {
-    def fromSchema[A](
-        schema: Schema[A],
-        cache: Cache
-    ): Option[BlobEncoder[A]] =
-      StringAndBlobWriterVisitor(schema)
+  object encoders extends Compiler.Optional[BlobEncoder] {
+    def apply[A](schema: Schema[A]): Compilation[Option[BlobEncoder[A]]] =
+      Compilation.pure(StringAndBlobWriterVisitor(schema))
   }
 
   private type MaybeBlobDecoder[A] = Option[BlobDecoder[A]]

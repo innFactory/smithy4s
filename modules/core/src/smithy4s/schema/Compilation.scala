@@ -7,7 +7,7 @@ import smithy4s.Lazy
   *
   * This is essentially a specialised applicative
   */
-sealed trait Compilation[A] {
+sealed trait Compilation[+A] {
   def map[B](f: A => B): Compilation[B] = Compilation.Map(this, f)
 
   private[schema] def visit[C[_]](visitor: Compilation.Visitor[C]): C[A]
@@ -15,18 +15,36 @@ sealed trait Compilation[A] {
 
 // scalafmt: {maxColumn = 120}
 object Compilation {
+
   def pure[A](fa: A): Compilation[A] = Pure(fa)
+
   def cached[F[_], A](compiler: Compiler[F], schema: Schema[A]): Compilation[F[A]] = GetCached(compiler, schema)
+
   def recursive[F[_], A](compiler: Compiler[F], lazySchema: Lazy[Schema[A]])(
       make: (() => F[A]) => F[A]
   ): Compilation[F[A]] = Cyclic(compiler, lazySchema, make)
-  def traverse[F[_], A, B](list: List[A])(f: A => Compilation[B]): Compilation[List[B]] = Traverse(list, f)
 
-  def map2[F[_], A0, A1, Z](a0: Compilation[A0], a1: Compilation[A1])(f: (A0, A1) => Z): Compilation[Z] =
+  def traverse[A, B](list: List[A])(f: A => Compilation[B]): Compilation[List[B]] = Traverse(list, f)
+  def sequence[A](list: List[Compilation[A]]): Compilation[List[A]] = traverse(list)(identity)
+
+  def map2[A0, A1, Z](a0: Compilation[A0], a1: Compilation[A1])(f: (A0, A1) => Z): Compilation[Z] =
     traverse(List(a0, a1).asInstanceOf[List[Compilation[Any]]])(identity(_)).map { list =>
       f(list(0).asInstanceOf[A0], list(1).asInstanceOf[A1])
     }
 
+  def map3[A0, A1, A2, Z](a0: Compilation[A0], a1: Compilation[A1], a2: Compilation[A2])(
+      f: (A0, A1, A2) => Z
+  ): Compilation[Z] =
+    traverse(List(a0, a1, a2).asInstanceOf[List[Compilation[Any]]])(identity(_)).map { list =>
+      f(list(0).asInstanceOf[A0], list(1).asInstanceOf[A1], list(2).asInstanceOf[A2])
+    }
+
+  def map4[A0, A1, A2, A3, Z](a0: Compilation[A0], a1: Compilation[A1], a2: Compilation[A2], a3: Compilation[A3])(
+      f: (A0, A1, A2, A3) => Z
+  ): Compilation[Z] =
+    traverse(List(a0, a1, a2, a3).asInstanceOf[List[Compilation[Any]]])(identity(_)).map { list =>
+      f(list(0).asInstanceOf[A0], list(1).asInstanceOf[A1], list(2).asInstanceOf[A2], list(3).asInstanceOf[A3])
+    }
   private final case class Pure[A](a: A) extends Compilation[A] {
     private[schema] def visit[C[_]](visitor: Compilation.Visitor[C]): C[A] = visitor.pure(a)
   }

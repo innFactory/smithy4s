@@ -2,12 +2,16 @@ package smithy4s.schema
 
 import smithy4s.Lazy
 import smithy4s.kinds.OptionK
+import smithy4s.kinds.PolyFunction
 
 /** This is what the integrations provider have to implement. Unlike smithy4s 0.18, the algebra ensures that
   * cross-cutting concern (like caching and recursion) are not leaking into what the users is required to provide.
   */
-trait Compiler[F[_]] {
+trait Compiler[F[_]] { self =>
   def apply[A](fa: Schema[A]): Compilation[F[A]]
+  final def mapK[G[_]](fk: PolyFunction[F, G]): Compiler[G] = new Compiler[G] {
+    def apply[A](fa: Schema[A]): Compilation[G[A]] = self(fa).map(fk(_))
+  }
 
   final def compileFull[A](schema: Schema[A]): F[A] = {
     val (callMap, runtime) =
@@ -66,7 +70,7 @@ object Compiler {
 
     def traverse[F[_], A, B](list: List[A])(
         f: A => CompileTime[B]
-    ): CompileTime[List[B]] = ???
+    ): CompileTime[List[B]] = ??? // todo
   }
 
   private type Result[A] = CompileTime[Runtime[A]]

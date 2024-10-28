@@ -31,13 +31,13 @@ object HasKeywordUnionAdt extends ShapeTag.Companion[HasKeywordUnionAdt] {
     def $ordinal: Int = 0
   }
 
-  object Implicit extends ShapeTag.Companion[Implicit] {
+  object Implicit {
     val id: ShapeId = ShapeId("smithy4s.example.collision", "implicit")
 
     val hints: Hints = Hints.empty
 
 
-    implicit val schema: Schema[Implicit] = constant(Implicit()).withId(id).addHints(hints)
+    val schema: Schema[Implicit] = constant(Implicit()).withId(id).addHints(hints)
 
     val alt = schema.oneOf[HasKeywordUnionAdt]("one")
   }

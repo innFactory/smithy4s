@@ -100,51 +100,37 @@ object HttpRestSchema {
   ): Writer.CachedCompiler[Message] =
     new Writer.CachedCompiler[Message] {
 
-      type MetadataCache = metadataWriters.Cache
-      type BodyCache = bodyWriters.Cache
-      type Cache = (MetadataCache, BodyCache)
-      def createCache(): Cache = {
-        val mCache = metadataWriters.createCache()
-        val bCache = bodyWriters.createCache()
-        (mCache, bCache)
-      }
-      def fromSchema[A](schema: Schema[A]): Writer[Message, A] =
-        fromSchema(schema, createCache())
-
-      def fromSchema[A](
-          fullSchema: Schema[A],
-          cache: Cache
-      ): Writer[Message, A] = {
+      def apply[A](
+          fullSchema: Schema[A]
+      ): Compilation[Writer[Message, A]] = {
         val emptySchema =
           Schema.unit.withId(fullSchema.shapeId).addHints(fullSchema.hints)
         val emptyBodyEncoder =
-          bodyWriters.fromSchema(emptySchema).contramap((_: A) => ())
+          bodyWriters.apply(emptySchema).map(_.contramap((_: A) => ()))
         HttpRestSchema(fullSchema) match {
           case HttpRestSchema.OnlyMetadata(metadataSchema) =>
             // The data can be fully decoded from the metadata.
-            val metadataEncoder =
-              metadataWriters.fromSchema(metadataSchema, cache._1)
+            val metadataEncoder = metadataWriters(metadataSchema)
             if (writeEmptyStructs(fullSchema)) {
-              emptyBodyEncoder.combine(metadataEncoder)
+              Compilation.map2(emptyBodyEncoder, metadataEncoder)(_.combine(_))
             } else metadataEncoder
           case HttpRestSchema.OnlyBody(bodySchema) =>
             // The data can be fully decoded from the body
-            bodyWriters.fromSchema(bodySchema, cache._2)
+            bodyWriters(bodySchema)
           case HttpRestSchema.MetadataAndBody(metadataSchema, bodySchema) =>
             val metadataWriter =
-              metadataWriters
-                .fromSchema(metadataSchema, cache._1)
-                .contramap[A](PartialData.Total(_))
+              metadataWriters(metadataSchema).map(
+                _.contramap[A](PartialData.Total(_))
+              )
             val bodyWriter =
-              bodyWriters
-                .fromSchema(bodySchema, cache._2)
-                .contramap[A](PartialData.Total(_))
+              bodyWriters(bodySchema).map(_.contramap[A](PartialData.Total(_)))
             // The order matters here, as the metadata encoder might override headers
             // that would be set with body encoders (if a smithy member is annotated with
             // `@httpHeader("Content-Type")` for instance)
-            bodyWriter.combine(metadataWriter)
+            Compilation.map2(bodyWriter, metadataWriter)(_.combine(_))
           case HttpRestSchema.Empty(_) =>
-            if (writeEmptyStructs(fullSchema)) emptyBodyEncoder else Writer.noop
+            if (writeEmptyStructs(fullSchema)) emptyBodyEncoder
+            else Compilation.pure(Writer.noop)
           // format: on
         }
       }
@@ -159,47 +145,35 @@ object HttpRestSchema {
     */
   // scalafmt: {maxColumn = 120}
   def combineDecoderCompilers[F[_]: Zipper, Message](
-      metadataDecoderCompiler: CachedSchemaCompiler[Decoder[F, Message, *]],
-      bodyDecoderCompiler: CachedSchemaCompiler[Decoder[F, Message, *]],
+      metadataDecoderCompiler: Compiler[Decoder[F, Message, *]],
+      bodyDecoderCompiler: Compiler[Decoder[F, Message, *]],
       drainBody: Message => F[Unit]
-  ): CachedSchemaCompiler[Decoder[F, Message, *]] =
-    new CachedSchemaCompiler[Decoder[F, Message, *]] {
+  ): Compiler[Decoder[F, Message, *]] =
+    new Compiler[Decoder[F, Message, *]] {
       val zipper = Zipper[Decoder[F, Message, *]]
 
-      type MetadataCache = metadataDecoderCompiler.Cache
-      type BodyCache = bodyDecoderCompiler.Cache
-      type Cache = (MetadataCache, BodyCache)
-      def createCache(): Cache = {
-        val mCache = metadataDecoderCompiler.createCache()
-        val bCache = bodyDecoderCompiler.createCache()
-        (mCache, bCache)
-      }
-      def fromSchema[A](schema: Schema[A]) =
-        fromSchema(schema, createCache())
-
-      def fromSchema[A](fullSchema: Schema[A], cache: Cache) = {
+      def apply[A](fullSchema: Schema[A]) = {
         // writeEmptyStructs is not relevant for reading.
         HttpRestSchema(fullSchema) match {
           case HttpRestSchema.OnlyMetadata(metadataSchema) =>
             // The data can be fully decoded from the metadata,
             // but we still decoding Unit from the body to drain the message.
-            val metadataDecoder =
-              metadataDecoderCompiler.fromSchema(metadataSchema, cache._1)
             val bodyDrain = Decoder.lift(drainBody)
-            zipper.zipMap(bodyDrain, metadataDecoder) { case (_, data) => data }
+            metadataDecoderCompiler(metadataSchema).map { metadataDecoder =>
+              zipper.zipMap(bodyDrain, metadataDecoder) { case (_, data) => data }
+            }
           case HttpRestSchema.OnlyBody(bodySchema) =>
             // The data can be fully decoded from the body
-            bodyDecoderCompiler.fromSchema(bodySchema, cache._2)
+            bodyDecoderCompiler(bodySchema)
           case HttpRestSchema.MetadataAndBody(metadataSchema, bodySchema) =>
-            val metadataDecoder: Decoder[F, Message, PartialData[A]] =
-              metadataDecoderCompiler.fromSchema(metadataSchema, cache._1)
-            val bodyDecoder: Decoder[F, Message, PartialData[A]] =
-              bodyDecoderCompiler.fromSchema(bodySchema, cache._2)
-            zipper.zipMap(metadataDecoder, bodyDecoder)(
-              PartialData.unsafeReconcile(_, _)
-            )
+            Compilation.map2(metadataDecoderCompiler(metadataSchema), bodyDecoderCompiler(bodySchema)) {
+              (metadataDecoder, bodyDecoder) =>
+                zipper.zipMap(metadataDecoder, bodyDecoder)(
+                  PartialData.unsafeReconcile(_, _)
+                )
+            }
           case HttpRestSchema.Empty(value) =>
-            zipper.pure(value)
+            Compilation.pure(zipper.pure(value))
           // format: on
         }
       }

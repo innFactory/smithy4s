@@ -26,6 +26,8 @@ import smithy4s.kinds.PolyFunction5
 import smithy4s.schema.OperationSchema
 import smithy4s.schema.Compiler
 import smithy4s.schema.Compilation
+import smithy4s.codecs.Decoder
+import smithy4s.codecs.PayloadError
 
 // scalafmt: { maxColumn = 120 }
 object HttpUnaryClientCodecs {
@@ -142,13 +144,13 @@ object HttpUnaryClientCodecs {
         finalBodyEncoders.mapK(setBodyK)
       } else requestBodyEncoders.mapK(setBodyK)
 
-      val httpMediaWriter: CachedSchemaCompiler[HttpRequest.Writer[Blob, *]] =
+      val httpMediaWriter: Compiler[HttpRequest.Writer[Blob, *]] =
         Writer.combineCompilers(httpBodyWriters, mediaTypeWriters)
 
-      def responseDecoders(blobDecoders: BlobDecoder.Compiler) = {
-        val httpBodyDecoders: CachedSchemaCompiler[Decoder[F, Blob, *]] = {
-          val decoders: BlobDecoder.Compiler = if (rawStringsAndBlobPayloads) {
-            CachedSchemaCompiler.getOrElse(smithy4s.codecs.StringAndBlobCodecs.decoders, blobDecoders)
+      def responseDecoders(blobDecoders: Compiler[BlobDecoder]) = {
+        val httpBodyDecoders: Compiler[Decoder[F, Blob, *]] = {
+          val decoders: Compiler[BlobDecoder] = if (rawStringsAndBlobPayloads) {
+            Compiler.getOrElse(smithy4s.codecs.StringAndBlobCodecs.decoders, blobDecoders)
           } else blobDecoders
           decoders.mapK(
             Decoder
@@ -177,33 +179,35 @@ object HttpUnaryClientCodecs {
 
       new UnaryClientCodecs.Make[F, Request, Response] {
 
-        private val inputEncoderCache: inputEncoders.Cache = inputEncoders.createCache()
-        private val outputDecoderCache: outputDecoders.Cache = outputDecoders.createCache()
-
         def apply[I, E, O, SI, SO](
             originalEndpoint: OperationSchema[I, E, O, SI, SO]
-        ): UnaryClientCodecs[F, Request, Response, I, E, O] = {
+        ): Compilation[UnaryClientCodecs[F, Request, Response, I, E, O]] = {
           val endpoint = operationPreprocessor(originalEndpoint)
 
-          val inputWriter: HttpRequest.Writer[Blob, I] =
+          val compiledInputWriter: Compilation[HttpRequest.Writer[Blob, I]] =
             HttpEndpoint.cast(endpoint).toOption match {
               case Some(httpEndpoint) => {
                 val httpInputEncoder =
                   HttpRequest.Writer.fromHttpEndpoint[Blob, I](httpEndpoint)
-                val requestEncoder =
-                  inputEncoders.fromSchema(endpoint.input, inputEncoderCache)
-                httpInputEncoder.combine(requestEncoder)
+                inputEncoders(endpoint.input).map { requestEncoder =>
+                  httpInputEncoder.combine(requestEncoder)
+                }
               }
-              case None => inputEncoders.fromSchema(endpoint.input, inputEncoderCache)
+              case None => inputEncoders(endpoint.input)
             }
 
-          val prefixedInputWriter: HttpRequest.Writer[Blob, I] =
-            if (hostPrefixInjection) inputWriter.combine(HttpRequest.Writer.hostPrefix(endpoint)) else inputWriter
+          val compiledPrefixedInputWriter: Compilation[HttpRequest.Writer[Blob, I]] =
+            if (hostPrefixInjection) compiledInputWriter.map { inputWriter =>
+              inputWriter.combine(HttpRequest.Writer.hostPrefix(endpoint))
+            }
+            else compiledInputWriter
 
-          val inputEncoder = (i: I) => F.map(baseRequest(endpoint))(prefixedInputWriter.write(_, i))
+          val compiledInputEncoder = compiledPrefixedInputWriter.map { inputWriter => (i: I) =>
+            F.map(baseRequest(endpoint))(inputWriter.write(_, i))
+          }
 
-          val outputDecoder: HttpResponse.Decoder[F, Blob, O] =
-            outputDecoders.fromSchema(endpoint.output, outputDecoderCache)
+          val compiledOutputDecoder: Compilation[HttpResponse.Decoder[F, Blob, O]] =
+            outputDecoders(endpoint.output)
 
           def toStrict(blob: Blob): F[(Blob, Blob)] = F.pure((blob, blob))
 
@@ -214,11 +218,13 @@ object HttpUnaryClientCodecs {
               errorDiscriminator,
               toStrict
             )
-          new UnaryClientCodecs(inputEncoder, errorDecoder.decode, outputDecoder.decode)
-            .transformRequest[Request](requestTransformation)
-            .transformResponse[Response](responseTransformation)
-        }
 
+          Compilation.map2(compiledInputEncoder, compiledOutputDecoder) { (inputE, outputD) =>
+            new UnaryClientCodecs(inputE, errorDecoder.decode, outputD.decode)
+              .transformRequest[Request](requestTransformation)
+              .transformResponse[Response](responseTransformation)
+          }
+        }
       }
     }
   }

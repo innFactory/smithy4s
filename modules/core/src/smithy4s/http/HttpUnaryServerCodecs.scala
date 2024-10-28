@@ -23,9 +23,10 @@ import smithy4s.codecs.BlobEncoder
 import smithy4s.codecs.Decoder
 import smithy4s.codecs.PayloadError
 import smithy4s.codecs.Writer
-import smithy4s.schema.CachedSchemaCompiler
 import smithy4s.schema.OperationSchema
 import smithy4s.server.UnaryServerCodecs
+import smithy4s.schema.Compiler
+import smithy4s.schema.Compilation
 
 // scalafmt: {maxColumn = 120}
 object HttpUnaryServerCodecs {
@@ -33,9 +34,9 @@ object HttpUnaryServerCodecs {
   def builder[F[_]](implicit F: MonadThrowLike[F]): Builder[F, HttpRequest[Blob], HttpResponse[Blob]] =
     HttpUnaryClientCodecsBuilderImpl[F, HttpRequest[Blob], HttpResponse[Blob]](
       baseResponse = _ => F.raiseError(new Exception("Undefined base response")),
-      requestBodyDecoders = BlobDecoder.noop,
-      successResponseBodyEncoders = BlobEncoder.noop,
-      errorResponseBodyEncoders = BlobEncoder.noop,
+      requestBodyDecoders = Compiler.covariantStatic(BlobDecoder.noop),
+      successResponseBodyEncoders = Compiler.contravariantStatic(BlobEncoder.noop),
+      errorResponseBodyEncoders = Compiler.contravariantStatic(BlobEncoder.noop),
       metadataEncoders = None,
       metadataDecoders = None,
       rawStringsAndBlobPayloads = false,
@@ -48,9 +49,9 @@ object HttpUnaryServerCodecs {
 
   trait Builder[F[_], Request, Response] {
     def withBaseResponse(f: OperationSchema[_, _, _, _, _] => F[HttpResponse[Blob]]): Builder[F, Request, Response]
-    def withBodyDecoders(decoders: BlobDecoder.Compiler): Builder[F, Request, Response]
-    def withSuccessBodyEncoders(decoders: BlobEncoder.Compiler): Builder[F, Request, Response]
-    def withErrorBodyEncoders(encoders: BlobEncoder.Compiler): Builder[F, Request, Response]
+    def withBodyDecoders(decoders: Compiler[BlobDecoder]): Builder[F, Request, Response]
+    def withSuccessBodyEncoders(decoders: Compiler[BlobEncoder]): Builder[F, Request, Response]
+    def withErrorBodyEncoders(encoders: Compiler[BlobEncoder]): Builder[F, Request, Response]
     def withMetadataEncoders(encoders: Metadata.Encoder.Compiler): Builder[F, Request, Response]
     def withMetadataDecoders(decoders: Metadata.Decoder.Compiler): Builder[F, Request, Response]
     def withRawStringsAndBlobsPayloads: Builder[F, Request, Response]
@@ -64,9 +65,9 @@ object HttpUnaryServerCodecs {
 
   private case class HttpUnaryClientCodecsBuilderImpl[F[_], Request, Response](
       baseResponse: OperationSchema[_, _, _, _, _] => F[HttpResponse[Blob]],
-      requestBodyDecoders: BlobDecoder.Compiler,
-      successResponseBodyEncoders: BlobEncoder.Compiler,
-      errorResponseBodyEncoders: BlobEncoder.Compiler,
+      requestBodyDecoders: Compiler[BlobDecoder],
+      successResponseBodyEncoders: Compiler[BlobEncoder],
+      errorResponseBodyEncoders: Compiler[BlobEncoder],
       metadataEncoders: Option[Metadata.Encoder.Compiler],
       metadataDecoders: Option[Metadata.Decoder.Compiler],
       rawStringsAndBlobPayloads: Boolean,
@@ -80,11 +81,11 @@ object HttpUnaryServerCodecs {
 
     def withBaseResponse(f: OperationSchema[_, _, _, _, _] => F[HttpResponse[Blob]]): Builder[F, Request, Response] =
       copy(baseResponse = f)
-    def withBodyDecoders(decoders: BlobDecoder.Compiler): Builder[F, Request, Response] =
+    def withBodyDecoders(decoders: Compiler[BlobDecoder]): Builder[F, Request, Response] =
       copy(requestBodyDecoders = decoders)
-    def withSuccessBodyEncoders(encoders: BlobEncoder.Compiler): Builder[F, Request, Response] =
+    def withSuccessBodyEncoders(encoders: Compiler[BlobEncoder]): Builder[F, Request, Response] =
       copy(successResponseBodyEncoders = encoders)
-    def withErrorBodyEncoders(encoders: BlobEncoder.Compiler): Builder[F, Request, Response] =
+    def withErrorBodyEncoders(encoders: Compiler[BlobEncoder]): Builder[F, Request, Response] =
       copy(errorResponseBodyEncoders = encoders)
     def withMetadataEncoders(encoders: Metadata.Encoder.Compiler): Builder[F, Request, Response] =
       copy(metadataEncoders = Some(encoders))
@@ -108,27 +109,29 @@ object HttpUnaryServerCodecs {
       val setBody: HttpResponse.Writer[Blob, Blob] = Writer.lift((res, blob) => res.copy(body = blob))
       val setBodyK = smithy4s.codecs.Encoder.pipeToWriterK[HttpResponse[Blob], Blob](setBody)
 
-      val mediaTypeWriters = new CachedSchemaCompiler.Uncached[HttpResponse.Writer[Blob, *]] {
-        def fromSchema[A](schema: Schema[A]): HttpResponse.Writer[Blob, A] = {
+      val mediaTypeWriters = new Compiler[HttpResponse.Writer[Blob, *]] {
+        def apply[A](schema: Schema[A]): Compilation[HttpResponse.Writer[Blob, A]] = {
           val mt = if (rawStringsAndBlobPayloads) {
             HttpMediaType.fromSchema(schema).map(_.value).getOrElse(responseMediaType)
           } else responseMediaType
-          new HttpResponse.Writer[Blob, A] {
-            def write(request: HttpResponse[Blob], value: A): HttpResponse[Blob] =
-              if (request.body.isEmpty) request
-              else request.withContentType(mt)
+          Compilation.pure {
+            new HttpResponse.Writer[Blob, A] {
+              def write(request: HttpResponse[Blob], value: A): HttpResponse[Blob] =
+                if (request.body.isEmpty) request
+                else request.withContentType(mt)
+            }
           }
         }
       }
 
-      def responseEncoders(blobEncoders: BlobEncoder.Compiler) = {
-        val httpBodyWriters: CachedSchemaCompiler[HttpResponse.Writer[Blob, *]] = if (rawStringsAndBlobPayloads) {
-          val finalBodyEncoders = CachedSchemaCompiler
+      def responseEncoders(blobEncoders: Compiler[BlobEncoder]) = {
+        val httpBodyWriters: Compiler[HttpResponse.Writer[Blob, *]] = if (rawStringsAndBlobPayloads) {
+          val finalBodyEncoders = Compiler
             .getOrElse(smithy4s.codecs.StringAndBlobCodecs.encoders, successResponseBodyEncoders)
           finalBodyEncoders.mapK(setBodyK)
         } else successResponseBodyEncoders.mapK(setBodyK)
 
-        val httpMediaWriters: CachedSchemaCompiler[HttpResponse.Writer[Blob, *]] =
+        val httpMediaWriters: Compiler[HttpResponse.Writer[Blob, *]] =
           Writer.combineCompilers(httpBodyWriters, mediaTypeWriters)
 
         metadataEncoders match {
@@ -138,10 +141,10 @@ object HttpUnaryServerCodecs {
         }
       }
 
-      val inputDecoders: CachedSchemaCompiler[HttpRequest.Decoder[F, Blob, *]] = {
-        val httpBodyDecoders: CachedSchemaCompiler[Decoder[F, Blob, *]] = {
-          val decoders: BlobDecoder.Compiler = if (rawStringsAndBlobPayloads) {
-            CachedSchemaCompiler
+      val inputDecoders: Compiler[HttpRequest.Decoder[F, Blob, *]] = {
+        val httpBodyDecoders: Compiler[Decoder[F, Blob, *]] = {
+          val decoders: Compiler[BlobDecoder] = if (rawStringsAndBlobPayloads) {
+            Compiler
               .getOrElse(smithy4s.codecs.StringAndBlobCodecs.decoders, requestBodyDecoders)
           } else requestBodyDecoders
           decoders.mapK(
@@ -163,17 +166,14 @@ object HttpUnaryServerCodecs {
 
       val outputEncoders = responseEncoders(successResponseBodyEncoders)
       val errorEncoders = responseEncoders(errorResponseBodyEncoders)
-      val httpContractErrorWriters = errorEncoders.fromSchema(HttpContractError.schema)
+      val compiledHttpContractErrorWriters = errorEncoders(HttpContractError.schema)
 
       new UnaryServerCodecs.Make[F, Request, Response] {
 
-        private val inputDecoderCache: inputDecoders.Cache = inputDecoders.createCache()
-        private val outputEncoderCache: outputEncoders.Cache = outputEncoders.createCache()
-
         def apply[I, E, O, SI, SO](
             endpoint: OperationSchema[I, E, O, SI, SO]
-        ): UnaryServerCodecs[F, Request, Response, I, E, O] = {
-          val outputW = endpoint.hints.get(smithy.api.Http) match {
+        ): Compilation[UnaryServerCodecs[F, Request, Response, I, E, O]] = {
+          val compiledOutputWriter = endpoint.hints.get(smithy.api.Http) match {
             case Some(http) =>
               val preProcess: HttpResponse[Blob] => HttpResponse[Blob] =
                 _.withStatusCode(http.code)
@@ -182,30 +182,34 @@ object HttpUnaryServerCodecs {
                 if (http.code == 204 || http.method.value.toLowerCase == "head")
                   _.withBody(Blob.empty)
                 else identity
-              outputEncoders
-                .fromSchema(endpoint.output, outputEncoderCache)
-                .compose(preProcess)
-                .andThen(postProcessResponse)
-            case None => outputEncoders.fromSchema(endpoint.output, outputEncoderCache)
+              outputEncoders(endpoint.output).map(_.compose(preProcess).andThen(postProcessResponse))
+            case None => outputEncoders(endpoint.output)
           }
-          val errorW = HttpResponse.Encoder.forError(errorTypeHeaders, endpoint.error, errorEncoders)
-          val inputDecoder: HttpRequest.Decoder[F, Blob, I] =
-            inputDecoders.fromSchema(endpoint.input, inputDecoderCache)
+          val compiledErrorWriter =
+            Compilation.pure(HttpResponse.Encoder.forError(errorTypeHeaders, endpoint.error, errorEncoders))
+          val compiledInputDecoder: Compilation[HttpRequest.Decoder[F, Blob, I]] = inputDecoders(endpoint.input)
           val base = baseResponse(endpoint)
 
-          def encodeOutput(o: O) = F.map(base)(outputW.write(_, o))
-          def encodeError(e: E) = F.map(base)(errorW.write(_, e))
-          def httpContractErrorEncoder(e: HttpContractError) =
-            F.map(base)(httpContractErrorWriters.write(_, e).withStatusCode(400))
-          def throwableEncoders(throwable: Throwable): F[HttpResponse[Blob]] =
-            throwable match {
-              case e: HttpContractError => httpContractErrorEncoder(e)
-              case e                    => F.raiseError(e)
-            }
+          Compilation.map4(
+            compiledInputDecoder,
+            compiledErrorWriter,
+            compiledHttpContractErrorWriters,
+            compiledOutputWriter
+          ) { (inputDecoder, errorW, httpContractErrorW, outputW) =>
+            def httpContractErrorEncoder(e: HttpContractError) =
+              F.map(base)(httpContractErrorW.write(_, e).withStatusCode(400))
+            def throwableEncoders(throwable: Throwable): F[HttpResponse[Blob]] =
+              throwable match {
+                case e: HttpContractError => httpContractErrorEncoder(e)
+                case e                    => F.raiseError(e)
+              }
+            def encodeOutput(o: O) = F.map(base)(outputW.write(_, o))
+            def encodeError(e: E) = F.map(base)(errorW.write(_, e))
+            new UnaryServerCodecs(inputDecoder.decode, encodeError, throwableEncoders, encodeOutput)
+              .transformRequest(requestTransformation)
+              .transformResponse(responseTransformation)
+          }
 
-          new UnaryServerCodecs(inputDecoder.decode, encodeError, throwableEncoders, encodeOutput)
-            .transformRequest(requestTransformation)
-            .transformResponse(responseTransformation)
         }
 
       }

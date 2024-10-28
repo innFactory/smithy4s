@@ -75,23 +75,19 @@ trait Writer[Message, -A] { self =>
 object Writer {
 
   def combineCompilers[Message](
-      left: CachedSchemaCompiler[Writer[Message, *]],
-      right: CachedSchemaCompiler[Writer[Message, *]]
-  ): CachedSchemaCompiler[Writer[Message, *]] = new CachedSchemaCompiler[Writer[Message, *]] {
+      left: Compiler[Writer[Message, *]],
+      right: Compiler[Writer[Message, *]]
+  ): Compiler[Writer[Message, *]] = new Compiler[Writer[Message, *]] {
 
-    type Cache = (left.Cache, right.Cache)
-    def createCache(): Cache = (left.createCache(), right.createCache())
-    def fromSchema[A](schema: Schema[A]): Writer[Message, A] =
-      fromSchema(schema, createCache())
-    def fromSchema[A](schema: Schema[A], cache: Cache): Writer[Message, A] = {
-      val first: Writer[Message, A] = left.fromSchema(schema, cache._1)
-      val second: Writer[Message, A] = right.fromSchema(schema, cache._2)
-      first.combine(second)
+    def apply[A](schema: Schema[A]): Compilation[Writer[Message, A]] = {
+      val first: Compilation[Writer[Message, A]] = left(schema)
+      val second: Compilation[Writer[Message, A]] = right(schema)
+      Compilation.map2(first, second)(_.combine(_))
     }
 
   }
 
-  type CachedCompiler[Message] = CachedSchemaCompiler[Writer[Message, *]]
+  type CachedCompiler[Message] = Compiler[Writer[Message, *]]
 
   /**
     * Creates an writer from a function.

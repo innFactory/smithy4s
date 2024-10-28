@@ -22,6 +22,7 @@ import smithy4s.kinds._
 import smithy4s.server.UnaryServerCodecs
 
 import scala.annotation.nowarn
+import smithy4s.schema.Compilation
 
 // scalafmt: {maxColumn = 120}
 object HttpUnaryServerRouter {
@@ -39,7 +40,7 @@ object HttpUnaryServerRouter {
       getMethod: Request => HttpMethod,
       getUri: Request => HttpUri,
       addDecodedPathParams: (Request, PathParams) => Request
-  )(implicit F: MonadThrowLike[F]): Request => Option[F[Response]] = {
+  )(implicit F: MonadThrowLike[F]): Compilation[Request => Option[F[Response]]] = {
     new KleisliRouter[Alg, service.Operation, F, Request, Response](
       service,
       service.toPolyFunction[smithy4s.kinds.Kind1[F]#toKind5](impl),
@@ -48,7 +49,7 @@ object HttpUnaryServerRouter {
       getMethod,
       getUri,
       addDecodedPathParams
-    )
+    ).compile
   }
 
   /**
@@ -64,7 +65,7 @@ object HttpUnaryServerRouter {
       getMethod: RequestHead => HttpMethod,
       getUri: RequestHead => HttpUri,
       addDecodedPathParams: (Request, PathParams) => Request
-  )(implicit F: MonadThrowLike[F]): PartialFunction[RequestHead, Request => F[Response]] = {
+  )(implicit F: MonadThrowLike[F]): Compilation[PartialFunction[RequestHead, Request => F[Response]]] = {
     new PartialFunctionRouter[Alg, service.Operation, F, RequestHead, Request, Response](
       service,
       service.toPolyFunction[smithy4s.kinds.Kind1[F]#toKind5](impl),
@@ -73,7 +74,7 @@ object HttpUnaryServerRouter {
       getMethod,
       getUri,
       addDecodedPathParams
-    )
+    ).compile
   }
 
   private class KleisliRouter[Alg[_[_, _, _, _, _]], Op[_, _, _, _, _], F[_], Request, Response](
@@ -93,48 +94,52 @@ object HttpUnaryServerRouter {
         handler: Request => F[Response]
     )
 
-    def apply(request: Request): Option[F[Response]] = {
-      val method = getMethod(request)
-      val path = getUri(request).path
-      perMethodEndpoint.get(method) match {
-        case Some(httpUnaryEndpoints) =>
-          val maybeMatched =
-            httpUnaryEndpoints.iterator
-              .map(ep => (ep.handler, ep.httpEndpoint.matches(path)))
-              .find(_._2.isDefined)
-          maybeMatched.flatMap {
-            case (handler, Some(pathParams)) =>
-              val amendedRequest = addDecodedPathParams(request, pathParams)
-              Some(handler(amendedRequest))
-            case (_, None) => None
-          }
+    def compile: Compilation[Request => Option[F[Response]]] = compiledPerMethodEndpoints.map {
+      perMethodEndpoint => (request: Request) =>
+        val method = getMethod(request)
+        val path = getUri(request).path
+        perMethodEndpoint.get(method) match {
+          case Some(httpUnaryEndpoints) =>
+            val maybeMatched =
+              httpUnaryEndpoints.iterator
+                .map(ep => (ep.handler, ep.httpEndpoint.matches(path)))
+                .find(_._2.isDefined)
+            maybeMatched.flatMap {
+              case (handler, Some(pathParams)) =>
+                val amendedRequest = addDecodedPathParams(request, pathParams)
+                Some(handler(amendedRequest))
+              case (_, None) => None
+            }
 
-        case None => None
-      }
-
+          case None => None
+        }
     }
 
     private def makeHttpEndpointHandler[I, E, O, SI, SO](
         endpoint: service.Endpoint[I, E, O, SI, SO]
-    ): Either[HttpEndpoint.HttpEndpointError, HttpEndpointHandler] = {
+    ): Either[HttpEndpoint.HttpEndpointError, Compilation[HttpEndpointHandler]] = {
       HttpEndpoint.cast(endpoint.schema).map { httpEndpoint =>
-        val handler = smithy4s.server.UnaryServerEndpoint(
-          impl,
-          endpoint,
-          makeServerCodecs(endpoint.schema),
-          endpointMiddleware.prepare(service)(endpoint)
-        )
-        HttpEndpointHandler(httpEndpoint, handler)
+        makeServerCodecs(endpoint.schema).map { serverCodecs =>
+          val handler = smithy4s.server.UnaryServerEndpoint(
+            impl,
+            endpoint,
+            serverCodecs,
+            endpointMiddleware.prepare(service)(endpoint)
+          )
+          HttpEndpointHandler(httpEndpoint, handler)
+        }
       }
     }
 
-    private val httpEndpointHandlers: List[HttpEndpointHandler] =
-      service.endpoints.toList
-        .map { makeHttpEndpointHandler(_) }
-        .collect { case Right(endpointWrapper) => endpointWrapper }
+    private val httpEndpointHandlers: Compilation[List[HttpEndpointHandler]] =
+      Compilation.sequence {
+        service.endpoints.toList
+          .map { makeHttpEndpointHandler(_) }
+          .collect { case Right(endpointWrapper) => endpointWrapper }
+      }
 
-    private val perMethodEndpoint: Map[HttpMethod, List[HttpEndpointHandler]] =
-      httpEndpointHandlers.groupBy(_.httpEndpoint.method)
+    private val compiledPerMethodEndpoints: Compilation[Map[HttpMethod, List[HttpEndpointHandler]]] =
+      httpEndpointHandlers.map(_.groupBy(_.httpEndpoint.method))
 
   }
 
@@ -147,8 +152,7 @@ object HttpUnaryServerRouter {
       getMethod: RequestHead => HttpMethod,
       getUri: RequestHead => HttpUri,
       addDecodedPathParams: (Request, PathParams) => Request
-  )(implicit F: MonadThrowLike[F])
-      extends PartialFunction[RequestHead, Request => F[Response]] {
+  )(implicit F: MonadThrowLike[F]) {
 
     @nowarn
     private final case class HttpEndpointHandler(
@@ -156,47 +160,56 @@ object HttpUnaryServerRouter {
         handler: Request => F[Response]
     )
 
-    def isDefinedAt(requestHead: RequestHead): Boolean = {
-      val method = getMethod(requestHead)
-      val pathSegments = getUri(requestHead).path
-      perMethodEndpoint.get(method).exists { httpUnaryEndpoints =>
-        httpUnaryEndpoints.iterator.exists(_.httpEndpoint.matches(pathSegments).isDefined)
-      }
-    }
+    def compile: Compilation[PartialFunction[RequestHead, Request => F[Response]]] =
+      compiledPerMethodEndpoints.map { perMethodEndpoint =>
+        new PartialFunction[RequestHead, Request => F[Response]] {
+          def isDefinedAt(requestHead: RequestHead): Boolean = {
+            val method = getMethod(requestHead)
+            val pathSegments = getUri(requestHead).path
+            perMethodEndpoint.get(method).exists { httpUnaryEndpoints =>
+              httpUnaryEndpoints.iterator.exists(_.httpEndpoint.matches(pathSegments).isDefined)
+            }
+          }
 
-    def apply(requestHead: RequestHead): Request => F[Response] = {
-      val method = getMethod(requestHead)
-      val pathSegments = getUri(requestHead).path
-      val httpUnaryEndpoints = perMethodEndpoint(method)
-      httpUnaryEndpoints.iterator
-        .map(ep => (ep.handler, ep.httpEndpoint.matches(pathSegments)))
-        .collectFirst { case (handler, Some(pathParams)) =>
-          (request: Request) => handler(addDecodedPathParams(request, pathParams))
+          def apply(requestHead: RequestHead): Request => F[Response] = {
+            val method = getMethod(requestHead)
+            val pathSegments = getUri(requestHead).path
+            val httpUnaryEndpoints = perMethodEndpoint(method)
+            httpUnaryEndpoints.iterator
+              .map(ep => (ep.handler, ep.httpEndpoint.matches(pathSegments)))
+              .collectFirst { case (handler, Some(pathParams)) =>
+                (request: Request) => handler(addDecodedPathParams(request, pathParams))
+              }
+              .get
+          }
         }
-        .get
-    }
+      }
 
     private def makeHttpEndpointHandler[I, E, O, SI, SO](
         endpoint: service.Endpoint[I, E, O, SI, SO]
-    ): Either[HttpEndpoint.HttpEndpointError, HttpEndpointHandler] = {
+    ): Either[HttpEndpoint.HttpEndpointError, Compilation[HttpEndpointHandler]] = {
       HttpEndpoint.cast(endpoint.schema).map { httpEndpoint =>
-        val handler = smithy4s.server.UnaryServerEndpoint(
-          impl,
-          endpoint,
-          makeServerCodecs(endpoint.schema),
-          endpointMiddleware.prepare(service)(endpoint)
-        )
-        HttpEndpointHandler(httpEndpoint, handler)
+        makeServerCodecs(endpoint.schema).map { serverCodecs =>
+          val handler = smithy4s.server.UnaryServerEndpoint(
+            impl,
+            endpoint,
+            serverCodecs,
+            endpointMiddleware.prepare(service)(endpoint)
+          )
+          HttpEndpointHandler(httpEndpoint, handler)
+        }
       }
     }
 
-    private val httpEndpointHandlers: List[HttpEndpointHandler] =
-      service.endpoints.toList
-        .map { makeHttpEndpointHandler(_) }
-        .collect { case Right(endpointWrapper) => endpointWrapper }
+    private val httpEndpointHandlers: Compilation[List[HttpEndpointHandler]] =
+      Compilation.sequence {
+        service.endpoints.toList
+          .map { makeHttpEndpointHandler(_) }
+          .collect { case Right(endpointWrapper) => endpointWrapper }
+      }
 
-    private val perMethodEndpoint: Map[HttpMethod, List[HttpEndpointHandler]] =
-      httpEndpointHandlers.groupBy(_.httpEndpoint.method)
+    private val compiledPerMethodEndpoints: Compilation[Map[HttpMethod, List[HttpEndpointHandler]]] =
+      httpEndpointHandlers.map(_.groupBy(_.httpEndpoint.method))
 
   }
 

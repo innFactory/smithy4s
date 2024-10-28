@@ -24,6 +24,22 @@ Previously they'd be named after the **member target**, now they will use the na
 ## Made `EncoderK`'s second type parameter a type member in [#1519](https://github.com/disneystreaming/smithy4s/pull/1519)
 
 There's usually only one instance of `EncoderK[F, A]` for a particular `F[_]`, and interpreters don't need to know what `A` is. For convenience, the type parameter has been moved to a type member.
+# 0.18.26
+
+* Optimises the conversion of empty smithy4s.Blob to fs2.Stream, to avoid performance degradation in Ember (see [#1609](https://github.com/disneystreaming/smithy4s/pull/1609))
+* Adds utility types for working with endpoint handlers (see [#1612](https://github.com/disneystreaming/smithy4s/pull/1612))
+* Add a more informative error message for repeated namespaces (see [#1608](https://github.com/disneystreaming/smithy4s/pull/1608)).
+* Adds `com.disneystreaming.smithy4s:smithy4s-protocol` dependency to the generation of `smithy-build.json` in the `smithy4sUpdateLSPConfig` tasks of the codegen plugins (see [#1610](https://github.com/disneystreaming/smithy4s/pull/1610)).
+
+# 0.18.25
+
+* Add A flag to allow for numerics to be decoded from JSON strings (in smithy4s-json).
+* Fixes issues in which applications of some Smithy traits would be incorrectly rendered in Scala code (see [#1602](https://github.com/disneystreaming/smithy4s/pull/1602)).
+* Fixes an issue in which refinements wouldn't work on custom simple shapes (newtypes) (see [#1595](https://github.com/disneystreaming/smithy4s/pull/1595))
+* Fixes a regression from 0.18.4 which incorrectly rendered default values for certain types (see [#1593](https://github.com/disneystreaming/smithy4s/pull/1593))
+* Fixes an issue in which union members targetting Unit would fail to compile when used as traits (see [#1600](https://github.com/disneystreaming/smithy4s/pull/1600)).
+* Make the `transform` method in generated `*Gen` algebras final. This should make it possible to derive e.g. `FunctorK` instances in cats-tagless automatically (see [#1588](https://github.com/disneystreaming/smithy4s/pull/1588)).
+* Fixes commons.toKebabCase() sometimes drops the first letter (see [#1603](https://github.com/disneystreaming/smithy4s/pull/1603)).
 
 # 0.18.24
 

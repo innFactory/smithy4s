@@ -172,7 +172,7 @@ object Metadata {
     Decoder.derivedImplicitInstance
 
   object Decoder extends CachedDecoderCompilerImpl(awsHeaderEncoding = false) {
-    type Compiler = CachedSchemaCompiler[Decoder]
+    type Compiler = smithy4s.schema.Compiler[Decoder]
   }
 
   private[smithy4s] object AwsDecoder
@@ -220,7 +220,7 @@ object Metadata {
         awsHeaderEncoding = false,
         explicitDefaultsEncoding = false
       ) {
-    type Compiler = CachedSchemaCompiler[Encoder]
+    type Compiler = smithy4s.schema.Compiler[Encoder]
   }
 
   private[smithy4s] object AwsEncoder

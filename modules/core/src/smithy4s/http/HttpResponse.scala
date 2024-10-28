@@ -22,9 +22,9 @@ import smithy4s.codecs.Writer
 import smithy4s.codecs.{Decoder => GenericDecoder}
 import smithy4s.kinds.PolyFunction
 import smithy4s.schema.Alt
-import smithy4s.schema.CachedSchemaCompiler
 import smithy4s.schema.ErrorSchema
 import smithy4s.schema.Schema
+import smithy4s.schema.Compiler
 
 final case class HttpResponse[+A](
     statusCode: Int,
@@ -88,10 +88,10 @@ object HttpResponse {
     }
 
     private[http] def restSchemaCompiler[Body](
-        metadataEncoders: CachedSchemaCompiler[Metadata.Encoder],
-        bodyEncoders: CachedSchemaCompiler[Writer[Body, *]],
+        metadataEncoders: Compiler[Metadata.Encoder],
+        bodyEncoders: Compiler[Writer[Body, *]],
         writeEmptyStructs: Schema[_] => Boolean
-    ): CachedSchemaCompiler[Writer[Body, *]] = {
+    ): Compiler[Writer[Body, *]] = {
       val metadataCompiler = metadataEncoders.mapK(
         smithy4s.codecs.Encoder.pipeToWriterK(metadataWriter[Body])
       )
@@ -105,7 +105,7 @@ object HttpResponse {
     private[http] def forError[Body, E](
         errorTypeHeaders: List[String],
         maybeErrorable: Option[ErrorSchema[E]],
-        encoderCompiler: CachedSchemaCompiler[Writer[Body, *]]
+        encoderCompiler: Compiler[Writer[Body, *]]
     ): Writer[Body, E] = maybeErrorable match {
       case Some(errorschema) =>
         forErrorAux(errorTypeHeaders, errorschema, encoderCompiler)
@@ -126,7 +126,7 @@ object HttpResponse {
     private def forErrorAux[Body, E](
         errorTypeHeaders: List[String],
         errorSchema: ErrorSchema[E],
-        encoderCompiler: CachedSchemaCompiler[Writer[Body, *]]
+        encoderCompiler: Compiler[Writer[Body, *]]
     ): Writer[Body, E] = {
       val dispatcher =
         Alt.Dispatcher(errorSchema.alternatives, errorSchema.ordinal)
@@ -135,11 +135,7 @@ object HttpResponse {
             label: String,
             errorSchema: Schema[Err]
         ): Writer[Body, Err] = new Writer[Body, Err] {
-          val errorEncoder =
-            encoderCompiler.fromSchema(
-              errorSchema,
-              encoderCompiler.createCache()
-            )
+          val errorEncoder = encoderCompiler.compileFull(errorSchema)
           def write(
               response: HttpResponse[Body],
               err: Err
@@ -164,10 +160,10 @@ object HttpResponse {
   private[http] object Decoder {
 
     def restSchemaCompiler[F[_]: MonadThrowLike, Body](
-        metadataDecoderCompiler: CachedSchemaCompiler[Metadata.Decoder],
-        bodyDecoderCompiler: CachedSchemaCompiler[GenericDecoder[F, Body, *]],
+        metadataDecoderCompiler: Compiler[Metadata.Decoder],
+        bodyDecoderCompiler: Compiler[GenericDecoder[F, Body, *]],
         drainBody: Option[HttpResponse[Body] => F[Unit]]
-    ): CachedSchemaCompiler[Decoder[F, Body, *]] =
+    ): Compiler[Decoder[F, Body, *]] =
       restSchemaCompilerAux(
         metadataDecoderCompiler,
         bodyDecoderCompiler.mapK { extractBody[F, Body] },
@@ -175,13 +171,13 @@ object HttpResponse {
       )
 
     private[smithy4s] def restSchemaCompilerAux[F[_]: MonadThrowLike, Body](
-        metadataDecoderCompiler: CachedSchemaCompiler[Metadata.Decoder],
-        responseDecoders: CachedSchemaCompiler[Decoder[F, Body, *]],
+        metadataDecoderCompiler: Compiler[Metadata.Decoder],
+        responseDecoders: Compiler[Decoder[F, Body, *]],
         drainBody: HttpResponse[Body] => F[Unit]
-    ): CachedSchemaCompiler[Decoder[F, Body, *]] = {
-      val restMetadataCompiler: CachedSchemaCompiler[Decoder[F, Body, *]] =
+    ): Compiler[Decoder[F, Body, *]] = {
+      val restMetadataCompiler: Compiler[Decoder[F, Body, *]] =
         metadataDecoderCompiler.mapK(
-          extractMetadata[F](MonadThrowLike.liftEitherK[F, MetadataError])
+          extractMetadata[F, Body](MonadThrowLike.liftEitherK[F, MetadataError])
         )
 
       HttpRestSchema.combineDecoderCompilers[F, HttpResponse[Body]](
@@ -197,7 +193,7 @@ object HttpResponse {
     */
     private[http] def forError[F[_]: MonadThrowLike, Body, E](
         maybeErrorSchema: Option[ErrorSchema[E]],
-        decoderCompiler: CachedSchemaCompiler[Decoder[F, Body, *]],
+        decoderCompiler: Compiler[Decoder[F, Body, *]],
         discriminate: HttpResponse[Body] => F[HttpDiscriminator],
         toStrict: Body => F[(Body, Blob)]
     ): Decoder[F, Body, E] =
@@ -214,7 +210,7 @@ object HttpResponse {
     */
     private[http] def forErrorAsThrowable[F[_]: MonadThrowLike, Body, E](
         maybeErrorSchema: Option[ErrorSchema[E]],
-        decoderCompiler: CachedSchemaCompiler[Decoder[F, Body, *]],
+        decoderCompiler: Compiler[Decoder[F, Body, *]],
         discriminate: HttpResponse[Body] => F[HttpDiscriminator],
         toStrict: Body => F[(Body, Blob)]
     ): Decoder[F, Body, Throwable] =
@@ -256,13 +252,13 @@ object HttpResponse {
 
   }
 
-  private def extractMetadata[F[_]](
+  private def extractMetadata[F[_], Body](
       liftToF: PolyFunction[Either[MetadataError, *], F]
-  ): PolyFunction[Metadata.Decoder, Decoder[F, Any, *]] =
+  ): PolyFunction[Metadata.Decoder, Decoder[F, Body, *]] =
     GenericDecoder
       .in[Either[MetadataError, *]]
-      .composeK((_: HttpResponse[Any]).toMetadata)
-      .andThen(GenericDecoder.of[HttpResponse[Any]].liftPolyFunction(liftToF))
+      .composeK((_: HttpResponse[Body]).toMetadata)
+      .andThen(GenericDecoder.of[HttpResponse[Body]].liftPolyFunction(liftToF))
 
   private[smithy4s] def extractBody[F[_], Body]
       : PolyFunction[GenericDecoder[F, Body, *], Decoder[F, Body, *]] =
