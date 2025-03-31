@@ -17,7 +17,6 @@
 package smithy4s
 package internals
 
-import alloy.Untagged
 import smithy.api.JsonName
 import smithy.api.TimestampFormat
 import smithy.api.TimestampFormat.DATE_TIME
