@@ -62,6 +62,13 @@ operation Option {
     }
 }
 
+@smithy4s.meta#adt
+union HasKeywordUnionAdt {
+    one: implicit
+}
+
+structure implicit {}
+
 string String
 
 structure TestReservedNamespaceImport {

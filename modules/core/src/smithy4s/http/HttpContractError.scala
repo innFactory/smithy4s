@@ -17,12 +17,11 @@
 package smithy4s
 package http
 
-import smithy4s.schema._
-import smithy4s.schema.Schema._
-import smithy4s.codecs.PayloadError
-import smithy4s.codecs.PayloadPath
 import smithy4s.capability.MonadThrowLike
+import smithy4s.codecs.{PayloadError, PayloadPath}
 import smithy4s.kinds.PolyFunction
+import smithy4s.schema.Schema._
+import smithy4s.schema._
 
 sealed trait HttpContractError
     extends Throwable
