@@ -357,7 +357,7 @@ private[internals] object Hint {
   case class Deprecated(message: Option[String], since: Option[String])
       extends Hint
   // traits that get rendered generically
-  case class Native(typedNode: Fix[TypedNode]) extends Hint
+  case class Native(shapeId: ShapeId, typedNode: Fix[TypedNode]) extends Hint
   case object IntEnum extends Hint
   case object OpenEnum extends Hint
 
