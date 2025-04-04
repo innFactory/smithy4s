@@ -416,7 +416,7 @@ lazy val codegen = projectMatrix
       "alloyOrg" -> Dependencies.Alloy.org,
       "alloyVersion" -> Dependencies.Alloy.alloyVersion,
       "smithy4sOrg" -> organization.value,
-      "protocolArtifactName" -> "smithy4s-protocol",
+      "protocolArtifactName" -> "smithy4s-protocol"
     ),
     buildInfoPackage := "smithy4s.codegen",
     libraryDependencies ++= Seq(
@@ -442,7 +442,10 @@ lazy val codegen = projectMatrix
       sourceManaged
         .map(AwsBoilerplate.generate(_))
         .taskValue,
-    }
+    },
+    (Compile / compile) := (Compile / compile)
+      .dependsOn((protocol.jvm(autoScalaLibrary = false) / publishLocal))
+      .value
   )
 
 /**
@@ -499,7 +502,7 @@ lazy val codegenPlugin = (projectMatrix in file("modules/codegen-plugin"))
 
         // for sbt
         (codegen.jvm(Scala212) / publishLocal).value,
-        (protocol.jvm(autoScalaLibrary = false) / publishLocal).value
+        (protocolJvm / publishLocal).value
       )
       publishLocal.value
     },
@@ -540,7 +543,7 @@ lazy val millCodegenPlugin = projectMatrix
         (codegen.jvm(Scala213) / publishLocal).value,
 
         // for mill
-        (protocol.jvm(autoScalaLibrary = false) / publishLocal).value
+        (protocolJvm / publishLocal).value
       )
       publishLocal.value
     },
@@ -593,6 +596,8 @@ lazy val protocol = projectMatrix
     libraryDependencies += Dependencies.Smithy.model,
     javacOptions ++= Seq("--release", "8")
   )
+
+lazy val protocolJvm = protocol.jvm(autoScalaLibrary = false)
 
 lazy val protocolTests = projectMatrix
   .in(file("modules/protocol-tests"))
