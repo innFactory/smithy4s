@@ -260,15 +260,20 @@ private[codegen] class SmithyToIR(
           .asScala
           .toList
           .map(mem => model.expectShape(mem.getTarget))
+
         val mixins: List[Set[ShapeId]] = memberTargets
-          .map(targetShape =>
-            targetShape.getMixins.asScala.toSet
+          .map { targetShape =>
+            def allMixinsOf(s: Shape): Set[ShapeId] =
+              s.getMixins.asScala.toSet[ShapeId].flatMap { m =>
+                allMixinsOf(model.expectShape(m)) + m
+              }
+
+            allMixinsOf(targetShape)
               .filter(mixinId => doFieldsMatch(mixinId, targetShape.fields))
-          )
+          }
 
-        val union = mixins.foldLeft(Set.empty[ShapeId])(_ union _)
-
-        val result = mixins.foldLeft(union)(_ intersect _)
+        val result =
+          if (mixins.isEmpty) Set.empty else mixins.reduce(_ intersect _)
 
         result.toList
       }
