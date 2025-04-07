@@ -2,6 +2,7 @@ import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core.MissingClassProblem
 import com.typesafe.tools.mima.core.IncompatibleResultTypeProblem
 import com.typesafe.tools.mima.core.IncompatibleMethTypeProblem
+import com.typesafe.tools.mima.core.DirectMissingMethodProblem
 import _root_.java.util.stream.Collectors
 import java.nio.file.Files
 import sbt.internal.IvyConsole
@@ -256,6 +257,12 @@ lazy val core = projectMatrix
       ),
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "smithy.api.TraitDiffRule.apply$default$2"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "smithy4s.http.HttpUnaryServerRouter#KleisliRouter.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "smithy4s.http.HttpUnaryServerRouter#PartialFunctionRouter.this"
       )
     )
   )
@@ -409,7 +416,7 @@ lazy val codegen = projectMatrix
       "alloyOrg" -> Dependencies.Alloy.org,
       "alloyVersion" -> Dependencies.Alloy.alloyVersion,
       "smithy4sOrg" -> organization.value,
-      "protocolArtifactName" -> "smithy4s-protocol",
+      "protocolArtifactName" -> "smithy4s-protocol"
     ),
     buildInfoPackage := "smithy4s.codegen",
     libraryDependencies ++= Seq(
@@ -435,7 +442,10 @@ lazy val codegen = projectMatrix
       sourceManaged
         .map(AwsBoilerplate.generate(_))
         .taskValue,
-    }
+    },
+    (Compile / compile) := (Compile / compile)
+      .dependsOn((protocol.jvm(autoScalaLibrary = false) / publishLocal))
+      .value
   )
 
 /**
@@ -492,7 +502,7 @@ lazy val codegenPlugin = (projectMatrix in file("modules/codegen-plugin"))
 
         // for sbt
         (codegen.jvm(Scala212) / publishLocal).value,
-        (protocol.jvm(autoScalaLibrary = false) / publishLocal).value
+        (protocolJvm / publishLocal).value
       )
       publishLocal.value
     },
@@ -533,7 +543,7 @@ lazy val millCodegenPlugin = projectMatrix
         (codegen.jvm(Scala213) / publishLocal).value,
 
         // for mill
-        (protocol.jvm(autoScalaLibrary = false) / publishLocal).value
+        (protocolJvm / publishLocal).value
       )
       publishLocal.value
     },
@@ -586,6 +596,8 @@ lazy val protocol = projectMatrix
     libraryDependencies += Dependencies.Smithy.model,
     javacOptions ++= Seq("--release", "8")
   )
+
+lazy val protocolJvm = protocol.jvm(autoScalaLibrary = false)
 
 lazy val protocolTests = projectMatrix
   .in(file("modules/protocol-tests"))
@@ -812,7 +824,12 @@ lazy val http4s = projectMatrix
           Map("MODEL_DUMP" -> file.getAbsolutePath)
         }
         .getOrElse(Map.empty)
-    }
+    },
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "smithy4s.http4s.SimpleProtocolBuilder#RouterBuilder.this"
+      )
+    )
   )
   .http4sPlatform(allJvmScalaVersions, jvmDimSettings)
 

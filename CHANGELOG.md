@@ -33,6 +33,15 @@ Optics can still be rendered using metadata (global) and traits (selective), the
 
 The error type `smithy4s.http.UnknownErrorResponse` has been replaced with `smithy4s.http.RawErrorResponse`, which provides a more accurate description of an error response that failed to decode, including a full representation of the response code, headers, body and the discriminator if one was found.
 
+# 0.18.32
+
+* codegen: Fix an issue in which smithy4s-protocol would conflict with its previous versions if they're in the dependencies
+* codegen: Add a missing space in the type annotations of smart constructors in [#1674](https://github.com/disneystreaming/smithy4s/pull/1674)
+* codegen: More expressive namespace patterns in [#1649](https://github.com/disneystreaming/smithy4s/pull/1649)
+* http4s: Allow users to enable encoding of Smithy errors prior to applying endpoint-specific middleware in [#1669](https://github.com/disneystreaming/smithy4s/pull/1669)
+* codegen: Increase determinism in the order of appearance of generated Hints (representation of Smithy traits) in [#1679](https://github.com/disneystreaming/smithy4s/pull/1679)
+* codegen: Allow transitive mixins to be added to the supertypes of an `@adt` union's corresponding Scala trait in [#1673](https://github.com/disneystreaming/smithy4s/pull/1673)
+
 # 0.18.31
 
 * Fix an issue with `FieldFilter`'s handling of optional fields that aren't represented by an actual `Option` (e.g. bijections) in [#1662](https://github.com/disneystreaming/smithy4s/pull/1662)

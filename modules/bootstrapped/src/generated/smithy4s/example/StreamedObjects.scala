@@ -89,7 +89,7 @@ object StreamedObjectsOperation {
     val schema: OperationSchema[PutStreamedObjectInput, Nothing, Unit, StreamedBlob, Nothing] = Schema.operation(ShapeId("smithy4s.example", "PutStreamedObject"))
       .withInput(PutStreamedObjectInput.schema)
       .withOutput(unit)
-      .withStreamedInput(StreamingSchema("PutStreamedObjectInput", StreamedBlob.schema.addHints(smithy.api.Documentation("data docs"), smithy.api.Default(smithy4s.Document.fromString("")))))
+      .withStreamedInput(StreamingSchema("PutStreamedObjectInput", StreamedBlob.schema.addHints(smithy.api.Default(smithy4s.Document.fromString("")), smithy.api.Documentation("data docs"))))
     def wrap(input: PutStreamedObjectInput): PutStreamedObject = PutStreamedObject(input)
   }
   final case class GetStreamedObject(input: GetStreamedObjectInput) extends StreamedObjectsOperation[GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob] {
@@ -113,7 +113,7 @@ object StreamedObjectsOperation {
     val schema: OperationSchema[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob] = Schema.operation(ShapeId("smithy4s.example", "PutAndGetStreamedObject"))
       .withInput(PutStreamedObjectInput.schema)
       .withOutput(GetStreamedObjectOutput.schema)
-      .withStreamedInput(StreamingSchema("PutStreamedObjectInput", StreamedBlob.schema.addHints(smithy.api.Documentation("data docs"), smithy.api.Default(smithy4s.Document.fromString("")))))
+      .withStreamedInput(StreamingSchema("PutStreamedObjectInput", StreamedBlob.schema.addHints(smithy.api.Default(smithy4s.Document.fromString("")), smithy.api.Documentation("data docs"))))
       .withStreamedOutput(StreamingSchema("GetStreamedObjectOutput", StreamedBlob.schema.addHints(smithy.api.Default(smithy4s.Document.fromString("")))))
     def wrap(input: PutStreamedObjectInput): PutAndGetStreamedObject = PutAndGetStreamedObject(input)
   }
