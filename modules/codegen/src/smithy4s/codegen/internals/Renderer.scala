@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -79,15 +79,17 @@ private[internals] object Renderer {
   def apply(unit: CompilationUnit): List[Result] = {
     val r = new Renderer(unit)
 
-    val pack = Result(
-      unit.namespace,
-      "package",
-      r.renderPackageContents.list
-        .map(_.segments.toList.map(_.show).mkString)
-        .mkString(
-          System.lineSeparator()
-        )
-    )
+    val packageObjectFile = r.renderPackageContents.map { packageLines =>
+      Result(
+        unit.namespace,
+        "package",
+        packageLines.list
+          .map(_.segments.toList.map(_.show).mkString)
+          .mkString(
+            System.lineSeparator()
+          )
+      )
+    }
 
     val classes = unit.declarations.map { decl =>
       val renderResult = r.renderDecl(decl) ++ newline
@@ -159,13 +161,7 @@ private[internals] object Renderer {
       Result(unit.namespace, decl.name, content)
     }
 
-    val packageApplicableDecls = unit.declarations.filter {
-      case _: TypeAlias | _: Service => true
-      case _                         => false
-    }
-
-    if (packageApplicableDecls.isEmpty) classes
-    else pack :: classes
+    packageObjectFile.toList ::: classes
   }
 
 }
@@ -269,7 +265,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       }
   }
 
-  def renderPackageContents: Lines = {
+  def renderPackageContents: Option[Lines] = {
     val typeAliases = compilationUnit.declarations
       .collect {
         case TypeAlias(_, name, _, _, _, hints) =>
@@ -286,24 +282,31 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         )
       }
 
-    val blk =
-      block(
-        line"package object ${compilationUnit.namespace.split('.').last}"
-      )(
-        compilationUnit.declarations.map(renderDeclPackageContents),
-        newline,
-        typeAliases,
-        newline
-      )
+    val serviceAliases =
+      compilationUnit.declarations.map(renderDeclPackageContents)
 
-    val parts = compilationUnit.namespace.split('.').filter(_.nonEmpty)
-    if (parts.size > 1) {
-      lines(
-        line"package ${parts.dropRight(1).mkString(".")}",
-        newline,
-        blk
-      )
-    } else blk
+    val packageContents = lines(serviceAliases, newline, typeAliases, newline)
+
+    packageContents.some
+      .filterNot(_.isBlank)
+      .map { contents =>
+        block(
+          line"package object ${compilationUnit.namespace.split('.').last}"
+        )(
+          contents
+        )
+      }
+      .map { blk =>
+        val parts = compilationUnit.namespace.split('.').filter(_.nonEmpty)
+
+        if (parts.size > 1) {
+          lines(
+            line"package ${parts.dropRight(1).mkString(".")}",
+            newline,
+            blk
+          )
+        } else blk
+      }
   }
 
   private def renderDeclPackageContents(decl: Decl): Lines = decl match {
@@ -353,7 +356,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           )
         },
         newline,
-        line"def $transform_: $Transformation.PartiallyApplied[$genName[F]] = $Transformation.of[$genName[F]](this)"
+        line"final def $transform_: $Transformation.PartiallyApplied[$genName[F]] = $Transformation.of[$genName[F]](this)"
       ),
       newline,
       lines(
@@ -709,7 +712,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           }
       },
       newline,
-      obj(product.nameRef, shapeTag(product.nameRef))(
+      obj(product.nameRef, if (adtParent.isEmpty) shapeTag(product.nameRef) else Line.empty)(
         renderId(shapeId),
         newline,
         renderHintsVal(hints),
@@ -772,7 +775,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
               .appendToLast(if (recursive) ")" else "")
           }
         } else {
-          line"implicit val schema: $Schema_[${product.nameRef}] = $constant_(${product.nameRef}()).withId(id).addHints(hints)"
+          line"${schemaImplicit}val schema: $Schema_[${product.nameRef}] = $constant_(${product.nameRef}()).withId(id).addHints(hints)"
         },
         renderTypeclasses(product.hints, product.nameRef),
         additionalLines
@@ -1034,7 +1037,6 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           val values = product.fields.map(_.name).intercalate(", ")
 
           line"$prefix($args): ${product.nameRef} = ${product.nameRef}($values)"
-
         case UnionMember.UnitCase =>
           line"$prefix(): $name = ${caseName(name, alt)}"
 
@@ -1370,8 +1372,8 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       tags match {
         case h :: tail =>
           (
-            line".validating(${renderNativeHint(h.native)})" +:
-              tail.map { tag => line".alsoValidating(${renderNativeHint(tag.native)})" }
+            line".validating(${renderHint(h.native)})" +:
+              tail.map { tag => line".alsoValidating(${renderHint(tag.native)})" }
           ).intercalate(Line.empty)
         case _ => Line.empty
       }
@@ -1472,7 +1474,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
             underlyingTpe,
             hint
           ) =>
-        line"${underlyingTpe.schemaRef}.refined[${e: Type}](${renderNativeHint(hint)})${maybeProviderImport
+        line"${underlyingTpe.schemaRef}.refined[${e: Type}](${renderHint(hint)})${maybeProviderImport
           .map { providerImport => Import(providerImport).toLine }
           .getOrElse(Line.empty)}"
       case Nullable(underlying) => line"${underlying.schemaRef}.option"
@@ -1504,7 +1506,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     }
   }
 
-  private def renderNativeHint(hint: Hint.Native): Line =
+  private def renderHint(hint: Hint.Native): Line =
     recursion
       .cata(renderTypedNode)(hint.typedNode)
       .run(true)
@@ -1516,11 +1518,6 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       .run(true)
       ._2
 
-  private def renderHint(hint: Hint): Option[Line] = hint match {
-    case h: Hint.Native => renderNativeHint(h).some
-    case _              => None
-  }
-
   def renderId(shapeId: ShapeId): Line = {
     val ns = shapeId.getNamespace()
     val name = shapeId.getName()
@@ -1530,7 +1527,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
   def renderHintsVal(hints: List[Hint]): Lines = {
     val lhs = line"val hints: $Hints_"
 
-    hints.flatMap(renderHint) match {
+    hints.collect { case nt: Hint.Native => nt }.sortBy(_.shapeId).map(renderHint) match {
       case Nil => lines(line"$lhs = $Hints_.empty")
       case args =>
         line"$lhs = $Hints_".args(args).appendToLast(".lazily")
@@ -1538,7 +1535,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
   }
 
   def memberHints(hints: List[Hint]): Line = {
-    val h = hints.map(renderHint).collect { case Some(v) => v }
+    val h = hints.collect { case nt: Hint.Native => nt }.sortBy(_.shapeId).map(renderHint)
     if (h.isEmpty) Line.empty else h.intercalate(Line.comma)
   }
 
@@ -1548,7 +1545,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     else {
       tags
         .map { tag =>
-          line".validated(${renderNativeHint(tag.native)})"
+          line".validated(${renderHint(tag.native)})"
         }
         .intercalate(Line.empty)
     }
@@ -1582,7 +1579,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
 
   private def renderTypedNode(tn: TypedNode[CString]): CString = tn match {
     case EnumerationTN(ref, _, _, name) =>
-      line"${ref.show + "." + name + ".widen"}".write
+      line"${ref.show}.$name.widen".write
     case StructureTN(ref, fields) =>
       val fieldStrings = fields.map {
         case (name, FieldTN.RequiredTN(value)) =>
@@ -1612,8 +1609,13 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     case AltTN(ref, altName, AltValueTN.TypeAltTN(alt)) =>
       line"${ref.show}.${altName.capitalize}Case(${alt.runDefault}).widen".write
 
+    case AltTN(ref, altName, AltValueTN.UnitAltTN) =>
+      line"${ref.show}.${altName.capitalize}Case.widen".write
+
     case AltTN(_, _, AltValueTN.ProductAltTN(alt)) =>
-      alt.runDefault.write
+      // The `widen` is necessary in Scala 2.
+      // Without it, there is no ShapeTag to use for the conversion to Hints.Binding.
+      line"${alt.runDefault}.widen".write
 
     case CollectionTN(collectionType, values) =>
       val col = collectionType.tpe

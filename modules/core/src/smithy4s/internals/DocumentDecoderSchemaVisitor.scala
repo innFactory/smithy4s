@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -186,11 +186,9 @@ class DocumentDecoderSchemaVisitor(
       case EPOCH_SECONDS =>
         DocumentDecoder.instance("Timestamp", "Number") {
           case (_, DNumber(value)) =>
-            val epochSeconds = value.toLong
-            Timestamp(
-              epochSeconds,
-              ((value - epochSeconds) * 1000000000).toInt
-            )
+            val epochSeconds =
+              value.setScale(0, BigDecimal.RoundingMode.FLOOR).toLong
+            Timestamp(epochSeconds, ((value - epochSeconds) * 1000000000).toInt)
         }
     }
   }

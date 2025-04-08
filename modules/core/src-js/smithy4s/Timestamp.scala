@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,6 +46,16 @@ case class Timestamp private (epochSecond: Long, nano: Int) {
     date.setUTCSeconds(epochSecond.toDouble + (nano / 1000000000.0))
     date
   }
+
+  /**
+    * @return a copy of this timestamp truncated to a miliseconds precision
+    */
+  def truncateToMillis: Timestamp = copy(nano = (nano / 1000000) * 1000000)
+
+  /**
+    * @return a copy of this timestamp truncated to a seconds resolution
+    */
+  def truncateToSeconds: Timestamp = copy(nano = 0)
 
   override def toString: String = format(TimestampFormat.DATE_TIME)
 

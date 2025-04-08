@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ final class RendererSpec extends munit.ScalaCheckSuite {
       }
 
     val memberSchemaString =
-      """string.addMemberHints(smithy.api.Documentation("listFoo"), smithy.api.Deprecated(message = None, since = None))"""
+      """string.addMemberHints(smithy.api.Deprecated(message = None, since = None), smithy.api.Documentation("listFoo"))"""
     val requiredString =
       s"""val underlyingSchema: Schema[List[String]] = list($memberSchemaString)"""
     assert(definition.contains(requiredString))
@@ -86,7 +86,7 @@ final class RendererSpec extends munit.ScalaCheckSuite {
     val keySchemaString =
       """string.addMemberHints(smithy.api.Documentation("mapFoo"))"""
     val valueSchemaString =
-      """int.addMemberHints(smithy.api.Documentation("mapBar"), smithy.api.Deprecated(message = None, since = None))"""
+      """int.addMemberHints(smithy.api.Deprecated(message = None, since = None), smithy.api.Documentation("mapBar"))"""
     val requiredString =
       s"""val underlyingSchema: Schema[Map[String, Int]] = map($keySchemaString, $valueSchemaString)"""
     assert(definition.contains(requiredString))
@@ -158,7 +158,7 @@ final class RendererSpec extends munit.ScalaCheckSuite {
       "/** this is a HAERT */",
       "@deprecated",
       """case object HAERT extends Suit("HAERT", "HAERT", 1, Hints.empty)""",
-      """override val hints: Hints = Hints(smithy.api.Documentation("this is a HAERT"), smithy.api.Deprecated(message = None, since = None)).lazily"""
+      """override val hints: Hints = Hints(smithy.api.Deprecated(message = None, since = None), smithy.api.Documentation("this is a HAERT")).lazily"""
     )
 
     assert(
@@ -273,7 +273,7 @@ final class RendererSpec extends munit.ScalaCheckSuite {
       """|  /** this is a HAERT */
          |  @deprecated(message = "typo", since = "0.0.0")
          |  case object HAERT extends Suit("HAERT", "HAERT", 1, Hints.empty) {
-         |    override val hints: Hints = Hints(smithy.api.Documentation("this is a HAERT"), smithy.api.Deprecated(message = Some("typo"), since = Some("0.0.0"))).lazily
+         |    override val hints: Hints = Hints(smithy.api.Deprecated(message = Some("typo"), since = Some("0.0.0")), smithy.api.Documentation("this is a HAERT")).lazily
          |  }""".stripMargin
 
     assert(
@@ -685,5 +685,28 @@ final class RendererSpec extends munit.ScalaCheckSuite {
         )
       )
     )
+  }
+
+  // regression test for https://github.com/disneystreaming/smithy4s/issues/1655
+  test("validated newtypes force creation of a package object") {
+    val smithy =
+      """$version: "2"
+        |
+        |namespace smithy4s.example
+        |
+        |use smithy4s.meta#validateNewtype
+        |
+        |@validateNewtype
+        |@length(min: 1)
+        |string SomeValidatedNewtype
+        |""".stripMargin
+
+    val files = generateScalaCode(smithy).keySet
+
+    assert(
+      files.contains("smithy4s.example.package"),
+      files.toString + " should contain smithy4s.example.package"
+    )
+
   }
 }

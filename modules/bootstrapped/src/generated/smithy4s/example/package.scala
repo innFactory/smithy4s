@@ -66,6 +66,7 @@ package object example {
   type ExtraData = smithy4s.example.ExtraData.Type
   type FancyList = smithy4s.example.FancyList.Type
   type FreeForm = smithy4s.example.FreeForm.Type
+  type HasUnionUnitCaseTrait = smithy4s.example.HasUnionUnitCaseTrait.Type
   type Ingredients = smithy4s.example.Ingredients.Type
   /** @param member
     *   listFoo
@@ -93,6 +94,7 @@ package object example {
   type PersonPhoneNumber = smithy4s.example.PersonPhoneNumber.Type
   type PublisherId = smithy4s.example.PublisherId.Type
   type PublishersList = smithy4s.example.PublishersList.Type
+  type RecursiveList = smithy4s.example.RecursiveList.Type
   type SomeIndexSeq = smithy4s.example.SomeIndexSeq.Type
   type SomeInt = smithy4s.example.SomeInt.Type
   type SomeValue = smithy4s.example.SomeValue.Type
@@ -117,6 +119,7 @@ package object example {
   type UVIndex = smithy4s.example.UVIndex.Type
   type UnicodeRegexString = smithy4s.example.UnicodeRegexString.Type
   type UnwrappedFancyList = smithy4s.example.UnwrappedFancyList.Type
+  type Username = smithy4s.example.Username.Type
   type ValidatedString = smithy4s.example.ValidatedString.Type
 
 }

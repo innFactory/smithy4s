@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import TypedNode.FieldTN.OptionalSomeTN
 import TypedNode.FieldTN.RequiredTN
 import TypedNode.AltValueTN.ProductAltTN
 import TypedNode.AltValueTN.TypeAltTN
+import TypedNode.AltValueTN.UnitAltTN
 import UnionMember._
 import LineSegment.{NameDef, NameRef}
 
@@ -304,7 +305,10 @@ private[internals] object Type {
       valueHints: List[Hint]
   ) extends Type
   case class Ref(namespace: String, name: String) extends Type {
-    def show = namespace + "." + name
+    def show: String = NameRef
+      .splitPath(namespace)
+      .map(CollisionAvoidance.protectKeyword)
+      .mkString(".") + "." + name
   }
   case class Alias(
       namespace: String,
@@ -353,7 +357,7 @@ private[internals] object Hint {
   case class Deprecated(message: Option[String], since: Option[String])
       extends Hint
   // traits that get rendered generically
-  case class Native(typedNode: Fix[TypedNode]) extends Hint
+  case class Native(shapeId: ShapeId, typedNode: Fix[TypedNode]) extends Hint
   case object IntEnum extends Hint
   case object OpenEnum extends Hint
 
@@ -426,6 +430,7 @@ private[internals] object TypedNode {
     def map[B](f: A => B): AltValueTN[B] = this match {
       case ProductAltTN(value) => ProductAltTN(f(value))
       case TypeAltTN(value)    => TypeAltTN(f(value))
+      case UnitAltTN           => UnitAltTN
     }
   }
   object AltValueTN {
@@ -437,6 +442,7 @@ private[internals] object TypedNode {
           fa match {
             case ProductAltTN(value) => f(value).map(ProductAltTN(_))
             case TypeAltTN(value)    => f(value).map(TypeAltTN(_))
+            case UnitAltTN           => Applicative[G].pure(UnitAltTN)
           }
         def foldLeft[A, B](fa: AltValueTN[A], b: B)(f: (B, A) => B): B = ???
         def foldRight[A, B](fa: AltValueTN[A], lb: Eval[B])(
@@ -446,6 +452,7 @@ private[internals] object TypedNode {
 
     case class ProductAltTN[A](value: A) extends AltValueTN[A]
     case class TypeAltTN[A](value: A) extends AltValueTN[A]
+    case object UnitAltTN extends AltValueTN[Nothing]
   }
 
   implicit val typedNodeTraverse: Traverse[TypedNode] =

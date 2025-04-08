@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -154,14 +154,27 @@ private[internals] object CollisionAvoidance {
 
   private def modField(field: Field): Field = {
     Field(
-      protectKeyword(uncapitalise(field.name)),
-      field.name,
-      modType(field.tpe),
-      field.modifier,
-      field.originalIndex,
-      field.hints.map(modHint)
+      name = protectKeyword(uncapitalise(field.name)),
+      realName = field.name,
+      tpe = modType(field.tpe),
+      modifier = modModifier(field.modifier),
+      originalIndex = field.originalIndex,
+      hints = field.hints.map(modHint)
     )
   }
+
+  private def modModifier(modifier: Field.Modifier): Field.Modifier =
+    Field.Modifier(
+      required = modifier.required,
+      nullable = modifier.nullable,
+      default = modifier.default.map(modFieldDefault)
+    )
+
+  private def modFieldDefault(default: Field.Default): Field.Default =
+    Field.Default(
+      node = default.node,
+      typedNode = default.typedNode.map(recursion.preprocess(modTypedNode))
+    )
 
   private def modStreamingField(
       streamingField: StreamingField
@@ -186,7 +199,10 @@ private[internals] object CollisionAvoidance {
     Type.Ref(ref.namespace, protectKeyword(ref.name.capitalize))
 
   private def modNativeHint(hint: Hint.Native): Hint.Native =
-    Hint.Native(recursion.preprocess(modTypedNode)(hint.typedNode))
+    Hint.Native(
+      hint.shapeId,
+      recursion.preprocess(modTypedNode)(hint.typedNode)
+    )
 
   private def modDefaultHint(hint: Hint.Default): Hint.Default =
     Hint.Default(recursion.preprocess(modTypedNode)(hint.typedNode))
@@ -230,6 +246,11 @@ private[internals] object CollisionAvoidance {
         case ValidatedNewTypeTN(ref, target) =>
           ValidatedNewTypeTN(modRef(ref), target)
         case AltTN(ref, altName, alt) =>
+          // note: technically we should probably escape altName here
+          // but it'd only really break if it matched a capitalized keyword,
+          // and Scala has none of those, so it's impossible to write a failing test.
+          // Alt names in this context are always capitalized before being printed
+          // (Renderer.scala:1614 at the time of writing).
           AltTN(modRef(ref), altName, alt)
         case MapTN(values) =>
           MapTN(values)

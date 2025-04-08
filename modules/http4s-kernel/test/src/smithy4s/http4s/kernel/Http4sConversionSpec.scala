@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,14 +23,15 @@ import smithy4s.http.HttpUriScheme
 
 object Http4sConversionSpec extends SimpleIOSuite {
 
+  // note: these actually work (http4s runs them as HTTP GET against localhost:80)
   http4sToSmithyAndBackUriTest(
     uri"/",
-    uri"http://localhost/"
+    uri"http:/"
   )
 
   http4sToSmithyAndBackUriTest(
     uri"/hello",
-    uri"http://localhost/hello"
+    uri"http:/hello"
   )
 
   http4sToSmithyAndBackUriTest(
@@ -39,7 +40,7 @@ object Http4sConversionSpec extends SimpleIOSuite {
   )
 
   http4sToSmithyAndBackUriTest(
-    uri"example.com",
+    uri"//example.com",
     uri"http://example.com/"
   )
 
@@ -106,11 +107,17 @@ object Http4sConversionSpec extends SimpleIOSuite {
     )
   }
 
-  private def http4sToSmithyAndBackUriTest(input: Uri, output: Uri) = {
+  private def http4sToSmithyAndBackUriTest(input: Uri, output: Uri)(implicit
+      loc: SourceLocation
+  ) = {
     pureTest(s"URI: http4s to smithy4s and back: $input -> $output") {
+      val intermediate = toSmithy4sHttpUri(input)
+
       assert.eql(
-        uri"http://localhost/",
-        fromSmithy4sHttpUri(toSmithy4sHttpUri(uri"http://localhost/"))
+        output,
+        fromSmithy4sHttpUri(intermediate)
+      ) || failure(
+        s"comparison failed. Intermediate value for debugging: $intermediate"
       )
     }
   }

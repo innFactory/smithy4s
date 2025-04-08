@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -58,6 +58,27 @@ class ModelLoaderSpec extends FunSuite {
     )
 
     model.expectShape(ShapeId.from("testlibrary#MyString"))
+  }
+
+  test(
+    "ModelLoader can load a version of the smithy4s protocol conflicting against the current"
+  ) {
+    doLoad(
+      dependencies =
+        List("com.disneystreaming.smithy4s:smithy4s-protocol:0.18.29"),
+      repositories = Nil
+    )
+    // nothing failed
+  }
+
+  test(
+    "ModelLoader can load a version of Alloy conflicting against the current"
+  ) {
+    doLoad(
+      dependencies = List("com.disneystreaming.alloy:alloy-core:0.1.18"),
+      repositories = Nil
+    )
+    // nothing failed
   }
 
   test("ModelLoader can load a dependency from s01 if it has a + in the name") {

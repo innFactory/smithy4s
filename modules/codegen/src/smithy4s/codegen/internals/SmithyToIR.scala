@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -260,15 +260,20 @@ private[codegen] class SmithyToIR(
           .asScala
           .toList
           .map(mem => model.expectShape(mem.getTarget))
+
         val mixins: List[Set[ShapeId]] = memberTargets
-          .map(targetShape =>
-            targetShape.getMixins.asScala.toSet
+          .map { targetShape =>
+            def allMixinsOf(s: Shape): Set[ShapeId] =
+              s.getMixins.asScala.toSet[ShapeId].flatMap { m =>
+                allMixinsOf(model.expectShape(m)) + m
+              }
+
+            allMixinsOf(targetShape)
               .filter(mixinId => doFieldsMatch(mixinId, targetShape.fields))
-          )
+          }
 
-        val union = mixins.foldLeft(Set.empty[ShapeId])(_ union _)
-
-        val result = mixins.foldLeft(union)(_ intersect _)
+        val result =
+          if (mixins.isEmpty) Set.empty else mixins.reduce(_ intersect _)
 
         result.toList
       }
@@ -1106,7 +1111,9 @@ private[codegen] class SmithyToIR(
       maybeTypeclassesHint(shape)
   }
 
-  case class AltInfo(name: String, tpe: Type, isAdtMember: Boolean)
+  case class AltInfo(name: String, tpe: Type, isAdtMember: Boolean) {
+    def isUnit: Boolean = tpe == Type.unit
+  }
 
   implicit class ShapeExt(shape: Shape) {
     def name = shape.getId().getName()
@@ -1209,20 +1216,16 @@ private[codegen] class SmithyToIR(
       shape
         .members()
         .asScala
-        .map { member =>
-          val memberTarget =
-            model.expectShape(member.getTarget)
-          if (isPartOfAdt(memberTarget)) {
-            (member.getMemberName(), member.tpe.map(Left(_)))
-          } else {
-            (member.getMemberName(), member.tpe.map(Right(_)))
+        .flatMap { member =>
+          member.tpe.map { tpe =>
+            val memberTarget = model.expectShape(member.getTarget)
+
+            AltInfo(
+              member.getMemberName(),
+              tpe,
+              isAdtMember = isPartOfAdt(memberTarget)
+            )
           }
-        }
-        .collect {
-          case (name, Some(Left(tpe))) =>
-            AltInfo(name, tpe, isAdtMember = true)
-          case (name, Some(Right(tpe))) =>
-            AltInfo(name, tpe, isAdtMember = false)
         }
         .toList
     }
@@ -1297,7 +1300,7 @@ private[codegen] class SmithyToIR(
             case Some(parent) =>
               val cId = shape.getId
               val newNs =
-                cId.getNamespace + "." + parent.getName
+                cId.getNamespace + "." + parent.getName.capitalize
               val error = new Exception(
                 s"Shapes annotated with the adtMemberTrait must be structures. $cId is not a structure."
               )
@@ -1325,7 +1328,7 @@ private[codegen] class SmithyToIR(
   }
 
   private def unfoldTrait(tr: Trait): Hint.Native = {
-    Hint.Native(unfoldNode(tr.toNode(), tr.toShapeId()))
+    Hint.Native(tr.toShapeId, unfoldNode(tr.toNode(), tr.toShapeId()))
   }
 
   private def unfoldNodeAndType(layer: NodeAndType): TypedNode[NodeAndType] =
@@ -1360,6 +1363,8 @@ private[codegen] class SmithyToIR(
         val a = if (alt.isAdtMember) {
           val t = NodeAndType(node, alt.tpe)
           TypedNode.AltValueTN.ProductAltTN(t)
+        } else if (alt.isUnit) {
+          TypedNode.AltValueTN.UnitAltTN
         } else {
           val t = NodeAndType(node, alt.tpe)
           TypedNode.AltValueTN.TypeAltTN(t)

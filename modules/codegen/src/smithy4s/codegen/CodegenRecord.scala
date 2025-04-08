@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@ package smithy4s.codegen
 
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.node.Node
+import software.amazon.smithy.model.SourceLocation
 
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
 private[codegen] final case class CodegenRecord(
     namespaces: List[String],
-    validatedNewtypes: Option[Boolean]
+    validatedNewtypes: Option[Boolean],
+    source: SourceLocation
 )
 
 private[codegen] object CodegenRecord {
@@ -50,6 +52,6 @@ private[codegen] object CodegenRecord {
       .asScala
       .map(_.expectStringNode().getValue())
       .toList
-    CodegenRecord(namespaces, validatedNewtypes)
+    CodegenRecord(namespaces, validatedNewtypes, node.getSourceLocation())
   }
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2024 Disney Streaming
+ *  Copyright 2021-2025 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -258,7 +258,8 @@ object Smithy4sCodegenPlugin extends AutoPlugin {
       (config / sourceManaged).value / "smithy" / "generated-metadata.smithy"
     },
     config / smithy4sGeneratedSmithyFiles := {
-      val cacheFactory = (config / streams).value.cacheStoreFactory
+      val cacheFactory =
+        (config / streams).value.cacheStoreFactory.sub(scalaVersion.value)
       val cached = Tracked.inputChanged[String, Seq[File]](
         cacheFactory.make("smithy4sGeneratedSmithyFilesInput")
       ) { case (changed, (wildcardArg)) =>
@@ -446,14 +447,15 @@ object Smithy4sCodegenPlugin extends AutoPlugin {
       smithyBuild = smithyBuildValue
     )
 
+    val cacheStoreFactory = s.cacheStoreFactory.sub(scalaVersion.value)
     val cached =
       CachedTask.inputChanged[CodegenArgs, Seq[File]](
-        s.cacheStoreFactory.make("input"),
+        cacheStoreFactory.make("input"),
         s.log
       ) {
         Function.untupled {
           Tracked.lastOutput[(Boolean, CodegenArgs), Seq[File]](
-            s.cacheStoreFactory.make("output")
+            cacheStoreFactory.make("output")
           ) { case ((inputChanged, args), outputs) =>
             if (inputChanged || outputs.isEmpty) {
               s.log.debug(s"[smithy4s] Input changed: $inputChanged")
