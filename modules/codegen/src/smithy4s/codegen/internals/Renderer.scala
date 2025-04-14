@@ -1223,6 +1223,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     val defaultLine: Option[Line] = field.modifier match {
       // non-required fields with no default get a default of None
       case Field.Modifier(false, _, None) => Some(NameRef("scala.None").toLine)
+      // non-required, non-nullable fields with null default get a default of None
+      case Field.Modifier(false, false, Some(Field.Default(node, Some(_)))) if node == Node.nullNode =>
+        Some(NameRef("scala.None").toLine)
       // nullable with a default of null
       // (the Some(_) check on the second parameter is necessary in order to correctly render in mode OPTION_ONLY)
       case Field.Modifier(_, true, Some(Field.Default(node, Some(_)))) if node == Node.nullNode =>
@@ -1232,8 +1235,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         Some {
           NameRef("smithy4s.Nullable.Value").toLine + Literal("(") + renderDefault(default) + Literal(")")
         }
-      case Field.Modifier(_, _, Some(Field.Default(_, Some(default)))) => Some(renderDefault(default))
-      case _                                                           => None
+      case Field.Modifier(_, _, Some(Field.Default(node, Some(default)))) if node != Node.nullNode =>
+        Some(renderDefault(default))
+      case _ => None
     }
 
     val shouldRenderDefault = !noDefault && !field.hints.contains(Hint.NoDefault)
@@ -1624,8 +1628,10 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       line"$map(${values
         .map { case (k, v) => k.runDefault + line" -> " + v.runDefault }
         .intercalate(Line.comma)})".writeCollection
-    case PrimitiveTN(prim, value) =>
+    case PrimitiveTN(prim, Some(value)) =>
       renderPrimitive[prim.T](prim)(value).write
+    case PrimitiveTN(_, None) =>
+      none.toLine.write
   }
 
   private def renderPrimitive[T](prim: Primitive.Aux[T]): T => Line =

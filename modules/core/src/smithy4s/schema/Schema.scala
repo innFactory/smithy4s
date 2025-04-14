@@ -108,7 +108,7 @@ sealed trait Schema[A]{
 
   private final lazy val defaultValue: Option[A] = {
     val maybeDefault = getDefault.flatMap[A] {
-      case Document.DNull => this.compile(DefaultValueSchemaVisitor)
+      case Document.DNull => this.compile(NullableDefaultVisitor)
       case document => Document.Decoder.fromSchema(this).decode(document).toOption
     }
     maybeDefault.orElse(this.compile(OptionDefaultVisitor))
@@ -369,5 +369,20 @@ object Schema {
       None,
       None
     )
+
+  private object NullableDefaultVisitor extends SchemaVisitor.Default[Option] {
+    def default[A]: Option[A] = None
+    override def biject[A, B](
+        schema: Schema[A],
+        bijection: Bijection[A, B]
+    ): Option[B] = 
+      if(schema.hints.has(alloy.Nullable)) {
+        schema.compile(this).map(bijection.to)
+      } else {
+        None
+      }
+    
+    override def option[A](schema: Schema[A]): Option[Option[A]] = Some(None)
+  }
 
 }
