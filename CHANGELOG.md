@@ -5,11 +5,15 @@ When adding entries, please treat them as if they could end up in a release any 
 
 Thank you!
 
+# 0.18.34
+
+* codegen-cli: Ensure the command returns a failing exit code if command line arguments aren't valid in [#1694](https://github.com/disneystreaming/smithy4s/pull/1694).
+
 # 0.18.33
 
 * codegen: Fix an issue in which using UUIDs as trait or default values would prevent code generation in [#1685](https://github.com/disneystreaming/smithy4s/pull/1685)
 * general: Update dependencies across the board in [#1686](https://github.com/disneystreaming/smithy4s/pull/1686)
-* Update `HttpUnaryServerRouter#partialFunction` to remove ambiguity between the two methods
+* http: Update `HttpUnaryServerRouter#partialFunction` to remove ambiguity between the two methods
 
 # 0.18.32
 
