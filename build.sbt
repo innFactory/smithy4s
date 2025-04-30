@@ -17,6 +17,10 @@ ThisBuild / dynverSeparator := "-"
 ThisBuild / versionScheme := Some("early-semver")
 ThisBuild / mimaBaseVersion := "0.18.0"
 
+// for Alloy snapshots
+// as well as any other dependency snapshots.
+ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 import Smithy4sBuildPlugin._
@@ -968,7 +972,7 @@ lazy val exampleGeneratedResourcesOutput =
   */
 lazy val bootstrapped = projectMatrix
   .in(file("modules/bootstrapped"))
-  .dependsOn(cats, `aws-kernel`, complianceTests)
+  .dependsOn(cats, `aws-kernel`, complianceTests, scalacheck)
   .disablePlugins(ScalafixPlugin)
   .settings(
     Compile / headerSources := Nil,
@@ -1123,7 +1127,11 @@ val complianceTestDependencies =
 
 // writes out a json representation of the smithy model pulled from Smithy4s dependencies config
 // result is cached using the dependency list as the cache key
-def dumpModel(config: Configuration): Def.Initialize[Task[Seq[File]]] =
+def dumpModel(
+    config: Configuration,
+    // pass `true` here to make sure this runs on every test run. Useful when working on new protocol compliance tests.
+    ignoreCache: Boolean = false
+): Def.Initialize[Task[Seq[File]]] =
   Def.task {
     val dumpModelCp = (`codegen-cli`.jvm(
       Smithy4sBuildPlugin.Scala213
@@ -1187,7 +1195,7 @@ def dumpModel(config: Configuration): Def.Initialize[Task[Seq[File]]] =
             .lastOutput[(Boolean, List[String]), Seq[File]](
               s.cacheStoreFactory.make("output")
             ) { case ((changed, deps), outputs) =>
-              if (changed || outputs.isEmpty) {
+              if (changed || outputs.isEmpty || ignoreCache) {
                 val res =
                   ("java" :: "-cp" :: cp :: mc :: "dump-model" :: deps ::: args).!!
                 val file =
@@ -1202,6 +1210,14 @@ def dumpModel(config: Configuration): Def.Initialize[Task[Seq[File]]] =
         }
       }
 
+    val repos =
+      (config / resolvers).?.value.getOrElse(Seq.empty).map {
+        case m: MavenRepository =>
+          m.root
+      }
+    val repoFlags =
+      if (repos.nonEmpty) List("--repositories", repos.mkString(",")) else Nil
+
     val trackedFiles = List(
       "--dependencies",
       (config / complianceTestDependencies).?.value
@@ -1210,7 +1226,7 @@ def dumpModel(config: Configuration): Def.Initialize[Task[Seq[File]]] =
           s"${moduleId.organization}:${moduleId.name}:${moduleId.revision}"
         }
         .mkString(",")
-    )
+    ) ++ repoFlags
 
     cached(trackedFiles)
   }
@@ -1234,6 +1250,11 @@ def genSmithyImpl(config: Configuration) = Def.task {
     (config / smithy4sDependencies).?.value.getOrElse(Seq.empty).map {
       moduleId =>
         s"${moduleId.organization}:${moduleId.name}:${moduleId.revision}"
+    }
+  val repos =
+    (config / resolvers).?.value.getOrElse(Seq.empty).map {
+      case m: MavenRepository =>
+        m.root
     }
 
   val codegenCp =
@@ -1311,12 +1332,17 @@ def genSmithyImpl(config: Configuration) = Def.task {
                 if (smithy4sDeps.nonEmpty)
                   List("--dependencies", smithy4sDeps.mkString(","))
                 else Nil
+              val reposOpt =
+                if (repos.nonEmpty) List("--repositories", repos.mkString(","))
+                else Nil
+
               val args = outputOpt ++
                 resourceOutputOpt ++
                 allowedNsOpt ++
                 inputs ++
                 skipOpt ++
-                dependenciesOpt
+                dependenciesOpt ++
+                reposOpt
 
               val cp = codegenCp
                 .map(_.getAbsolutePath())
