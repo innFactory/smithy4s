@@ -26,21 +26,16 @@ object Http4sConversionSpec extends SimpleIOSuite {
   // note: these actually work (http4s runs them as HTTP GET against localhost:80)
   http4sToSmithyAndBackUriTest(
     uri"/",
-    uri"http:/"
+    uri"/"
   )
 
   http4sToSmithyAndBackUriTest(
     uri"/hello",
-    uri"http:/hello"
+    uri"/hello"
   )
 
   http4sToSmithyAndBackUriTest(
     uri"http://example.com",
-    uri"http://example.com/"
-  )
-
-  http4sToSmithyAndBackUriTest(
-    uri"//example.com",
     uri"http://example.com/"
   )
 
@@ -64,23 +59,16 @@ object Http4sConversionSpec extends SimpleIOSuite {
     uri"http://localhost/"
   )
 
-  pureTest("URI: http4s to smithy4s defaults to http") {
-    assert.same(
-      smithy4s.http.HttpUriScheme.Http,
-      toSmithy4sHttpUri(uri"/").scheme
-    )
-  }
-
   pureTest("URI: http4s to smithy4s keeps http scheme") {
     assert.same(
-      smithy4s.http.HttpUriScheme.Http,
+      Some(smithy4s.http.HttpUriScheme.Http),
       toSmithy4sHttpUri(uri"http://localhost").scheme
     )
   }
 
   pureTest("URI: http4s to smithy4s keeps https scheme") {
     assert.same(
-      smithy4s.http.HttpUriScheme.Https,
+      Some(smithy4s.http.HttpUriScheme.Https),
       toSmithy4sHttpUri(uri"https://localhost").scheme
     )
   }
@@ -123,9 +111,9 @@ object Http4sConversionSpec extends SimpleIOSuite {
   }
 
   private def aSmithy4sUri(scheme: HttpUriScheme) =
-    smithy4s.http.HttpUri(
+    smithy4s.http.HttpUri.absolute(
       scheme = scheme,
-      host = None,
+      host = "example.com",
       port = None,
       path = IndexedSeq.empty,
       queryParams = Map.empty,
