@@ -1313,7 +1313,12 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           lines(
             line"""final case class $$Unknown($paramName: $paramType) extends $name($stringValue, "$$Unknown", $intValue, Hints.empty)""",
             newline,
-            line"val $$unknown: $paramType => $name = $$Unknown(_)"
+            line"val $$unknown: $paramType => $name = $$Unknown(_)",
+            newline,
+            if (isIntEnum)
+              line"def fromIntOrUnknown(i: Int): $name = fromOrdinal(i).getOrElse($$unknown(i))"
+            else
+              line"def fromStringOrUnknown(s: String): $name = fromString(s).getOrElse($$unknown(s))"
           )
         } else Lines.empty,
         newline,
