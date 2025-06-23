@@ -1296,7 +1296,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         renderHintsVal(hints),
         newline,
         renderPrismsEnum(name, values, hints, isOpen),
-        values.map { case e @ EnumValue(value, intValue, _, _, hints) =>
+        values.map { case e @ EnumValue(_, intValue, _, _, hints) =>
           val valueName = NameRef(e.name)
 
           val baseLine =
