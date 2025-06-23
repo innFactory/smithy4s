@@ -16,11 +16,11 @@
 
 package smithy4s.http
 
-import smithy4s.kinds._
 import smithy4s.capability.Covariant
-import smithy4s.schema._
-import smithy4s.codecs.{Decoder => GenericDecoder}
 import smithy4s.capability.MonadThrowLike
+import smithy4s.codecs.{Decoder => GenericDecoder}
+import smithy4s.kinds._
+import smithy4s.schema._
 
 final case class HttpRequest[+A](
     method: HttpMethod,
@@ -81,8 +81,11 @@ object HttpRequest {
         val path = httpEndpoint.path(input)
         val staticQueries = httpEndpoint.staticQueryParams
         val oldUri = request.uri
-        val newUri =
-          oldUri.copy(path = oldUri.path ++ path, queryParams = staticQueries)
+        val newUri = oldUri
+          .withQueryParams(staticQueries)
+          .transformPath(
+            _ ++ path
+          )
         val method = httpEndpoint.method
         request.copy(method = method, uri = newUri)
       }
@@ -92,7 +95,7 @@ object HttpRequest {
       (req: HttpRequest[Body], meta: Metadata) =>
         val oldUri = req.uri
         val newUri =
-          oldUri.copy(queryParams = oldUri.queryParams ++ meta.query)
+          oldUri.transformQueryParams(_ ++ meta.query)
         req.addHeaders(meta.headers).copy(uri = newUri)
     }
 
@@ -106,10 +109,11 @@ object HttpRequest {
                 request: HttpRequest[Body],
                 input: I
             ): HttpRequest[Body] = {
-              val hostPrefix = prefixEncoder.write(List.empty, input)
+              val hostPrefix = prefixEncoder.write(List.empty, input).mkString
               val oldUri = request.uri
-              val newUri =
-                oldUri.copy(host = s"${hostPrefix.mkString}${oldUri.host}")
+              val newUri = oldUri.transformOrigin(origin =>
+                origin.withHostPrefix(hostPrefix)
+              )
               request.copy(uri = newUri)
             }
           }

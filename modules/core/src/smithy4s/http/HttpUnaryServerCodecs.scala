@@ -17,14 +17,15 @@
 package smithy4s
 package http
 
-import smithy4s.server.UnaryServerCodecs
-import smithy4s.codecs.{BlobEncoder, BlobDecoder}
 import smithy4s.capability.MonadThrowLike
+import smithy4s.codecs.BlobDecoder
+import smithy4s.codecs.BlobEncoder
+import smithy4s.codecs.Decoder
+import smithy4s.codecs.PayloadError
 import smithy4s.codecs.Writer
 import smithy4s.schema.CachedSchemaCompiler
 import smithy4s.schema.OperationSchema
-import smithy4s.codecs.Decoder
-import smithy4s.codecs.PayloadError
+import smithy4s.server.UnaryServerCodecs
 
 // scalafmt: {maxColumn = 120}
 object HttpUnaryServerCodecs {
@@ -196,6 +197,7 @@ object HttpUnaryServerCodecs {
           def encodeError(e: E) = F.map(base)(errorW.write(_, e))
           def httpContractErrorEncoder(e: HttpContractError) =
             F.map(base)(httpContractErrorWriters.write(_, e).withStatusCode(400))
+
           def throwableEncoders(throwable: Throwable): F[HttpResponse[Blob]] =
             throwable match {
               case e: HttpContractError => httpContractErrorEncoder(e)

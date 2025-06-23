@@ -15,7 +15,7 @@ ThisBuild / commands ++= createBuildCommands(allModules)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
 ThisBuild / dynverSeparator := "-"
 ThisBuild / versionScheme := Some("early-semver")
-ThisBuild / mimaBaseVersion := "0.18.0"
+ThisBuild / mimaBaseVersion := "0.19.0"
 
 // for Alloy snapshots
 // as well as any other dependency snapshots.

@@ -15,7 +15,11 @@ import smithy4s.schema.StreamingSchema
 trait StreamedObjectsGen[F[_, _, _, _, _]] {
   self =>
 
+  /** This operation uses {@literal @}streaming on the input (data). */
   def putStreamedObject(key: String): F[PutStreamedObjectInput, Nothing, Unit, StreamedBlob, Nothing]
+  /** This operation uses {@literal @}streaming on both the input (data) and the output (data) */
+  def putAndGetStreamedObject(key: String): F[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob]
+  /** This operation uses {@literal @}streaming on the output (data). */
   def getStreamedObject(key: String): F[GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob]
 
   final def transform: Transformation.PartiallyApplied[StreamedObjectsGen[F]] = Transformation.of[StreamedObjectsGen[F]](this)
@@ -37,6 +41,7 @@ object StreamedObjectsGen extends Service.Mixin[StreamedObjectsGen, StreamedObje
 
   val endpoints: Vector[smithy4s.Endpoint[StreamedObjectsOperation, _, _, _, _, _]] = Vector(
     StreamedObjectsOperation.PutStreamedObject,
+    StreamedObjectsOperation.PutAndGetStreamedObject,
     StreamedObjectsOperation.GetStreamedObject,
   )
 
@@ -63,10 +68,12 @@ object StreamedObjectsOperation {
 
   object reified extends StreamedObjectsGen[StreamedObjectsOperation] {
     def putStreamedObject(key: String): PutStreamedObject = PutStreamedObject(PutStreamedObjectInput(key))
+    def putAndGetStreamedObject(key: String): PutAndGetStreamedObject = PutAndGetStreamedObject(PutStreamedObjectInput(key))
     def getStreamedObject(key: String): GetStreamedObject = GetStreamedObject(GetStreamedObjectInput(key))
   }
   class Transformed[P[_, _, _, _, _], P1[_ ,_ ,_ ,_ ,_]](alg: StreamedObjectsGen[P], f: PolyFunction5[P, P1]) extends StreamedObjectsGen[P1] {
     def putStreamedObject(key: String): P1[PutStreamedObjectInput, Nothing, Unit, StreamedBlob, Nothing] = f[PutStreamedObjectInput, Nothing, Unit, StreamedBlob, Nothing](alg.putStreamedObject(key))
+    def putAndGetStreamedObject(key: String): P1[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob] = f[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob](alg.putAndGetStreamedObject(key))
     def getStreamedObject(key: String): P1[GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob] = f[GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob](alg.getStreamedObject(key))
   }
 
@@ -82,12 +89,25 @@ object StreamedObjectsOperation {
     val schema: OperationSchema[PutStreamedObjectInput, Nothing, Unit, StreamedBlob, Nothing] = Schema.operation(ShapeId("smithy4s.example", "PutStreamedObject"))
       .withInput(PutStreamedObjectInput.schema)
       .withOutput(unit)
-      .withStreamedInput(StreamingSchema("PutStreamedObjectInput", StreamedBlob.schema.addHints(smithy.api.Default(smithy4s.Document.fromString("")))))
+      .withStreamedInput(StreamingSchema("PutStreamedObjectInput", StreamedBlob.schema.addHints(smithy.api.Default(smithy4s.Document.fromString("")), smithy.api.Documentation("data docs"))))
     def wrap(input: PutStreamedObjectInput): PutStreamedObject = PutStreamedObject(input)
+  }
+  final case class PutAndGetStreamedObject(input: PutStreamedObjectInput) extends StreamedObjectsOperation[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob] {
+    def run[F[_, _, _, _, _]](impl: StreamedObjectsGen[F]): F[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob] = impl.putAndGetStreamedObject(input.key)
+    def ordinal: Int = 1
+    def endpoint: smithy4s.Endpoint[StreamedObjectsOperation,PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob] = PutAndGetStreamedObject
+  }
+  object PutAndGetStreamedObject extends smithy4s.Endpoint[StreamedObjectsOperation,PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob] {
+    val schema: OperationSchema[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob] = Schema.operation(ShapeId("smithy4s.example", "PutAndGetStreamedObject"))
+      .withInput(PutStreamedObjectInput.schema)
+      .withOutput(GetStreamedObjectOutput.schema)
+      .withStreamedInput(StreamingSchema("PutStreamedObjectInput", StreamedBlob.schema.addHints(smithy.api.Default(smithy4s.Document.fromString("")), smithy.api.Documentation("data docs"))))
+      .withStreamedOutput(StreamingSchema("GetStreamedObjectOutput", StreamedBlob.schema.addHints(smithy.api.Default(smithy4s.Document.fromString("")))))
+    def wrap(input: PutStreamedObjectInput): PutAndGetStreamedObject = PutAndGetStreamedObject(input)
   }
   final case class GetStreamedObject(input: GetStreamedObjectInput) extends StreamedObjectsOperation[GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob] {
     def run[F[_, _, _, _, _]](impl: StreamedObjectsGen[F]): F[GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob] = impl.getStreamedObject(input.key)
-    def ordinal: Int = 1
+    def ordinal: Int = 2
     def endpoint: smithy4s.Endpoint[StreamedObjectsOperation,GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob] = GetStreamedObject
   }
   object GetStreamedObject extends smithy4s.Endpoint[StreamedObjectsOperation,GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob] {

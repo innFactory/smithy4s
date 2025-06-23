@@ -199,7 +199,7 @@ private[smithy4s] trait LowPriorityImplicits {
 
   implicit def enumLengthConstraint[E <: Enumeration.Value]
       : RefinementProvider[Length, E, E] =
-    new RefinementProvider.LengthConstraint[E](e => e.value.size)
+    new RefinementProvider.LengthConstraint[E](e => e.stringValue.size)
 
   implicit def enumRangeConstraint[E <: Enumeration.Value]
       : RefinementProvider[Range, E, E] =
@@ -207,7 +207,7 @@ private[smithy4s] trait LowPriorityImplicits {
 
   implicit def enumPatternConstraint[E <: Enumeration.Value]
       : RefinementProvider[Pattern, E, E] =
-    new RefinementProvider.PatternConstraint[E](e => e.value)
+    new RefinementProvider.PatternConstraint[E](e => e.stringValue)
 
   @deprecated("Use isomorphismConstraint2 instead", "0.18.25")
   def isomorphismConstraint[C, A, A0](implicit

@@ -5,6 +5,51 @@ When adding entries, please treat them as if they could end up in a release any 
 
 Thank you!
 
+# 0.19.0
+
+## Documentation fix
+
+Prevent documentation from being generated for case class when the field are not generated because they're annotated with `@streaming`
+
+## Reworked enumerations / the EnumerationSchema to eliminate a OOM pitfall and improve ergonomics of SchemaVisitor
+
+## Remove localhost from default URI in [#1341](https://github.com/disneystreaming/smithy4s/pull/1341)
+
+Previously, URIs constructed with a base URI of `/` would have `localhost` as the host. In some cases, that may not be desirable, such as in the case of frontend clients that want to reuse the window's origin. This is now fixed: hostnames are optional in the smithy4s URI model, and default to `None`.
+
+## Smart constructors for `@adt` union members have been renamed in [#1370](https://github.com/disneystreaming/smithy4s/pull/1370)
+
+Previously they'd be named after the **member target**, now they will use the name of the member itself (same as in the case of non-ADT unions).
+
+## Made `EncoderK`'s second type parameter a type member in [#1519](https://github.com/disneystreaming/smithy4s/pull/1519)
+
+There's usually only one instance of `EncoderK[F, A]` for a particular `F[_]`, and interpreters don't need to know what `A` is. For convenience, the type parameter has been moved to a type member.
+
+## Remove `smithy4sRenderOptics` setting from SBT and Mill plugins  in [#1566](https://github.com/disneystreaming/smithy4s/pull/1566)
+
+Optics can still be rendered using metadata (global) and traits (selective), the only thing that's been removed is configuration in the build tool.
+
+## Removed `UnknownErrorResponse` in [#1570](https://github.com/disneystreaming/smithy4s/pull/1570)
+
+The error type `smithy4s.http.UnknownErrorResponse` has been replaced with `smithy4s.http.RawErrorResponse`, which provides a more accurate description of an error response that failed to decode, including a full representation of the response code, headers, body and the discriminator if one was found.
+
+## ⚠️ Behavior Change: Handling of `@default(null)` and `@nullable` in [#1667](https://github.com/disneystreaming/smithy4s/pull/1667)
+
+The behavior of `@default(null)` has changed to better align with Smithy semantics.
+
+- **With `@nullable`**:
+  - Renders `smithy.api#default` as `Default(Document.DNull)`.
+  - Scala field uses `Nullable` with default `Nullable.Null`.
+
+- **Without `@nullable`**:
+  - **Breaking change**: previously generated non-optional Scala fields with type-specific defaults (e.g., `0`, `false`).
+  - Now generates **optional (`Option`) fields without default**.
+  - Still renders `Default(Document.DNull)` to preserve model fidelity.
+
+- **In smithy4s-core**:
+  - `Document.DNull` is interpreted as `Nullable.Null` when `@nullable` is present.
+  - Otherwise, it's treated as the absence of a value.
+
 # 0.18.38
 
 * core: Fix Hints methods to distinguish member and target hints (fixes [#1658](https://github.com/disneystreaming/smithy4s/issues/1658)) in [#1756](https://github.com/disneystreaming/smithy4s/pull/1756)

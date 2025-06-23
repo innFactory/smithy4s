@@ -20,8 +20,6 @@ package internals
 import cats.data.NonEmptyList
 import cats.data.Reader
 import cats.syntax.all._
-import smithy4s.codegen.internals.EnumTag.IntEnum
-import smithy4s.codegen.internals.EnumTag.StringEnum
 import smithy4s.codegen.internals.LineSegment._
 import smithy4s.codegen.internals.Primitive.Nothing
 import smithy4s.codegen.internals.Type.Nullable
@@ -601,7 +599,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           line".withOutput(${op.output.schemaRef})",
           op.streamedInput.map(si => line".withStreamedInput(${renderStreamingSchema(si)})"),
           op.streamedOutput.map(si => line".withStreamedOutput(${renderStreamingSchema(si)})"),
-          Option(op.hints).filter(_.nonEmpty).map(h => line".withHints(${memberHints(h)})")
+          memberHints(op.hints).surroundIfNotEmpty(line".withHints(", line")")
         ),
         line"def wrap(input: ${op.input}): $opNameRef = ${opNameRef}($input)"
       ),
@@ -615,7 +613,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     import sField._
     val mh =
       if (hints.isEmpty) Line.empty
-      else line".addHints(${memberHints(hints)})"
+      else memberHints(hints).surroundIfNotEmpty(line".addHints(", line")")
     line"""$StreamingSchema_(${renderStringLiteral(name)}, ${tpe.schemaRef}$mh)"""
   }
 
@@ -748,10 +746,8 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
                   realName
                 )}, _.$fieldName)"""
               } else {
-                val memHints = memberHints(hints)
                 val addMemHints =
-                  if (memHints.nonEmpty) line".addHints($memHints)"
-                  else Line.empty
+                  memberHints(hints).surroundIfNotEmpty(line".addHints(", line")")
                 // format: off
                 line"""${tpe.schemaRef}${renderConstraintValidation(hints)}.$fieldBuilder[${product.nameRef}](${renderStringLiteral(realName)}, _.$fieldName)$addMemHints"""
                 // format: on
@@ -1041,12 +1037,15 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         case UnionMember.ProductCase(product) =>
           val args = renderArgs(product.fields)
           val values = product.fields.map(_.name).intercalate(", ")
-          line"def ${uncapitalise(product.nameDef.name)}($args): ${product.nameRef} = ${product.nameRef}($values)"
+
+          line"$prefix($args): ${product.nameRef} = ${product.nameRef}($values)"
         case UnionMember.UnitCase =>
           line"$prefix(): $name = ${caseName(name, alt)}"
+
         case UnionMember.TypeCase(tpe) =>
           line"$prefix($ident: $tpe): $name = $cn($ident)"
       }
+
       lines(
         documentationAnnotation(alt.hints),
         deprecationAnnotation(alt.hints),
@@ -1226,6 +1225,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     val defaultLine: Option[Line] = field.modifier match {
       // non-required fields with no default get a default of None
       case Field.Modifier(false, _, None) => Some(NameRef("scala.None").toLine)
+      // non-required, non-nullable fields with null default get a default of None
+      case Field.Modifier(false, false, Some(Field.Default(node, Some(_)))) if node == Node.nullNode =>
+        Some(NameRef("scala.None").toLine)
       // nullable with a default of null
       // (the Some(_) check on the second parameter is necessary in order to correctly render in mode OPTION_ONLY)
       case Field.Modifier(_, true, Some(Field.Default(node, Some(_)))) if node == Node.nullNode =>
@@ -1235,8 +1237,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         Some {
           NameRef("smithy4s.Nullable.Value").toLine + Literal("(") + renderDefault(default) + Literal(")")
         }
-      case Field.Modifier(_, _, Some(Field.Default(_, Some(default)))) => Some(renderDefault(default))
-      case _                                                           => None
+      case Field.Modifier(_, _, Some(Field.Default(node, Some(default)))) if node != Node.nullNode =>
+        Some(renderDefault(default))
+      case _ => None
     }
 
     val shouldRenderDefault = !noDefault && !field.hints.contains(Hint.NoDefault)
@@ -1266,16 +1269,22 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       case EnumTag.IntEnum | EnumTag.OpenIntEnum => true
       case _                                     => false
     }
+    val enumSchemaMethod = (isOpen, isIntEnum) match {
+      case (false, false) => stringEnumeration_
+      case (true, false)  => openStringEnumeration_
+      case (false, true)  => intEnumeration_
+      case (true, true)   => openIntEnumeration_
+    }
     lines(
       documentationAnnotation(hints),
       deprecationAnnotation(hints),
       renderScalaImports(hints),
       block(
-        line"sealed abstract class ${name.name}(_value: $string_, _name: $string_, _intValue: $int_, _hints: $Hints_) extends $Enumeration_.Value"
+        line"sealed abstract class ${name.name}(_name: $string_, _stringValue: $string_, _intValue: $int_, _hints: $Hints_) extends $Enumeration_.Value"
       )(
         line"override type EnumType = $name",
-        line"override val value: $string_ = _value",
         line"override val name: $string_ = _name",
+        line"override val stringValue: $string_ = _stringValue",
         line"override val intValue: $int_ = _intValue",
         line"override val hints: $Hints_ = _hints",
         line"override def enumeration: $Enumeration_[EnumType] = $name",
@@ -1291,8 +1300,8 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           val valueName = NameRef(e.name)
 
           val baseLine =
-            line"""case object $valueName extends $name(${renderStringLiteral(value)}, ${renderStringLiteral(
-              e.realName
+            line"""case object $valueName extends $name(${renderStringLiteral(e.realName)}, ${renderStringLiteral(
+              e.value
             )}, $intValue, $Hints_.empty)"""
 
           lines(
@@ -1311,7 +1320,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           val intValue = if (isIntEnum) paramName else "-1"
           val stringValue = if (isIntEnum) "\"$Unknown\"" else paramName
           lines(
-            line"""final case class $$Unknown($paramName: $paramType) extends $name($stringValue, "$$Unknown", $intValue, Hints.empty)""",
+            line"""final case class $$Unknown($paramName: $paramType) extends $name("$$Unknown", $stringValue, $intValue, Hints.empty)""",
             newline,
             line"val $$unknown: $paramType => $name = $$Unknown(_)",
             newline,
@@ -1325,8 +1334,11 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         line"val values: $list[$name] = $list".args(
           values.map(_.name)
         ),
-        renderEnumTag(name, tag),
-        line"implicit val schema: $Schema_[$name] = $enumeration_(tag, values).withId(id).addHints(hints)",
+        if (isOpen) {
+          line"implicit val schema: $Schema_[$name] = $enumSchemaMethod(values, $$unknown).withId(id).addHints(hints)"
+        } else {
+          line"implicit val schema: $Schema_[$name] = $enumSchemaMethod(values).withId(id).addHints(hints)"
+        },
         renderTypeclasses(hints, name)
       )
     )
@@ -1525,16 +1537,6 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     line"""val id: $ShapeId_ = $ShapeId_(${renderStringLiteral(ns)}, ${renderStringLiteral(name)})"""
   }
 
-  def renderEnumTag(parentType: NameRef, tag: EnumTag): Line = {
-    val tagStr = tag match {
-      case IntEnum                => "ClosedIntEnum"
-      case StringEnum             => "ClosedStringEnum"
-      case EnumTag.OpenIntEnum    => "OpenIntEnum($unknown)"
-      case EnumTag.OpenStringEnum => "OpenStringEnum($unknown)"
-    }
-    line"val tag: $EnumTag_[$parentType] = $EnumTag_.$tagStr"
-  }
-
   def renderHintsVal(hints: List[Hint]): Lines = {
     val lhs = line"val hints: $Hints_"
 
@@ -1635,8 +1637,10 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       line"$map(${values
         .map { case (k, v) => k.runDefault + line" -> " + v.runDefault }
         .intercalate(Line.comma)})".writeCollection
-    case PrimitiveTN(prim, value) =>
+    case PrimitiveTN(prim, Some(value)) =>
       renderPrimitive[prim.T](prim)(value).write
+    case PrimitiveTN(_, None) =>
+      none.toLine.write
   }
 
   private def renderPrimitive[T](prim: Primitive.Aux[T]): T => Line =

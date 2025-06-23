@@ -16,22 +16,22 @@
 
 package smithy4s.codegen.internals
 
-import alloy.StructurePatternTrait
 import cats.data.NonEmptyList
 import cats.implicits._
 import smithy4s.meta.AdtMemberTrait
-import smithy4s.meta.AdtTrait
 import smithy4s.meta.ErrorMessageTrait
-import smithy4s.meta.GenerateOpticsTrait
-import smithy4s.meta.GenerateServiceProductTrait
 import smithy4s.meta.IndexedSeqTrait
 import smithy4s.meta.NoStackTraceTrait
 import smithy4s.meta.PackedInputsTrait
 import smithy4s.meta.RefinementTrait
 import smithy4s.meta.ScalaImportsTrait
-import smithy4s.meta.TypeclassTrait
 import smithy4s.meta.ValidateNewtypeTrait
 import smithy4s.meta.VectorTrait
+import smithy4s.meta.AdtTrait
+import smithy4s.meta.GenerateServiceProductTrait
+import smithy4s.meta.GenerateOpticsTrait
+import smithy4s.meta.TypeclassTrait
+import alloy.StructurePatternTrait
 import software.amazon.smithy.aws.traits.ServiceTrait
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.knowledge.TopDownIndex
@@ -40,7 +40,6 @@ import software.amazon.smithy.model.selector.PathFinder
 import software.amazon.smithy.model.shapes._
 import software.amazon.smithy.model.traits.DefaultTrait
 import software.amazon.smithy.model.traits.RequiredTrait
-import software.amazon.smithy.model.traits.TimestampFormatTrait
 import software.amazon.smithy.model.traits._
 
 import java.time.Instant
@@ -242,13 +241,13 @@ private[codegen] class SmithyToIR(
 
         val p =
           Product(
-            shape.getId(),
-            shape.name,
-            fields,
-            mixins,
-            rec,
-            hints,
-            isMixin
+            shapeId = shape.getId(),
+            name = shape.name,
+            fields = fields,
+            mixins = mixins,
+            recursive = rec,
+            hints = hints,
+            isMixin = isMixin
           ).some
         if (isPartOfAdt(shape)) {
           if (renderAdtMemberStructures) p else None
@@ -841,45 +840,6 @@ private[codegen] class SmithyToIR(
 
     }
 
-  private def imputeZeroValuesOnDefaultTraits(shape: Shape)(
-      tr: Trait
-  ): Trait = tr match {
-    case default: DefaultTrait if default.toNode == Node.nullNode =>
-      val tpe = shape.asMemberShape().asScala match {
-        case Some(memShape) => model.getShape(memShape.getTarget).get.getType
-        case None           => shape.getType
-      }
-      val newNode = tpe match {
-        case ShapeType.STRING      => Node.from("")
-        case ShapeType.MAP         => Node.objectNode()
-        case ShapeType.LIST        => Node.arrayNode()
-        case ShapeType.INTEGER     => Node.from(0)
-        case ShapeType.BIG_DECIMAL => Node.from(0)
-        case ShapeType.BIG_INTEGER => Node.from(0)
-        case ShapeType.LONG        => Node.from(0L)
-        case ShapeType.DOUBLE      => Node.from(0.0d)
-        case ShapeType.SHORT       => Node.from(0: Short)
-        case ShapeType.FLOAT       => Node.from(0.0f)
-        case ShapeType.BOOLEAN     => Node.from(false)
-        case ShapeType.BLOB        => Node.from("")
-        case ShapeType.BYTE        => Node.from(0)
-        case ShapeType.TIMESTAMP =>
-          shape
-            .getTrait(classOf[TimestampFormatTrait])
-            .asScala
-            .map(_.getValue) match {
-            case Some(TimestampFormatTrait.DATE_TIME) =>
-              Node.from("1970-01-01T00:00:00.00Z")
-            case Some(TimestampFormatTrait.HTTP_DATE) =>
-              Node.from("Thu, 01 Jan 1970 00:00:00 GMT")
-            case _ => Node.from(0)
-          }
-        case _ => default.toNode
-      }
-      new DefaultTrait(newNode)
-    case other => other
-  }
-
   def toTypeRef(id: ToShapeId): Type.Ref = {
     val shapeId = id.toShapeId()
     Type.Ref(shapeId.getNamespace(), shapeId.getName())
@@ -982,6 +942,20 @@ private[codegen] class SmithyToIR(
     case ConstraintTrait(tr) => Hint.Constraint(toTypeRef(tr), unfoldTrait(tr))
   }
 
+  private def streamingOperation(
+      op: OperationShape
+  ): (Option[Shape], Option[Shape]) = {
+    def forTarget(id: ShapeId): Option[MemberShape] = {
+      model.getShape(id).asScala.flatMap { shape =>
+        shape.members().asScala.find(isStreaming)
+      }
+    }
+    (
+      op.getInput().asScala.flatMap(forTarget),
+      op.getOutput().asScala.flatMap(forTarget)
+    )
+  }
+
   private def documentationHint(shape: Shape): Option[Hint] = {
     def split(s: String) =
       s.replace("*/", "\\*\\/").linesIterator.toList
@@ -989,6 +963,48 @@ private[codegen] class SmithyToIR(
       .getTrait(classOf[DocumentationTrait])
       .asScala
       .foldMap(doc => split(doc.getValue()))
+
+    val operationDocs: List[String] = {
+      shape
+        .asOperationShape()
+        .asScala
+        .toList
+        .flatMap { op =>
+          streamingOperation(op) match {
+            case (Some(in), Some(out)) =>
+              val maybeDoc = for {
+                inMem <- in
+                  .asMemberShape()
+                  .asScala
+                  .map(_.getMemberName)
+                outMem <- out
+                  .asMemberShape()
+                  .asScala
+                  .map(_.getMemberName)
+              } yield s"This operation uses @streaming on both the input (${inMem}) and the output (${outMem})"
+              maybeDoc.toList
+            case (Some(in), None) =>
+              val maybeDoc = for {
+                inMem <- in
+                  .asMemberShape()
+                  .asScala
+                  .map(_.getMemberName)
+              } yield s"This operation uses @streaming on the input (${inMem})."
+              maybeDoc.toList
+            case (None, Some(out)) =>
+              val maybeDoc = for {
+                outMem <- out
+                  .asMemberShape()
+                  .asScala
+                  .map(_.getMemberName)
+              } yield s"This operation uses @streaming on the output (${outMem})."
+              maybeDoc.toList
+            case (None, None) =>
+              List.empty
+          }
+        }
+    }
+
     def getMemberDocs(shape: Shape): Map[String, List[String]] =
       shape match {
         case _: UnionShape => Map.empty
@@ -1001,6 +1017,7 @@ private[codegen] class SmithyToIR(
           shape
             .members()
             .asScala
+            .filterNot(isStreaming)
             .map { member =>
               val memberDocs =
                 member.getTrait(classOf[DocumentationTrait]).asScala
@@ -1020,8 +1037,9 @@ private[codegen] class SmithyToIR(
       }
 
     val memberDocs = getMemberDocs(shape)
-    if (shapeDocs.nonEmpty || memberDocs.nonEmpty) {
-      Some(Hint.Documentation(shapeDocs, memberDocs))
+    val allShapeDocs = shapeDocs ++ operationDocs
+    if (allShapeDocs.nonEmpty || memberDocs.nonEmpty) {
+      Some(Hint.Documentation(allShapeDocs, memberDocs))
     } else None
   }
 
@@ -1030,7 +1048,7 @@ private[codegen] class SmithyToIR(
     val isNullable = allTraits.exists(_.toShapeId == alloy.NullableTrait.ID)
     val traits =
       if (isNullable) allTraits
-      else allTraits.map(imputeZeroValuesOnDefaultTraits(shape))
+      else allTraits
     val nonMetaTraits =
       traits
         .filterNot(_.toShapeId().getNamespace() == "smithy4s.meta")
@@ -1255,7 +1273,7 @@ private[codegen] class SmithyToIR(
   }
 
   private def unfoldNode(node: Node, shapeId: ShapeId): Fix[TypedNode] = {
-    val nodeAndType = NodeAndType(node, shapeId.tpe.get)
+    val nodeAndType = NodeAndType(node, shapeId.tpe.getOrElse(Type.unit))
     recursion.ana(unfoldNodeAndType)(nodeAndType)
   }
 
@@ -1277,10 +1295,16 @@ private[codegen] class SmithyToIR(
         val fields: List[TypedNode.FieldTN[NodeAndType]] = structFields.map {
           case Field(_, realName, tpe, mod, _, _)
               if mod.typeMod == Field.TypeModification.None =>
-            val node = map.get(realName).getOrElse {
-              mod.default.get.node
-            } // value or default must be present if type is not wrapped
-            TypedNode.FieldTN.RequiredTN(NodeAndType(node, tpe))
+            val node = map
+              .get(realName)
+              .orElse {
+                mod.default.map(
+                  _.node
+                ) // value or default must be present if type is not wrapped
+              }
+              .map(a => TypedNode.FieldTN.RequiredTN(NodeAndType(a, tpe)))
+              .getOrElse(TypedNode.FieldTN.OptionalNoneTN)
+            node
           case Field(_, realName, tpe, _, _, _) =>
             map.get(realName) match {
               case Some(node) =>
@@ -1421,71 +1445,78 @@ private[codegen] class SmithyToIR(
     (node, p) match {
       // String
       case (N.StringNode(str), Primitive.String) =>
-        TypedNode.PrimitiveTN(Primitive.String, str)
+        TypedNode.PrimitiveTN(Primitive.String, Some(str))
       // Numeric
       case (N.NumberNode(num), Primitive.Int) =>
-        TypedNode.PrimitiveTN(Primitive.Int, num.intValue())
+        TypedNode.PrimitiveTN(Primitive.Int, Some(num.intValue()))
       case (N.NumberNode(num), Primitive.Long) =>
-        TypedNode.PrimitiveTN(Primitive.Long, num.longValue())
+        TypedNode.PrimitiveTN(Primitive.Long, Some(num.longValue()))
       case (N.NumberNode(num), Primitive.Double) =>
-        TypedNode.PrimitiveTN(Primitive.Double, num.doubleValue())
+        TypedNode.PrimitiveTN(Primitive.Double, Some(num.doubleValue()))
       case (N.NumberNode(num), Primitive.Float) =>
-        TypedNode.PrimitiveTN(Primitive.Float, num.floatValue())
+        TypedNode.PrimitiveTN(Primitive.Float, Some(num.floatValue()))
       case (N.NumberNode(num), Primitive.Short) =>
-        TypedNode.PrimitiveTN(Primitive.Short, num.shortValue())
+        TypedNode.PrimitiveTN(Primitive.Short, Some(num.shortValue()))
       case (N.NumberNode(num), Primitive.BigDecimal) =>
         TypedNode.PrimitiveTN(
           Primitive.BigDecimal,
-          BigDecimal(num.doubleValue())
+          Some(BigDecimal(num.doubleValue()))
         )
       case (N.NumberNode(num), Primitive.BigInteger) =>
-        TypedNode.PrimitiveTN(Primitive.BigInteger, BigInt(num.intValue()))
+        TypedNode.PrimitiveTN(
+          Primitive.BigInteger,
+          Some(BigInt(num.intValue()))
+        )
       // Boolean
       case (N.BooleanNode(bool), Primitive.Bool) =>
-        TypedNode.PrimitiveTN(Primitive.Bool, bool)
+        TypedNode.PrimitiveTN(Primitive.Bool, Some(bool))
       case (node, Primitive.Document) =>
-        TypedNode.PrimitiveTN(Primitive.Document, node)
+        TypedNode.PrimitiveTN(Primitive.Document, Some(node))
       case (node, Primitive.String) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.String, "")
+        TypedNode.PrimitiveTN(Primitive.String, None)
       case (node, Primitive.Int) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.Int, 0)
+        TypedNode.PrimitiveTN(Primitive.Int, None)
       case (node, Primitive.Long) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.Long, 0L)
+        TypedNode.PrimitiveTN(Primitive.Long, None)
       case (node, Primitive.Double) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.Double, 0.0)
+        TypedNode.PrimitiveTN(Primitive.Double, None)
       case (node, Primitive.Float) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.Float, 0.0f)
+        TypedNode.PrimitiveTN(Primitive.Float, None)
       case (node, Primitive.Short) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.Short, 0: Short)
+        TypedNode.PrimitiveTN(Primitive.Short, None)
       case (node, Primitive.Byte) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.Byte, 0.toByte)
+        TypedNode.PrimitiveTN(Primitive.Byte, None)
       case (node, Primitive.Blob) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.Blob, Array.empty[Byte])
+        TypedNode.PrimitiveTN(Primitive.Blob, None)
       case (node, Primitive.Bool) if node == Node.nullNode =>
-        TypedNode.PrimitiveTN(Primitive.Bool, false)
+        TypedNode.PrimitiveTN(Primitive.Bool, None)
       case timestamp @ (node, Primitive.Timestamp) =>
         val value = node match {
           case N.StringNode(str) =>
-            Try(Instant.parse(str))
-              .orElse(
-                Try(ZonedDateTime.parse(str, httpDateFormatter).toInstant())
-              )
-              .toOption
-              .getOrElse(notSupported(timestamp))
+            Some(
+              Try(Instant.parse(str))
+                .orElse(
+                  Try(ZonedDateTime.parse(str, httpDateFormatter).toInstant())
+                )
+                .toOption
+                .getOrElse(notSupported(timestamp))
+            )
           case N.NumberNode(num) =>
-            Instant.ofEpochSecond(num.longValue)
-          case _ if node == Node.nullNode => java.time.Instant.ofEpochSecond(0)
+            Some(Instant.ofEpochSecond(num.longValue))
+          case _ if node == Node.nullNode => None
           case _                          => notSupported(timestamp)
         }
         TypedNode.PrimitiveTN(Primitive.Timestamp, value)
       case (_, Primitive.Unit) =>
         TypedNode.PrimitiveTN(
           Primitive.Unit,
-          ()
+          None
         )
-      case (node @ N.StringNode(s), Primitive.Uuid) =>
+      case (node, Primitive.Uuid) if node == Node.nullNode =>
+        TypedNode.PrimitiveTN(Primitive.Uuid, None)
+      case (N.StringNode(s), Primitive.Uuid) =>
         Try(UUID.fromString(s))
-          .map(TypedNode.PrimitiveTN(Primitive.Uuid, _))
+          .map(uuid => TypedNode.PrimitiveTN(Primitive.Uuid, Some(uuid)))
           .adaptErr { case e =>
             new Exception(
               s"UUID failed validation at codegen time. Defined at: ${node.getSourceLocation()}",

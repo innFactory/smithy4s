@@ -174,12 +174,17 @@ private[internals] object Field {
       nullable: Boolean,
       default: Option[Default]
   ) {
+
     def typeMod: TypeModification =
       if (!required && nullable && default.isEmpty)
         TypeModification.OptionNullable // nullable without default or required gets rendered as Option[Nullable[T]]
       else if (nullable)
         TypeModification.Nullable // other nullables get rendered as just Nullable[T]
-      else if (!required && default.isEmpty)
+      else if (
+        !required && (default.isEmpty || default.exists(
+          _.node == Node.nullNode
+        ))
+      )
         TypeModification.Option // normal line without default or required gets rendered as Option[T]
       else
         TypeModification.None // everything else just gets rendered as T
@@ -516,7 +521,6 @@ private[internals] object TypedNode {
   case class MapTN[A](values: List[(A, A)]) extends TypedNode[A]
   case class CollectionTN[A](collectionType: CollectionType, values: List[A])
       extends TypedNode[A]
-  case class PrimitiveTN[T](prim: Primitive.Aux[T], value: T)
+  case class PrimitiveTN[T](prim: Primitive.Aux[T], value: Option[T])
       extends TypedNode[Nothing]
-
 }

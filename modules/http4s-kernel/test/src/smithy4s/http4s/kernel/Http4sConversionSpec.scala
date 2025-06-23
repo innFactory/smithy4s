@@ -23,23 +23,19 @@ import smithy4s.http.HttpUriScheme
 
 object Http4sConversionSpec extends SimpleIOSuite {
 
+  // note: these actually work (http4s runs them as HTTP GET against localhost:80)
   http4sToSmithyAndBackUriTest(
     uri"/",
-    uri"http://localhost/"
+    uri"/"
   )
 
   http4sToSmithyAndBackUriTest(
     uri"/hello",
-    uri"http://localhost/hello"
+    uri"/hello"
   )
 
   http4sToSmithyAndBackUriTest(
     uri"http://example.com",
-    uri"http://example.com/"
-  )
-
-  http4sToSmithyAndBackUriTest(
-    uri"//example.com",
     uri"http://example.com/"
   )
 
@@ -63,23 +59,23 @@ object Http4sConversionSpec extends SimpleIOSuite {
     uri"http://localhost/"
   )
 
-  pureTest("URI: http4s to smithy4s defaults to http") {
+  pureTest("URI: http4s to smithy4s defaults to none") {
     expect.same(
-      smithy4s.http.HttpUriScheme.Http,
+      None,
       toSmithy4sHttpUri(uri"/").scheme
     )
   }
 
   pureTest("URI: http4s to smithy4s keeps http scheme") {
     expect.same(
-      smithy4s.http.HttpUriScheme.Http,
+      Some(smithy4s.http.HttpUriScheme.Http),
       toSmithy4sHttpUri(uri"http://localhost").scheme
     )
   }
 
   pureTest("URI: http4s to smithy4s keeps https scheme") {
     expect.same(
-      smithy4s.http.HttpUriScheme.Https,
+      Some(smithy4s.http.HttpUriScheme.Https),
       toSmithy4sHttpUri(uri"https://localhost").scheme
     )
   }
@@ -106,19 +102,25 @@ object Http4sConversionSpec extends SimpleIOSuite {
     )
   }
 
-  private def http4sToSmithyAndBackUriTest(input: Uri, output: Uri) = {
+  private def http4sToSmithyAndBackUriTest(input: Uri, output: Uri)(implicit
+      loc: SourceLocation
+  ) = {
     pureTest(s"URI: http4s to smithy4s and back: $input -> $output") {
+      val intermediate = toSmithy4sHttpUri(input)
+
       expect.eql(
         output,
-        fromSmithy4sHttpUri(toSmithy4sHttpUri(input))
+        fromSmithy4sHttpUri(intermediate)
+      ) || failure(
+        s"comparison failed. Intermediate value for debugging: $intermediate"
       )
     }
   }
 
   private def aSmithy4sUri(scheme: HttpUriScheme) =
-    smithy4s.http.HttpUri(
+    smithy4s.http.HttpUri.absolute(
       scheme = scheme,
-      host = "localhost",
+      host = "example.com",
       port = None,
       path = IndexedSeq.empty,
       queryParams = Map.empty,
