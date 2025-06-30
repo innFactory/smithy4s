@@ -17,26 +17,47 @@ import smithy4s.schema.Schema.unit
 trait PizzaAdminServiceGen[F[_, _, _, _, _]] {
   self =>
 
+  /** HTTP POST /headers/ */
   def headerEndpoint(uppercaseHeader: Option[String] = None, capitalizedHeader: Option[String] = None, lowercaseHeader: Option[String] = None, mixedHeader: Option[String] = None): F[HeaderEndpointData, Nothing, HeaderEndpointData, Nothing, Nothing]
+  /** HTTP GET /custom-code/{code} */
   def customCode(code: Int): F[CustomCodeInput, PizzaAdminServiceOperation.CustomCodeError, CustomCodeOutput, Nothing, Nothing]
+  /** HTTP GET /optional-output */
   def optionalOutput(): F[Unit, Nothing, OptionalOutputOutput, Nothing, Nothing]
+  /** HTTP POST /echo/{pathParam} */
   def echo(pathParam: String, body: EchoBody, queryParam: Option[String] = None): F[EchoInput, Nothing, Unit, Nothing, Nothing]
+  /** HTTP GET /query-check?kind=x&variant=d */
   def checkQueryKindXVariantD(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  /** HTTP GET /get-int-enum/{aa} */
   def getIntEnum(aa: EnumResult): F[GetIntEnumInput, PizzaAdminServiceOperation.GetIntEnumError, GetIntEnumOutput, Nothing, Nothing]
+  /** HTTP POST /roundTrip/{label} */
   def roundTrip(label: String, header: Option[String] = None, query: Option[String] = None, body: Option[String] = None): F[RoundTripData, Nothing, RoundTripData, Nothing, Nothing]
+  /** HTTP GET /version */
   def version(): F[Unit, Nothing, VersionOutput, Nothing, Nothing]
+  /** HTTP GET /query-check?variant=a */
   def checkQueryVariantA(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  /** HTTP GET /query-check?kind=z&variant=a */
   def checkQueryKindZVariantA(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  /** HTTP POST /book/{name} */
   def reservation(name: String, town: Option[String] = None): F[ReservationInput, Nothing, ReservationOutput, Nothing, Nothing]
+  /** HTTP GET /get-enum/{aa} */
   def getEnum(aa: TheEnum): F[GetEnumInput, PizzaAdminServiceOperation.GetEnumError, GetEnumOutput, Nothing, Nothing]
+  /** HTTP GET /query-check?kind=y&variant */
   def checkQueryKindYVariant(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  /** HTTP HEAD /head-request */
   def headRequest(): F[Unit, Nothing, HeadRequestOutput, Nothing, Nothing]
+  /** HTTP GET /no-content */
   def noContentRequest(): F[Unit, Nothing, Unit, Nothing, Nothing]
+  /** HTTP POST /restaurant/{restaurant}/menu/item */
   def addMenuItem(restaurant: String, menuItem: MenuItem): F[AddMenuItemRequest, PizzaAdminServiceOperation.AddMenuItemError, AddMenuItemResult, Nothing, Nothing]
+  /** HTTP GET /query-check?kind=z */
   def checkQueryKindZ(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  /** HTTP GET /health */
   def health(query: Option[String] = None): F[HealthRequest, PizzaAdminServiceOperation.HealthError, HealthResponse, Nothing, Nothing]
+  /** HTTP GET /query-check?kind=x&variant=c */
   def checkQueryKindXVariantC(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  /** HTTP GET /restaurant/{restaurant}/menu */
   def getMenu(restaurant: String): F[GetMenuRequest, PizzaAdminServiceOperation.GetMenuError, GetMenuResult, Nothing, Nothing]
+  /** HTTP GET /query-check?variant=b */
   def checkQueryVariantB(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
 
   final def transform: Transformation.PartiallyApplied[PizzaAdminServiceGen[F]] = Transformation.of[PizzaAdminServiceGen[F]](this)
