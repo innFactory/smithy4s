@@ -1005,6 +1005,14 @@ private[codegen] class SmithyToIR(
         }
     }
 
+    val httpDocs = shape
+      .getTrait(classOf[HttpTrait])
+      .asScala
+      .map { http =>
+        List(s"HTTP ${http.getMethod} ${http.getUri.toString}")
+      }
+      .getOrElse(List.empty)
+
     def getMemberDocs(shape: Shape): Map[String, List[String]] =
       shape match {
         case _: UnionShape => Map.empty
@@ -1037,9 +1045,17 @@ private[codegen] class SmithyToIR(
       }
 
     val memberDocs = getMemberDocs(shape)
-    val allShapeDocs = shapeDocs ++ operationDocs
-    if (allShapeDocs.nonEmpty || memberDocs.nonEmpty) {
-      Some(Hint.Documentation(allShapeDocs, memberDocs))
+    val protocolSpecific = List(httpDocs).filter(_.nonEmpty)
+    if (
+      shapeDocs.nonEmpty || operationDocs.nonEmpty || memberDocs.nonEmpty || protocolSpecific.nonEmpty
+    ) {
+      Some(
+        Hint.Documentation(
+          shapeDocs ++ operationDocs,
+          memberDocs,
+          protocolSpecific
+        )
+      )
     } else None
   }
 
