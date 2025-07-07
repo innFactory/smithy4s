@@ -98,6 +98,7 @@ structure StructureWithRefinedTypes {
     inlineFieldConstraint: Integer = 1
 
     uuidField: UUID = "00000000-0000-0000-0000-000000000000"
+
     uuidField2: UUID = null
 }
 

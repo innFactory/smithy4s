@@ -66,9 +66,11 @@ structure DefaultTest {
 
     @default
     eighteen: Boolean
+
     @default
     @alloy#nullable
     nineteen: Integer
+
     @default
     @alloy#nullable
     @required
