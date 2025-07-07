@@ -31,10 +31,6 @@ final case class HttpUri private (
       */
     path: IndexedSeq[String],
     queryParams: Map[String, Seq[String]],
-    /**
-      * Field allowing to store decoded path parameters alongside an http request,
-      * once the routing logic has come in effect.
-      */
     pathParams: Option[Map[String, String]]
 ) {
   def toURI: URI = {

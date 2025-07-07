@@ -382,7 +382,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       )(
         newline,
         renderId(shapeId),
-        line"""val version: $string_ = "$version"""",
+        line"""val version: $string_ = ${renderStringLiteral(version)}""",
         newline,
         renderHintsVal(hints),
         newline,
@@ -592,7 +592,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       )(
         line"""val schema: $OperationSchema_[${op.renderAlgParams(
           opObjectName
-        )}] = $Schema_.operation($ShapeId_("$ns", "$opName"))""",
+        )}] = $Schema_.operation($ShapeId_(${renderStringLiteral(ns)}, ${renderStringLiteral(opName)}))""",
         indent(
           line".withInput(${op.input.schemaRef})",
           Option(op.errors).filter(_.nonEmpty).as(line".withError(${opErrorDef}.errorSchema)"),
@@ -614,13 +614,13 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     val mh =
       if (hints.isEmpty) Line.empty
       else memberHints(hints).surroundIfNotEmpty(line".addHints(", line")")
-    line"""$StreamingSchema_("$name", ${tpe.schemaRef}$mh)"""
+    line"""$StreamingSchema_(${renderStringLiteral(name)}, ${tpe.schemaRef}$mh)"""
   }
 
   private def renderProtocol(name: NameRef, hints: List[Hint]): Lines = {
     hints.collectFirst({ case p: Hint.Protocol => p }).foldMap { protocol =>
       val protocolTraits = protocol.traits
-        .map(t => line"""$ShapeId_("${t.namespace}", "${t.name}")""")
+        .map(t => line"""$ShapeId_(${renderStringLiteral(t.namespace)}, ${renderStringLiteral(t.name)})""")
         .intercalate(Line.comma)
       lines(
         newline,
@@ -742,12 +742,14 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
               }
 
               if (hints.isEmpty) {
-                line"""${tpe.schemaRef}.$fieldBuilder[${product.nameRef}]("$realName", _.$fieldName)"""
+                line"""${tpe.schemaRef}.$fieldBuilder[${product.nameRef}](${renderStringLiteral(
+                  realName
+                )}, _.$fieldName)"""
               } else {
                 val addMemHints =
                   memberHints(hints).surroundIfNotEmpty(line".addHints(", line")")
                 // format: off
-                line"""${tpe.schemaRef}${renderConstraintValidation(hints)}.$fieldBuilder[${product.nameRef}]("$realName", _.$fieldName)$addMemHints"""
+                line"""${tpe.schemaRef}${renderConstraintValidation(hints)}.$fieldBuilder[${product.nameRef}](${renderStringLiteral(realName)}, _.$fieldName)$addMemHints"""
                 // format: on
               }
             }
@@ -906,7 +908,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           members.map { case (altName, tpe) =>
             line"""val ${altVal(
               altName
-            )} = $tpe.schema.oneOf[${name}]("$altName")"""
+            )} = $tpe.schema.oneOf[${name}](${renderStringLiteral(altName)})"""
           },
           block(
             line"$union_(${members.map { case (n, _) => altVal(n) }.intercalate(line", ")})"
@@ -1134,7 +1136,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
               documentationAnnotation(altHints),
               deprecationAnnotation(altHints),
               line"case object ${cn.nameDef} extends $name { final def $$ordinal: Int = $index }",
-              line"""private val ${cn.nameDef}Alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name]("$realName").addHints(hints)""",
+              line"""private val ${cn.nameDef}Alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(hints)""",
             )
             // format: on
           case (
@@ -1153,7 +1155,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
               ) =>
             val additionalLines = lines(
               newline,
-              line"""val alt = schema.oneOf[$name]("$realName")"""
+              line"""val alt = schema.oneOf[$name](${renderStringLiteral(realName)})"""
             )
             // In case of union members that are inline structs (as opposed to structs being referenced and wrapped by a new class),
             // we want to put a deprecation note (if it exists on the alt) on the struct - there's nowhere else to put it.
@@ -1179,7 +1181,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
               renderHintsVal(altHints),
               // format: off
               line"val schema: $Schema_[$cn] = $bijection_(${tpe.schemaRef}.addHints(hints)${renderConstraintValidation(altHints)}, $cn(_), _.${uncapitalise(altName)})",
-              line"""val alt = schema.oneOf[$name]("$realName")""",
+              line"""val alt = schema.oneOf[$name](${renderStringLiteral(realName)})""",
               // format: on
             )
         },
@@ -1294,11 +1296,13 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         renderHintsVal(hints),
         newline,
         renderPrismsEnum(name, values, hints, isOpen),
-        values.map { case e @ EnumValue(value, intValue, _, _, hints) =>
+        values.map { case e @ EnumValue(_, intValue, _, _, hints) =>
           val valueName = NameRef(e.name)
 
           val baseLine =
-            line"""case object $valueName extends $name("${e.realName}", "$value", $intValue, $Hints_.empty)"""
+            line"""case object $valueName extends $name(${renderStringLiteral(e.realName)}, ${renderStringLiteral(
+              e.value
+            )}, $intValue, $Hints_.empty)"""
 
           lines(
             documentationAnnotation(hints),
@@ -1318,7 +1322,12 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           lines(
             line"""final case class $$Unknown($paramName: $paramType) extends $name("$$Unknown", $stringValue, $intValue, Hints.empty)""",
             newline,
-            line"val $$unknown: $paramType => $name = $$Unknown(_)"
+            line"val $$unknown: $paramType => $name = $$Unknown(_)",
+            newline,
+            if (isIntEnum)
+              line"def fromIntOrUnknown(i: Int): $name = fromOrdinal(i).getOrElse($$unknown(i))"
+            else
+              line"def fromStringOrUnknown(s: String): $name = fromString(s).getOrElse($$unknown(s))"
           )
         } else Lines.empty,
         newline,
@@ -1500,7 +1509,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       case Primitive.BigInteger => s"${schemaPkg_}.bigint"
       case Primitive.Uuid       => s"${schemaPkg_}.uuid"
       case Primitive.Document   => s"${schemaPkg_}.document"
-      case Primitive.Nothing    => "???"
+      case Primitive.Nothing    => sys.error("Invalid state: Cannot render Nothing")
     }
 
     def name: Option[String] = tpe match {
@@ -1512,7 +1521,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
 
   private def renderHint(hint: Hint.Native): Line =
     recursion
-      .cata(renderTypedNode)(hint.typedNode)
+      .cata(renderTypedNode)(hint.typedNode.value)
       .run(true)
       ._2
 
@@ -1525,7 +1534,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
   def renderId(shapeId: ShapeId): Line = {
     val ns = shapeId.getNamespace()
     val name = shapeId.getName()
-    line"""val id: $ShapeId_ = $ShapeId_("$ns", "$name")"""
+    line"""val id: $ShapeId_ = $ShapeId_(${renderStringLiteral(ns)}, ${renderStringLiteral(name)})"""
   }
 
   def renderHintsVal(hints: List[Hint]): Lines = {
@@ -1635,6 +1644,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
   }
 
   private def renderPrimitive[T](prim: Primitive.Aux[T]): T => Line =
+    // NOTE: this match doesn't have exhaustivity checking on Scala 2! (due to the Aux pattern's weird interaction with gADTs)
     prim match {
       case Primitive.BigDecimal =>
         (bd: BigDecimal) => line"scala.math.BigDecimal($bd)"
@@ -1646,7 +1656,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       case Primitive.Int        => t => line"${t.toString}"
       case Primitive.Short      => t => line"${t.toString}"
       case Primitive.Bool       => t => line"${t.toString}"
-      case Primitive.Uuid       => uuid => line"java.util.UUID.fromString($uuid)"
+      case Primitive.Uuid       => uuid => line"java.util.UUID.fromString(${renderStringLiteral(uuid.toString)})"
       case Primitive.String     => renderStringLiteral
       case Primitive.Byte       => b => line"${b.toString}"
       case Primitive.Blob =>
@@ -1671,7 +1681,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
             line"smithy4s.Document.fromDouble(${x.getValue.doubleValue()}d)"
           def objectNode(x: ObjectNode): Line = {
             val members = x.getMembers.asScala.map { member =>
-              val key = s""""${member._1.getValue()}""""
+              val key = renderStringLiteral(member._1.getValue)
               val value = member._2.accept(this)
               line"$key -> $value"
             }
@@ -1683,7 +1693,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
             )})"""
         })
       }
-      case _ => _ => line"null"
+      case Primitive.Nothing => v => (v: Nothing) // this case can't happen
     }
 
   private def renderStringLiteral(raw: String): Line = {
