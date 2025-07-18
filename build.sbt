@@ -1,3 +1,4 @@
+import software.amazon.smithy.model.traits.TraitService
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.core.MissingClassProblem
 import com.typesafe.tools.mima.core.IncompatibleResultTypeProblem
@@ -453,7 +454,8 @@ lazy val codegen = projectMatrix
       Dependencies.Circe.generic.value,
       Dependencies.collectionsCompat.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "io.get-coursier" %% "coursier" % "2.1.24"
+      "io.get-coursier" %% "coursier" % "2.1.24",
+      Dependencies.Mima.core % Test
     ),
     libraryDependencies ++= munitDeps.value,
     scalacOptions := scalacOptions.value
@@ -597,10 +599,12 @@ lazy val protocol = projectMatrix
     settings = jvmDimSettings
   )
   .settings(
-    Compile / packageSrc / mappings := (Compile / packageSrc / mappings).value
-      .filterNot { case (file, path) =>
+    isMimaEnabled := true,
+    Compile / packageSrc / mappings ~= {
+      _.filterNot { case (file, path) =>
         path.equalsIgnoreCase("META-INF/smithy/manifest")
-      },
+      }
+    },
     resolvers += Resolver.mavenLocal,
     libraryDependencies += Dependencies.Smithy.model,
     javacOptions ++= Seq(
@@ -613,6 +617,25 @@ lazy val protocol = projectMatrix
       // skip "Loading source file", "Generating" logs from Javadoc
       "-quiet"
     )
+  )
+  .enablePlugins(SmithyTraitCodegenPlugin)
+  .settings(
+    smithyTraitCodegenDependencies := Nil,
+    smithyTraitCodegenNamespace := "smithy4s.meta",
+    smithyTraitCodegenJavaPackage := "smithy4s.meta",
+    smithyTraitCodegenSourceDirectory := (ThisBuild / baseDirectory).value / "modules" / "protocol" / "resources" / "META-INF" / "smithy",
+    smithyTraitCodegenExternalProviders ++=
+    // format: off
+      IO
+        .readLines(
+          (ThisBuild / baseDirectory).value / "modules" / "protocol" / "resources" / "META-INF" / "services-input" / classOf[TraitService].getName()
+        )
+        .filterNot(_.trim.startsWith("#"))
+        .filterNot(_.trim.isEmpty),
+    // format: on
+    Compile / packageBin / mappings ~= {
+      _.filterNot { case (_, path) => path.contains("services-input") }
+    }
   )
 
 lazy val protocolJvm = protocol.jvm(autoScalaLibrary = false)
@@ -987,7 +1010,8 @@ lazy val bootstrapped = projectMatrix
       "smithy4s.example.protobuf",
       "weather",
       "smithy4s.example.product",
-      "smithy4s.example.reservedNameOverride"
+      "smithy4s.example.reservedNameOverride",
+      "smithy4s.example.bincompat"
     ),
     smithySpecs := IO.listFiles(
       (ThisBuild / baseDirectory).value / "sampleSpecs"
