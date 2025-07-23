@@ -289,11 +289,19 @@ lazy val core = projectMatrix
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "smithy4s.http.HttpUnaryServerRouter#PartialFunctionRouter.this"
       ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        // this is a private case class so any problems are spurious
+        "smithy4s.http.HttpUnaryClientCodecs#HttpUnaryClientCodecsBuilderImpl.*"
+      ),
       // Breaking bin-compat to walk back ambiguous methods introduced in
       // https://github.com/disneystreaming/smithy4s/pull/1669
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "smithy4s.http.HttpUnaryServerRouter.partialFunction"
-      )
+      ),
+      // originating in an Alloy update that removed ProtoCompactOffsetDateTime
+      ProblemFilters.exclude[MissingClassProblem]("alloy.proto.ProtoCompactOffsetDateTime"),
+      // originating in an Alloy update that removed ProtoCompactOffsetDateTime
+      ProblemFilters.exclude[MissingClassProblem]("alloy.proto.ProtoCompactOffsetDateTime$"),
     )
   )
   .jvmPlatform(allJvmScalaVersions, jvmDimSettings)
