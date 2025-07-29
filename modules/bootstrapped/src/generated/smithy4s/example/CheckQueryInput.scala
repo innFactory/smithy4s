@@ -6,7 +6,7 @@ import smithy4s.ShapeId
 import smithy4s.ShapeTag
 import smithy4s.schema.Schema.struct
 
-final case class CheckQueryInput(inp: Map[String, List[String]] = Map())
+final case class CheckQueryInput(inp: Option[Map[String, List[String]]] = None)
 
 object CheckQueryInput extends ShapeTag.Companion[CheckQueryInput] {
   val id: ShapeId = ShapeId("smithy4s.example", "CheckQueryInput")
@@ -14,9 +14,9 @@ object CheckQueryInput extends ShapeTag.Companion[CheckQueryInput] {
   val hints: Hints = Hints.empty
 
   // constructor using the original order from the spec
-  private def make(inp: Map[String, List[String]]): CheckQueryInput = CheckQueryInput(inp)
+  private def make(inp: Option[Map[String, List[String]]]): CheckQueryInput = CheckQueryInput(inp)
 
   implicit val schema: Schema[CheckQueryInput] = struct(
-    QParams.underlyingSchema.field[CheckQueryInput]("inp", _.inp).addHints(smithy.api.Default(smithy4s.Document.obj()), smithy.api.HttpQueryParams()),
+    QParams.underlyingSchema.optional[CheckQueryInput]("inp", _.inp).addHints(smithy.api.Default(smithy4s.Document.nullDoc), smithy.api.HttpQueryParams()),
   )(make).withId(id).addHints(hints)
 }

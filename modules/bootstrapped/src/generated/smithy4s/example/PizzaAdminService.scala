@@ -26,7 +26,7 @@ trait PizzaAdminServiceGen[F[_, _, _, _, _]] {
   /** HTTP POST /echo/{pathParam} */
   def echo(pathParam: String, body: EchoBody, queryParam: Option[String] = None): F[EchoInput, Nothing, Unit, Nothing, Nothing]
   /** HTTP GET /query-check?kind=x&variant=d */
-  def checkQueryKindXVariantD(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  def checkQueryKindXVariantD(inp: Option[Map[String, List[String]]] = None): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
   /** HTTP GET /get-int-enum/{aa} */
   def getIntEnum(aa: EnumResult): F[GetIntEnumInput, PizzaAdminServiceOperation.GetIntEnumError, GetIntEnumOutput, Nothing, Nothing]
   /** HTTP POST /roundTrip/{label} */
@@ -34,15 +34,15 @@ trait PizzaAdminServiceGen[F[_, _, _, _, _]] {
   /** HTTP GET /version */
   def version(): F[Unit, Nothing, VersionOutput, Nothing, Nothing]
   /** HTTP GET /query-check?variant=a */
-  def checkQueryVariantA(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  def checkQueryVariantA(inp: Option[Map[String, List[String]]] = None): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
   /** HTTP GET /query-check?kind=z&variant=a */
-  def checkQueryKindZVariantA(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  def checkQueryKindZVariantA(inp: Option[Map[String, List[String]]] = None): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
   /** HTTP POST /book/{name} */
   def reservation(name: String, town: Option[String] = None): F[ReservationInput, Nothing, ReservationOutput, Nothing, Nothing]
   /** HTTP GET /get-enum/{aa} */
   def getEnum(aa: TheEnum): F[GetEnumInput, PizzaAdminServiceOperation.GetEnumError, GetEnumOutput, Nothing, Nothing]
   /** HTTP GET /query-check?kind=y&variant */
-  def checkQueryKindYVariant(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  def checkQueryKindYVariant(inp: Option[Map[String, List[String]]] = None): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
   /** HTTP HEAD /head-request */
   def headRequest(): F[Unit, Nothing, HeadRequestOutput, Nothing, Nothing]
   /** HTTP GET /no-content */
@@ -50,15 +50,15 @@ trait PizzaAdminServiceGen[F[_, _, _, _, _]] {
   /** HTTP POST /restaurant/{restaurant}/menu/item */
   def addMenuItem(restaurant: String, menuItem: MenuItem): F[AddMenuItemRequest, PizzaAdminServiceOperation.AddMenuItemError, AddMenuItemResult, Nothing, Nothing]
   /** HTTP GET /query-check?kind=z */
-  def checkQueryKindZ(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  def checkQueryKindZ(inp: Option[Map[String, List[String]]] = None): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
   /** HTTP GET /health */
   def health(query: Option[String] = None): F[HealthRequest, PizzaAdminServiceOperation.HealthError, HealthResponse, Nothing, Nothing]
   /** HTTP GET /query-check?kind=x&variant=c */
-  def checkQueryKindXVariantC(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  def checkQueryKindXVariantC(inp: Option[Map[String, List[String]]] = None): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
   /** HTTP GET /restaurant/{restaurant}/menu */
   def getMenu(restaurant: String): F[GetMenuRequest, PizzaAdminServiceOperation.GetMenuError, GetMenuResult, Nothing, Nothing]
   /** HTTP GET /query-check?variant=b */
-  def checkQueryVariantB(inp: Map[String, List[String]] = Map()): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
+  def checkQueryVariantB(inp: Option[Map[String, List[String]]] = None): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
 
   final def transform: Transformation.PartiallyApplied[PizzaAdminServiceGen[F]] = Transformation.of[PizzaAdminServiceGen[F]](this)
 }
@@ -141,46 +141,46 @@ object PizzaAdminServiceOperation {
     def customCode(code: Int): CustomCode = CustomCode(CustomCodeInput(code))
     def optionalOutput(): OptionalOutput = OptionalOutput()
     def echo(pathParam: String, body: EchoBody, queryParam: Option[String] = None): Echo = Echo(EchoInput(pathParam, body, queryParam))
-    def checkQueryKindXVariantD(inp: Map[String, List[String]] = Map()): CheckQueryKindXVariantD = CheckQueryKindXVariantD(CheckQueryInput(inp))
+    def checkQueryKindXVariantD(inp: Option[Map[String, List[String]]] = None): CheckQueryKindXVariantD = CheckQueryKindXVariantD(CheckQueryInput(inp))
     def getIntEnum(aa: EnumResult): GetIntEnum = GetIntEnum(GetIntEnumInput(aa))
     def roundTrip(label: String, header: Option[String] = None, query: Option[String] = None, body: Option[String] = None): RoundTrip = RoundTrip(RoundTripData(label, header, query, body))
     def version(): Version = Version()
-    def checkQueryVariantA(inp: Map[String, List[String]] = Map()): CheckQueryVariantA = CheckQueryVariantA(CheckQueryInput(inp))
-    def checkQueryKindZVariantA(inp: Map[String, List[String]] = Map()): CheckQueryKindZVariantA = CheckQueryKindZVariantA(CheckQueryInput(inp))
+    def checkQueryVariantA(inp: Option[Map[String, List[String]]] = None): CheckQueryVariantA = CheckQueryVariantA(CheckQueryInput(inp))
+    def checkQueryKindZVariantA(inp: Option[Map[String, List[String]]] = None): CheckQueryKindZVariantA = CheckQueryKindZVariantA(CheckQueryInput(inp))
     def reservation(name: String, town: Option[String] = None): Reservation = Reservation(ReservationInput(name, town))
     def getEnum(aa: TheEnum): GetEnum = GetEnum(GetEnumInput(aa))
-    def checkQueryKindYVariant(inp: Map[String, List[String]] = Map()): CheckQueryKindYVariant = CheckQueryKindYVariant(CheckQueryInput(inp))
+    def checkQueryKindYVariant(inp: Option[Map[String, List[String]]] = None): CheckQueryKindYVariant = CheckQueryKindYVariant(CheckQueryInput(inp))
     def headRequest(): HeadRequest = HeadRequest()
     def noContentRequest(): NoContentRequest = NoContentRequest()
     def addMenuItem(restaurant: String, menuItem: MenuItem): AddMenuItem = AddMenuItem(AddMenuItemRequest(restaurant, menuItem))
-    def checkQueryKindZ(inp: Map[String, List[String]] = Map()): CheckQueryKindZ = CheckQueryKindZ(CheckQueryInput(inp))
+    def checkQueryKindZ(inp: Option[Map[String, List[String]]] = None): CheckQueryKindZ = CheckQueryKindZ(CheckQueryInput(inp))
     def health(query: Option[String] = None): Health = Health(HealthRequest(query))
-    def checkQueryKindXVariantC(inp: Map[String, List[String]] = Map()): CheckQueryKindXVariantC = CheckQueryKindXVariantC(CheckQueryInput(inp))
+    def checkQueryKindXVariantC(inp: Option[Map[String, List[String]]] = None): CheckQueryKindXVariantC = CheckQueryKindXVariantC(CheckQueryInput(inp))
     def getMenu(restaurant: String): GetMenu = GetMenu(GetMenuRequest(restaurant))
-    def checkQueryVariantB(inp: Map[String, List[String]] = Map()): CheckQueryVariantB = CheckQueryVariantB(CheckQueryInput(inp))
+    def checkQueryVariantB(inp: Option[Map[String, List[String]]] = None): CheckQueryVariantB = CheckQueryVariantB(CheckQueryInput(inp))
   }
   class Transformed[P[_, _, _, _, _], P1[_ ,_ ,_ ,_ ,_]](alg: PizzaAdminServiceGen[P], f: PolyFunction5[P, P1]) extends PizzaAdminServiceGen[P1] {
     def headerEndpoint(uppercaseHeader: Option[String] = None, capitalizedHeader: Option[String] = None, lowercaseHeader: Option[String] = None, mixedHeader: Option[String] = None): P1[HeaderEndpointData, Nothing, HeaderEndpointData, Nothing, Nothing] = f[HeaderEndpointData, Nothing, HeaderEndpointData, Nothing, Nothing](alg.headerEndpoint(uppercaseHeader, capitalizedHeader, lowercaseHeader, mixedHeader))
     def customCode(code: Int): P1[CustomCodeInput, PizzaAdminServiceOperation.CustomCodeError, CustomCodeOutput, Nothing, Nothing] = f[CustomCodeInput, PizzaAdminServiceOperation.CustomCodeError, CustomCodeOutput, Nothing, Nothing](alg.customCode(code))
     def optionalOutput(): P1[Unit, Nothing, OptionalOutputOutput, Nothing, Nothing] = f[Unit, Nothing, OptionalOutputOutput, Nothing, Nothing](alg.optionalOutput())
     def echo(pathParam: String, body: EchoBody, queryParam: Option[String] = None): P1[EchoInput, Nothing, Unit, Nothing, Nothing] = f[EchoInput, Nothing, Unit, Nothing, Nothing](alg.echo(pathParam, body, queryParam))
-    def checkQueryKindXVariantD(inp: Map[String, List[String]] = Map()): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindXVariantD(inp))
+    def checkQueryKindXVariantD(inp: Option[Map[String, List[String]]] = None): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindXVariantD(inp))
     def getIntEnum(aa: EnumResult): P1[GetIntEnumInput, PizzaAdminServiceOperation.GetIntEnumError, GetIntEnumOutput, Nothing, Nothing] = f[GetIntEnumInput, PizzaAdminServiceOperation.GetIntEnumError, GetIntEnumOutput, Nothing, Nothing](alg.getIntEnum(aa))
     def roundTrip(label: String, header: Option[String] = None, query: Option[String] = None, body: Option[String] = None): P1[RoundTripData, Nothing, RoundTripData, Nothing, Nothing] = f[RoundTripData, Nothing, RoundTripData, Nothing, Nothing](alg.roundTrip(label, header, query, body))
     def version(): P1[Unit, Nothing, VersionOutput, Nothing, Nothing] = f[Unit, Nothing, VersionOutput, Nothing, Nothing](alg.version())
-    def checkQueryVariantA(inp: Map[String, List[String]] = Map()): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryVariantA(inp))
-    def checkQueryKindZVariantA(inp: Map[String, List[String]] = Map()): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindZVariantA(inp))
+    def checkQueryVariantA(inp: Option[Map[String, List[String]]] = None): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryVariantA(inp))
+    def checkQueryKindZVariantA(inp: Option[Map[String, List[String]]] = None): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindZVariantA(inp))
     def reservation(name: String, town: Option[String] = None): P1[ReservationInput, Nothing, ReservationOutput, Nothing, Nothing] = f[ReservationInput, Nothing, ReservationOutput, Nothing, Nothing](alg.reservation(name, town))
     def getEnum(aa: TheEnum): P1[GetEnumInput, PizzaAdminServiceOperation.GetEnumError, GetEnumOutput, Nothing, Nothing] = f[GetEnumInput, PizzaAdminServiceOperation.GetEnumError, GetEnumOutput, Nothing, Nothing](alg.getEnum(aa))
-    def checkQueryKindYVariant(inp: Map[String, List[String]] = Map()): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindYVariant(inp))
+    def checkQueryKindYVariant(inp: Option[Map[String, List[String]]] = None): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindYVariant(inp))
     def headRequest(): P1[Unit, Nothing, HeadRequestOutput, Nothing, Nothing] = f[Unit, Nothing, HeadRequestOutput, Nothing, Nothing](alg.headRequest())
     def noContentRequest(): P1[Unit, Nothing, Unit, Nothing, Nothing] = f[Unit, Nothing, Unit, Nothing, Nothing](alg.noContentRequest())
     def addMenuItem(restaurant: String, menuItem: MenuItem): P1[AddMenuItemRequest, PizzaAdminServiceOperation.AddMenuItemError, AddMenuItemResult, Nothing, Nothing] = f[AddMenuItemRequest, PizzaAdminServiceOperation.AddMenuItemError, AddMenuItemResult, Nothing, Nothing](alg.addMenuItem(restaurant, menuItem))
-    def checkQueryKindZ(inp: Map[String, List[String]] = Map()): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindZ(inp))
+    def checkQueryKindZ(inp: Option[Map[String, List[String]]] = None): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindZ(inp))
     def health(query: Option[String] = None): P1[HealthRequest, PizzaAdminServiceOperation.HealthError, HealthResponse, Nothing, Nothing] = f[HealthRequest, PizzaAdminServiceOperation.HealthError, HealthResponse, Nothing, Nothing](alg.health(query))
-    def checkQueryKindXVariantC(inp: Map[String, List[String]] = Map()): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindXVariantC(inp))
+    def checkQueryKindXVariantC(inp: Option[Map[String, List[String]]] = None): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryKindXVariantC(inp))
     def getMenu(restaurant: String): P1[GetMenuRequest, PizzaAdminServiceOperation.GetMenuError, GetMenuResult, Nothing, Nothing] = f[GetMenuRequest, PizzaAdminServiceOperation.GetMenuError, GetMenuResult, Nothing, Nothing](alg.getMenu(restaurant))
-    def checkQueryVariantB(inp: Map[String, List[String]] = Map()): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryVariantB(inp))
+    def checkQueryVariantB(inp: Option[Map[String, List[String]]] = None): P1[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing] = f[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing](alg.checkQueryVariantB(inp))
   }
 
   def toPolyFunction[P[_, _, _, _, _]](impl: PizzaAdminServiceGen[P]): PolyFunction5[PizzaAdminServiceOperation, P] = new PolyFunction5[PizzaAdminServiceOperation, P] {
