@@ -34,7 +34,9 @@ trait PizzaCheckQueryServiceImpl {
       )
     )
 
-  def checkQueryKindZ(inp: Option[Map[String, List[String]]]): IO[CheckQueryOutput] =
+  def checkQueryKindZ(
+      inp: Option[Map[String, List[String]]]
+  ): IO[CheckQueryOutput] =
     output(inp, kind = Some("z"))
 
   def checkQueryKindYVariant(
@@ -49,7 +51,9 @@ trait PizzaCheckQueryServiceImpl {
       inp: Option[Map[String, List[String]]]
   ): IO[CheckQueryOutput] = output(inp, kind = Some("x"), variant = Some("d"))
 
-  def checkQueryVariantA(inp: Option[Map[String, List[String]]]): IO[CheckQueryOutput] =
+  def checkQueryVariantA(
+      inp: Option[Map[String, List[String]]]
+  ): IO[CheckQueryOutput] =
     output(inp, variant = Some("a"))
 
   def checkQueryVariantB(
