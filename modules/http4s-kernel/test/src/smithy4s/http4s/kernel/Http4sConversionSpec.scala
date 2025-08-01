@@ -110,8 +110,6 @@ object Http4sConversionSpec extends SimpleIOSuite {
       output: Uri
   ): Unit = {
     pureTest(s"URI: http4s to smithy4s and back: $input -> $output") {
-      val intermediate = toSmithy4sHttpUri(input)
-
       expect.eql(
         output,
         fromSmithy4sHttpUri(toSmithy4sHttpUri(input), encodePathSegments = true)
