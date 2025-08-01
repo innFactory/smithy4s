@@ -53,6 +53,18 @@ The behavior of `@default(null)` has changed to better align with Smithy semanti
 ## `Bijection` does no longer extends `Function` in [#1794](https://github.com/disneystreaming/smithy4s/pull/1794)
 Prevents using it as an implicit conversion in Scala 2
 
+# 0.18.41
+
+* codegen: Avoid collision with `Schema.*` methods in certain cases of ADT unions in [#1789](https://github.com/disneystreaming/smithy4s/pull/1789)
+* http4s: Revert the default behavior of URL path encoding in [#1793](https://github.com/disneystreaming/smithy4s/pull/1793)
+
+# 0.18.40 (broken)
+
+* codegen: Add support for [bincompat-friendly code generation mode](https://disneystreaming.github.io/smithy4s/docs/codegen/customisation/binary-compatibility) in [#1737](https://github.com/disneystreaming/smithy4s/pull/1737/) + [#1780](https://github.com/disneystreaming/smithy4s/pull/1780).
+* core: fix [#1663](https://github.com/disneystreaming/smithy4s/issues/1663) by reworking how path segments are encoded to conform with the Smithy spec in [#1668](https://github.com/disneystreaming/smithy4s/issues/1668)
+* aws-http4s: fix AWS request signing for URIs with encoded path segments in [#1668](https://github.com/disneystreaming/smithy4s/issues/1668)
+* json: support open lenient unions, fix #1713 in [#1782](https://github.com/disneystreaming/smithy4s/pull/1782)
+
 # 0.18.39
 
 * http4s: Partially fix [#1619](https://github.com/disneystreaming/smithy4s/issues/1619) by checking request query parameters against the static query parameters in [#1743](https://github.com/disneystreaming/smithy4s/pull/1743)

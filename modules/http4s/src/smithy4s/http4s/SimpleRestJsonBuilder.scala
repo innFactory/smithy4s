@@ -26,7 +26,8 @@ object SimpleRestJsonBuilder
       new internals.SimpleRestJsonCodecs(
         jsonCodecs = Json.payloadCodecs,
         fieldFilter = FieldFilter.Default,
-        hostPrefixInjection = true
+        hostPrefixInjection = true,
+        smithyPathEncoding = false
       )
     )
 
@@ -54,7 +55,8 @@ class SimpleRestJsonBuilder private (
               .withFieldFilter(fieldFilter)
           ),
         fieldFilter,
-        hostPrefixInjection
+        hostPrefixInjection,
+        smithyPathEncoding = false
       )
     }
   }
@@ -88,6 +90,20 @@ class SimpleRestJsonBuilder private (
   ): SimpleRestJsonBuilder =
     new SimpleRestJsonBuilder(
       simpleRestJsonCodecs.withFieldFilter(fieldFilter)
+    )
+
+  @deprecated(
+    "Use withSmithyPathEncoding instead (it has the opposite meaning)",
+    "0.18.41"
+  )
+  def withRawHttpLabelValues(
+      enabled: Boolean
+  ): SimpleRestJsonBuilder =
+    withSmithyPathEncoding(!enabled)
+
+  def withSmithyPathEncoding(enabled: Boolean): SimpleRestJsonBuilder =
+    new SimpleRestJsonBuilder(
+      simpleRestJsonCodecs.withSmithyPathEncoding(enabled)
     )
 
   def disableHostPrefixInjection(): SimpleRestJsonBuilder =

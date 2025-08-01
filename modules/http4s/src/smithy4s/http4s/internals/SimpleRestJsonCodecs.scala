@@ -38,13 +38,14 @@ import smithy4s.schema.FieldFilter
 private[http4s] class SimpleRestJsonCodecs(
     val jsonCodecs: JsonPayloadCodecCompiler,
     val fieldFilter: FieldFilter,
-    val hostPrefixInjection: Boolean
+    val hostPrefixInjection: Boolean,
+    val smithyPathEncoding: Boolean
 ) extends SimpleProtocolCodecs {
   private val hintMask =
     alloy.SimpleRestJson.protocol.hintMask
 
   def transformJsonCodecs(f: JsonPayloadCodecCompiler => JsonPayloadCodecCompiler): SimpleRestJsonCodecs =
-    new SimpleRestJsonCodecs(f(jsonCodecs), fieldFilter, hostPrefixInjection)
+    new SimpleRestJsonCodecs(f(jsonCodecs), fieldFilter, hostPrefixInjection, smithyPathEncoding)
 
   @deprecated(
     message = """Use withFieldFilter instead.
@@ -68,11 +69,24 @@ private[http4s] class SimpleRestJsonCodecs(
   ): SimpleRestJsonCodecs = new SimpleRestJsonCodecs(
     jsonCodecs.configureJsoniterCodecCompiler(_.withFieldFilter(fieldFilter)),
     fieldFilter,
-    hostPrefixInjection
+    hostPrefixInjection,
+    smithyPathEncoding
   )
 
+  @deprecated("Use withSmithyPathEncoding instead (it has the opposite meaning to raw http label values)", "0.18.41")
+  def withRawHttpLabelValues(enabled: Boolean): SimpleRestJsonCodecs =
+    withSmithyPathEncoding(!enabled)
+
+  def withSmithyPathEncoding(enabled: Boolean): SimpleRestJsonCodecs =
+    new SimpleRestJsonCodecs(
+      jsonCodecs = jsonCodecs,
+      fieldFilter = fieldFilter,
+      hostPrefixInjection = hostPrefixInjection,
+      smithyPathEncoding = enabled
+    )
+
   def withHostPrefixInjection(newHostPrefixInjection: Boolean): SimpleRestJsonCodecs =
-    new SimpleRestJsonCodecs(jsonCodecs, fieldFilter, newHostPrefixInjection)
+    new SimpleRestJsonCodecs(jsonCodecs, fieldFilter, newHostPrefixInjection, smithyPathEncoding)
 
   // val mediaType = HttpMediaType("application/json")
   private val payloadEncoders: BlobEncoder.Compiler =
@@ -124,9 +138,10 @@ private[http4s] class SimpleRestJsonCodecs(
       )
       .withBaseRequest(_ => baseRequest.pure[F])
       .withRequestMediaType("application/json")
-      .withRequestTransformation(fromSmithy4sHttpRequest[F](_).pure[F])
+      .withRequestTransformation(fromSmithy4sHttpRequest[F](_, encodePathSegments = !smithyPathEncoding).pure[F])
       .withResponseTransformation[Response[F]](toSmithy4sHttpResponse[F](_))
       .withHostPrefixInjection(hostPrefixInjection)
+      .withSmithyPathEncoding(smithyPathEncoding)
       .build()
 
   }
