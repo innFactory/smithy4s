@@ -488,7 +488,6 @@ lazy val codegen = projectMatrix
 
 lazy val `codegen-integration` = projectMatrix
   .in(file("modules/codegen-integration"))
-  .enablePlugins(BuildInfoPlugin)
   .dependsOn(codegen)
   .jvmPlatform(buildtimejvmScala2Versions, jvmDimSettings)
   .settings(Smithy4sBuildPlugin.doNotPublishArtifact)
@@ -496,17 +495,6 @@ lazy val `codegen-integration` = projectMatrix
     libraryDependencies ++= Seq(
       Dependencies.Mima.core % Test
     ),
-    buildInfoKeys := Seq[BuildInfoKey](
-      version,
-      scalaBinaryVersion,
-      "smithyOrg" -> Dependencies.Smithy.org,
-      "smithyVersion" -> Dependencies.Smithy.smithyVersion,
-      "alloyOrg" -> Dependencies.Alloy.org,
-      "alloyVersion" -> Dependencies.Alloy.alloyVersion,
-      "smithy4sOrg" -> organization.value,
-      "protocolArtifactName" -> "smithy4s-protocol"
-    ),
-    buildInfoPackage := "smithy4s.codegen",
     libraryDependencies ++= munitDeps.value,
     scalacOptions := scalacOptions.value
       .filterNot(Seq("-Ywarn-value-discard", "-Wvalue-discard").contains),
