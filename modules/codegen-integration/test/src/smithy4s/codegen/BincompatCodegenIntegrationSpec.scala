@@ -550,7 +550,8 @@ class BincompatCodegenIntegrationSpec extends FunSuite {
         extraDeps = List(smithy4sCoreDependency),
         extraJars = extraJars
       )
-      .call(cwd = os.temp.dir(), stderr = os.Pipe)
+      // 60000 == 60 seconds
+      .call(cwd = os.temp.dir(), stderr = os.Pipe, timeout = 60000)
 
     modelName -> out
   }
