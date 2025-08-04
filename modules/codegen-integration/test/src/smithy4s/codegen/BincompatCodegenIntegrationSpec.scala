@@ -151,7 +151,7 @@ class BincompatCodegenIntegrationSpec extends FunSuite {
               |object Main extends App {
               |  val h = demo.Hello.S1
               |  println(h)
-              |  assert(h.value == "S1")
+              |  assert(h.stringValue == "S1")
               |  demo.Hello.values.foreach {
               |    case demo.Hello.S1 => println("S1 value")
               |    case _ => println("Unknown value")
