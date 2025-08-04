@@ -69,6 +69,7 @@ lazy val allModules = Seq(
   `http4s-swagger`,
   decline,
   codegenPlugin,
+  `codegen-integration`,
   benchmark,
   protobuf,
   protocol,
@@ -299,9 +300,13 @@ lazy val core = projectMatrix
         "smithy4s.http.HttpUnaryServerRouter.partialFunction"
       ),
       // originating in an Alloy update that removed ProtoCompactOffsetDateTime
-      ProblemFilters.exclude[MissingClassProblem]("alloy.proto.ProtoCompactOffsetDateTime"),
+      ProblemFilters.exclude[MissingClassProblem](
+        "alloy.proto.ProtoCompactOffsetDateTime"
+      ),
       // originating in an Alloy update that removed ProtoCompactOffsetDateTime
-      ProblemFilters.exclude[MissingClassProblem]("alloy.proto.ProtoCompactOffsetDateTime$"),
+      ProblemFilters.exclude[MissingClassProblem](
+        "alloy.proto.ProtoCompactOffsetDateTime$"
+      )
     )
   )
   .jvmPlatform(allJvmScalaVersions, jvmDimSettings)
@@ -465,8 +470,7 @@ lazy val codegen = projectMatrix
       Dependencies.Circe.generic.value,
       Dependencies.collectionsCompat.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "io.get-coursier" %% "coursier" % "2.1.24",
-      Dependencies.Mima.core % Test
+      "io.get-coursier" %% "coursier" % "2.1.24"
     ),
     libraryDependencies ++= munitDeps.value,
     scalacOptions := scalacOptions.value
@@ -480,6 +484,43 @@ lazy val codegen = projectMatrix
     (Compile / compile) := (Compile / compile)
       .dependsOn((protocol.jvm(autoScalaLibrary = false) / cachedPublishLocal))
       .value
+  )
+
+lazy val `codegen-integration` = projectMatrix
+  .in(file("modules/codegen-integration"))
+  .enablePlugins(BuildInfoPlugin)
+  .dependsOn(codegen)
+  .jvmPlatform(buildtimejvmScala2Versions, jvmDimSettings)
+  .settings(Smithy4sBuildPlugin.doNotPublishArtifact)
+  .settings(
+    libraryDependencies ++= Seq(
+      Dependencies.Mima.core % Test
+    ),
+    buildInfoKeys := Seq[BuildInfoKey](
+      version,
+      scalaBinaryVersion,
+      "smithyOrg" -> Dependencies.Smithy.org,
+      "smithyVersion" -> Dependencies.Smithy.smithyVersion,
+      "alloyOrg" -> Dependencies.Alloy.org,
+      "alloyVersion" -> Dependencies.Alloy.alloyVersion,
+      "smithy4sOrg" -> organization.value,
+      "protocolArtifactName" -> "smithy4s-protocol"
+    ),
+    buildInfoPackage := "smithy4s.codegen",
+    libraryDependencies ++= munitDeps.value,
+    scalacOptions := scalacOptions.value
+      .filterNot(Seq("-Ywarn-value-discard", "-Wvalue-discard").contains),
+    bloopEnabled := true,
+    (Test / test) := {
+      // make sure that core is published before the
+      // tests are run
+      val _ = List(
+        (core.jvm(Scala212) / publishLocal).value,
+        (core.jvm(Scala213) / publishLocal).value,
+        (core.jvm(Scala3) / publishLocal).value
+      )
+      (Test / test).value
+    }
   )
 
 /**
