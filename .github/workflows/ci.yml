@@ -68,6 +68,7 @@ jobs:
 
       - name: Run tests
         run: |
+          scala-cli compile modules/docs
           sbt test_$BUILD_KEY \
               pushRemoteCache_$BUILD_KEY
 
