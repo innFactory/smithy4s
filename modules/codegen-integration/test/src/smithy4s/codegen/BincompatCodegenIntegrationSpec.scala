@@ -701,7 +701,6 @@ class BincompatCodegenIntegrationSpec extends FunSuite {
     ): os.proc = {
       os.proc(
         "scala-cli",
-        "-v",
         "--power",
         "package",
         "--repository",
@@ -722,7 +721,6 @@ class BincompatCodegenIntegrationSpec extends FunSuite {
     ): os.proc =
       os.proc(
         "scala-cli",
-        "-v",
         "--power",
         "run",
         s"--scala=$scalaVersion",
