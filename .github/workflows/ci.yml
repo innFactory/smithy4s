@@ -68,9 +68,11 @@ jobs:
 
       - name: Run tests
         run: |
-          scala-cli compile modules/docs
+          TMP_DIR=$(mkdtemp -d)
+          scala-cli compile $TMP_DIR
           sbt test_$BUILD_KEY \
               pushRemoteCache_$BUILD_KEY
+          rm -rf $TMP_DIR
 
       - name: Run plugin tests
         if: matrix.scalaVersion == '2_12' && matrix.scalaPlatform == 'jvm'
