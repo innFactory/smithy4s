@@ -502,12 +502,13 @@ lazy val `codegen-integration` = projectMatrix
     (Test / test) := {
       // make sure that core is published before the
       // tests are run
-      val _ = List(
-        (core.jvm(Scala212) / publishLocal).value,
-        (core.jvm(Scala213) / publishLocal).value,
-        (core.jvm(Scala3) / publishLocal).value
-      )
-      (Test / test).value
+      (Test / test)
+        .dependsOn(
+          (core.jvm(Scala212) / publishLocal),
+          (core.jvm(Scala213) / publishLocal),
+          (core.jvm(Scala3) / publishLocal)
+        )
+        .value
     }
   )
 
