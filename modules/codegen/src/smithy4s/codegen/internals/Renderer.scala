@@ -1096,13 +1096,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     alt.member match {
       case UnionMember.ProductCase(product) =>
         line"${unionName.down(product.name)}.alt"
-      case UnionMember.TypeCase(_) =>
+      case _ =>
         val n = unionName.down(alt.name.dropWhile(_ == '_').capitalize + "Case")
         line"$n.alt"
-      case UnionMember.UnitCase =>
-        val n =
-          unionName.down(alt.name.dropWhile(_ == '_').capitalize + "CaseAlt")
-        line"$n"
     }
 
   private def renderPrisms(
@@ -1280,12 +1276,18 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         alts.zipWithIndex.map {
           case (a @ Alt(_, realName, UnionMember.UnitCase, altHints), index) =>
             val cn = caseName(name, a)
+            val altsHintNameRef = line"${cn.nameDef}.hints"
             // format: off
             lines(
               documentationAnnotation(altHints),
               deprecationAnnotation(altHints),
-              line"case object ${cn.nameDef} extends $name { final def $$ordinal: Int = $index }",
-              line"""private val ${cn.nameDef}Alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(hints)""",
+              block(
+                line"case object ${cn.nameDef} extends $name"
+              )(
+                line"final def $$ordinal: Int = $index",
+                   renderHintsVal(altHints),
+                  line"""val alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(${altsHintNameRef})""",
+              ),
             )
             // format: on
           case (
@@ -1346,9 +1348,8 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
               line"implicit val schema: $Schema_[$name] = $union_"
           union
             .args {
-              caseNamesAndIsUnit.map {
-                case (caseName, false) => caseName + ".alt"
-                case (caseName, true)  => caseName + "Alt"
+              caseNamesAndIsUnit.map { case (caseName, _) =>
+                caseName + ".alt"
               }
             }
             .block {
@@ -1713,8 +1714,8 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     line"val tag: $EnumTag_[$parentType] = $EnumTag_.$tagStr"
   }
 
-  def renderHintsVal(hints: List[Hint]): Lines = {
-    val lhs = line"val hints: $Hints_"
+  def renderHintsVal(hints: List[Hint], prefix: Option[String] = None): Lines = {
+    val lhs = line"val ${prefix.fold("hints")(_ + "Hints")}: $Hints_"
 
     hints.collect { case nt: Hint.Native => nt }.sortBy(_.shapeId).map(renderHint) match {
       case Nil => lines(line"$lhs = $Hints_.empty")
