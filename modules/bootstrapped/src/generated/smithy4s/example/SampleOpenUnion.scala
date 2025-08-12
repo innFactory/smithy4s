@@ -1,6 +1,5 @@
 package smithy4s.example
 
-import SampleOpenUnion.UCaseAlt
 import smithy4s.Document
 import smithy4s.Hints
 import smithy4s.Schema
@@ -17,7 +16,7 @@ sealed trait SampleOpenUnion extends scala.Product with scala.Serializable { sel
 
   object project {
     def str: Option[String] = SampleOpenUnion.StrCase.alt.project.lift(self).map(_.str)
-    def u: Option[SampleOpenUnion.UCase.type] = UCaseAlt.project.lift(self)
+    def u: Option[SampleOpenUnion.UCase.type] = SampleOpenUnion.UCase.alt.project.lift(self)
     def unknown: Option[Document] = SampleOpenUnion.UnknownCase.alt.project.lift(self).map(_.unknown)
   }
 
@@ -40,9 +39,9 @@ object SampleOpenUnion extends ShapeTag.Companion[SampleOpenUnion] {
   final case class StrCase(str: String) extends SampleOpenUnion { final def $ordinal: Int = 0 }
   case object UCase extends SampleOpenUnion {
     final def $ordinal: Int = 1
-    val UCaseHints: Hints = Hints.empty
+    val hints: Hints = Hints.empty
+    val alt = Schema.constant(SampleOpenUnion.UCase).oneOf[SampleOpenUnion]("u").addHints(UCase.hints)
   }
-  private val UCaseAlt = Schema.constant(SampleOpenUnion.UCase).oneOf[SampleOpenUnion]("u").addHints(UCase.UCaseHints)
   final case class UnknownCase(unknown: Document) extends SampleOpenUnion { final def $ordinal: Int = 2 }
 
   object StrCase {
@@ -75,7 +74,7 @@ object SampleOpenUnion extends ShapeTag.Companion[SampleOpenUnion] {
 
   implicit val schema: Schema[SampleOpenUnion] = union(
     SampleOpenUnion.StrCase.alt,
-    UCaseAlt,
+    SampleOpenUnion.UCase.alt,
     SampleOpenUnion.UnknownCase.alt,
   ){
     _.$ordinal

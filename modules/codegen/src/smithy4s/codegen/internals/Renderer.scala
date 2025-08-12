@@ -1096,13 +1096,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     alt.member match {
       case UnionMember.ProductCase(product) =>
         line"${unionName.down(product.name)}.alt"
-      case UnionMember.TypeCase(_) =>
+      case _ =>
         val n = unionName.down(alt.name.dropWhile(_ == '_').capitalize + "Case")
         line"$n.alt"
-      case UnionMember.UnitCase =>
-        val n =
-          unionName.down(alt.name.dropWhile(_ == '_').capitalize + "CaseAlt")
-        line"$n"
     }
 
   private def renderPrisms(
@@ -1280,8 +1276,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         alts.zipWithIndex.map {
           case (a @ Alt(_, realName, UnionMember.UnitCase, altHints), index) =>
             val cn = caseName(name, a)
-            val altHintsName = line"${cn.nameDef}Hints"
-            val altsHintNameRef = line"${cn.nameDef}.${altHintsName}"
+            val altsHintNameRef = line"${cn.nameDef}.hints"
             // format: off
             lines(
               documentationAnnotation(altHints),
@@ -1290,9 +1285,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
                 line"case object ${cn.nameDef} extends $name"
               )(
                 line"final def $$ordinal: Int = $index",
-                   renderHintsVal(altHints, Some(cn.nameDef.name))
+                   renderHintsVal(altHints),
+                  line"""val alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(${altsHintNameRef})""",
               ),
-              line"""private val ${cn.nameDef}Alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(${altsHintNameRef})""",
             )
             // format: on
           case (
@@ -1353,9 +1348,8 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
               line"implicit val schema: $Schema_[$name] = $union_"
           union
             .args {
-              caseNamesAndIsUnit.map {
-                case (caseName, false) => caseName + ".alt"
-                case (caseName, true)  => caseName + "Alt"
+              caseNamesAndIsUnit.map { case (caseName, _) =>
+                caseName + ".alt"
               }
             }
             .block {

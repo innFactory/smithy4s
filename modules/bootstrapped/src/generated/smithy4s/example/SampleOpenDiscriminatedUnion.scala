@@ -1,6 +1,5 @@
 package smithy4s.example
 
-import SampleOpenDiscriminatedUnion.UCaseAlt
 import smithy4s.Document
 import smithy4s.Hints
 import smithy4s.Schema
@@ -16,7 +15,7 @@ sealed trait SampleOpenDiscriminatedUnion extends scala.Product with scala.Seria
 
   object project {
     def s: Option[StructForDiscrimination] = SampleOpenDiscriminatedUnion.SCase.alt.project.lift(self).map(_.s)
-    def u: Option[SampleOpenDiscriminatedUnion.UCase.type] = UCaseAlt.project.lift(self)
+    def u: Option[SampleOpenDiscriminatedUnion.UCase.type] = SampleOpenDiscriminatedUnion.UCase.alt.project.lift(self)
     def unknown: Option[Document] = SampleOpenDiscriminatedUnion.UnknownCase.alt.project.lift(self).map(_.unknown)
   }
 
@@ -41,9 +40,9 @@ object SampleOpenDiscriminatedUnion extends ShapeTag.Companion[SampleOpenDiscrim
   final case class SCase(s: StructForDiscrimination) extends SampleOpenDiscriminatedUnion { final def $ordinal: Int = 0 }
   case object UCase extends SampleOpenDiscriminatedUnion {
     final def $ordinal: Int = 1
-    val UCaseHints: Hints = Hints.empty
+    val hints: Hints = Hints.empty
+    val alt = Schema.constant(SampleOpenDiscriminatedUnion.UCase).oneOf[SampleOpenDiscriminatedUnion]("u").addHints(UCase.hints)
   }
-  private val UCaseAlt = Schema.constant(SampleOpenDiscriminatedUnion.UCase).oneOf[SampleOpenDiscriminatedUnion]("u").addHints(UCase.UCaseHints)
   final case class UnknownCase(unknown: Document) extends SampleOpenDiscriminatedUnion { final def $ordinal: Int = 2 }
 
   object SCase {
@@ -76,7 +75,7 @@ object SampleOpenDiscriminatedUnion extends ShapeTag.Companion[SampleOpenDiscrim
 
   implicit val schema: Schema[SampleOpenDiscriminatedUnion] = union(
     SampleOpenDiscriminatedUnion.SCase.alt,
-    UCaseAlt,
+    SampleOpenDiscriminatedUnion.UCase.alt,
     SampleOpenDiscriminatedUnion.UnknownCase.alt,
   ){
     _.$ordinal
