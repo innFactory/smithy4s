@@ -39,9 +39,11 @@ object SampleOpenDiscriminatedUnion extends ShapeTag.Companion[SampleOpenDiscrim
   ).lazily
 
   final case class SCase(s: StructForDiscrimination) extends SampleOpenDiscriminatedUnion { final def $ordinal: Int = 0 }
-  case object UCase extends SampleOpenDiscriminatedUnion { final def $ordinal: Int = 1 }
-  val UCaseHints: Hints = Hints.empty
-  private val UCaseAlt = Schema.constant(SampleOpenDiscriminatedUnion.UCase).oneOf[SampleOpenDiscriminatedUnion]("u").addHints(UCaseHints)
+  case object UCase extends SampleOpenDiscriminatedUnion {
+    final def $ordinal: Int = 1
+    val UCaseHints: Hints = Hints.empty
+  }
+  private val UCaseAlt = Schema.constant(SampleOpenDiscriminatedUnion.UCase).oneOf[SampleOpenDiscriminatedUnion]("u").addHints(UCase.UCaseHints)
   final case class UnknownCase(unknown: Document) extends SampleOpenDiscriminatedUnion { final def $ordinal: Int = 2 }
 
   object SCase {

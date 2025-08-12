@@ -65,11 +65,13 @@ object OrderType extends ShapeTag.Companion[OrderType] {
 
     val alt = schema.oneOf[OrderType]("inStore")
   }
-  case object PreviewCase extends OrderType { final def $ordinal: Int = 2 }
-  val PreviewCaseHints: Hints = Hints(
-    smithy.api.JsonName("PREVIEW"),
-  ).lazily
-  private val PreviewCaseAlt = Schema.constant(OrderType.PreviewCase).oneOf[OrderType]("preview").addHints(PreviewCaseHints)
+  case object PreviewCase extends OrderType {
+    final def $ordinal: Int = 2
+    val PreviewCaseHints: Hints = Hints(
+      smithy.api.JsonName("PREVIEW"),
+    ).lazily
+  }
+  private val PreviewCaseAlt = Schema.constant(OrderType.PreviewCase).oneOf[OrderType]("preview").addHints(PreviewCase.PreviewCaseHints)
 
   object OnlineCase {
     val hints: Hints = Hints.empty

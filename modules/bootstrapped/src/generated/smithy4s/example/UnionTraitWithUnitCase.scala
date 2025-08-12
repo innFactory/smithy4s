@@ -35,9 +35,11 @@ object UnionTraitWithUnitCase extends ShapeTag.Companion[UnionTraitWithUnitCase]
     smithy.api.Trait(selector = None, structurallyExclusive = None, conflicts = None, breakingChanges = None),
   ).lazily
 
-  case object UCase extends UnionTraitWithUnitCase { final def $ordinal: Int = 0 }
-  val UCaseHints: Hints = Hints.empty
-  private val UCaseAlt = Schema.constant(UnionTraitWithUnitCase.UCase).oneOf[UnionTraitWithUnitCase]("u").addHints(UCaseHints)
+  case object UCase extends UnionTraitWithUnitCase {
+    final def $ordinal: Int = 0
+    val UCaseHints: Hints = Hints.empty
+  }
+  private val UCaseAlt = Schema.constant(UnionTraitWithUnitCase.UCase).oneOf[UnionTraitWithUnitCase]("u").addHints(UCase.UCaseHints)
   final case class SCase(s: String) extends UnionTraitWithUnitCase { final def $ordinal: Int = 1 }
 
   object SCase {

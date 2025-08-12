@@ -1281,13 +1281,18 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           case (a @ Alt(_, realName, UnionMember.UnitCase, altHints), index) =>
             val cn = caseName(name, a)
             val altHintsName = line"${cn.nameDef}Hints"
+            val altsHintNameRef = line"${cn.nameDef}.${altHintsName}"
             // format: off
             lines(
               documentationAnnotation(altHints),
               deprecationAnnotation(altHints),
-              line"case object ${cn.nameDef} extends $name { final def $$ordinal: Int = $index }",
-              renderHintsVal(altHints, Some(cn.nameDef.name)),
-              line"""private val ${cn.nameDef}Alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(${altHintsName})""",
+              block(
+                line"case object ${cn.nameDef} extends $name"
+              )(
+                line"final def $$ordinal: Int = $index",
+                   renderHintsVal(altHints, Some(cn.nameDef.name))
+              ),
+              line"""private val ${cn.nameDef}Alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(${altsHintNameRef})""",
             )
             // format: on
           case (

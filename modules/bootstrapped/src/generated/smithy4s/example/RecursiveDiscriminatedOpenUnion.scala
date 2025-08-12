@@ -40,9 +40,11 @@ object RecursiveDiscriminatedOpenUnion extends ShapeTag.Companion[RecursiveDiscr
   ).lazily
 
   final case class RecCase(rec: HasRecursiveDiscriminatedOpenUnion) extends RecursiveDiscriminatedOpenUnion { final def $ordinal: Int = 0 }
-  case object EndCase extends RecursiveDiscriminatedOpenUnion { final def $ordinal: Int = 1 }
-  val EndCaseHints: Hints = Hints.empty
-  private val EndCaseAlt = Schema.constant(RecursiveDiscriminatedOpenUnion.EndCase).oneOf[RecursiveDiscriminatedOpenUnion]("end").addHints(EndCaseHints)
+  case object EndCase extends RecursiveDiscriminatedOpenUnion {
+    final def $ordinal: Int = 1
+    val EndCaseHints: Hints = Hints.empty
+  }
+  private val EndCaseAlt = Schema.constant(RecursiveDiscriminatedOpenUnion.EndCase).oneOf[RecursiveDiscriminatedOpenUnion]("end").addHints(EndCase.EndCaseHints)
   final case class UnknownCase(unknown: Document) extends RecursiveDiscriminatedOpenUnion { final def $ordinal: Int = 2 }
 
   object RecCase {
