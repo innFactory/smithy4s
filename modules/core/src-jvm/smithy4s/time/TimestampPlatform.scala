@@ -14,21 +14,22 @@
  *  limitations under the License.
  */
 
-package smithy4s
+package smithy4s.time
 
 import java.time.Instant
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime => JOffsetDateTime}
+import java.time.{ZoneOffset => JZoneOffset}
 
-private[smithy4s] trait TimestampCompanionPlatform {
-
-  /** JVM platform only method */
-  def fromInstant(x: Instant): Timestamp =
-    Timestamp(x.getEpochSecond, x.getNano)
+private[time] trait TimestampPlatform { self: Timestamp =>
 
   /** JVM platform only method */
-  def fromOffsetDateTime(x: OffsetDateTime): Timestamp =
-    Timestamp(x.toInstant.getEpochSecond, x.getNano)
+  def toInstant: Instant = Instant.ofEpochSecond(epochSecond, nano.toLong)
 
-  def nowUTC(): Timestamp = fromInstant(Instant.now())
+  /** JVM platform only method */
+  def toOffsetDateTime: JOffsetDateTime =
+    JOffsetDateTime.ofInstant(
+      Instant.ofEpochSecond(epochSecond, nano.toLong),
+      JZoneOffset.UTC
+    )
 
 }

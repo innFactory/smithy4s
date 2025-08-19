@@ -16,22 +16,24 @@
 
 package smithy4s.codegen.internals
 
+import alloy.StructurePatternTrait
 import cats.data.NonEmptyList
 import cats.implicits._
 import smithy4s.meta.AdtMemberTrait
+import smithy4s.meta.AdtTrait
+import smithy4s.meta.BincompatAddedTrait
+import smithy4s.meta.BincompatFriendlyTrait
 import smithy4s.meta.ErrorMessageTrait
+import smithy4s.meta.GenerateOpticsTrait
+import smithy4s.meta.GenerateServiceProductTrait
 import smithy4s.meta.IndexedSeqTrait
 import smithy4s.meta.NoStackTraceTrait
 import smithy4s.meta.PackedInputsTrait
 import smithy4s.meta.RefinementTrait
 import smithy4s.meta.ScalaImportsTrait
+import smithy4s.meta.TypeclassTrait
 import smithy4s.meta.ValidateNewtypeTrait
 import smithy4s.meta.VectorTrait
-import smithy4s.meta.AdtTrait
-import smithy4s.meta.GenerateServiceProductTrait
-import smithy4s.meta.GenerateOpticsTrait
-import smithy4s.meta.TypeclassTrait
-import alloy.StructurePatternTrait
 import software.amazon.smithy.aws.traits.ServiceTrait
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.knowledge.TopDownIndex
@@ -54,8 +56,6 @@ import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 import Type.Alias
-import smithy4s.meta.BincompatFriendlyTrait
-import smithy4s.meta.BincompatAddedTrait
 
 private[codegen] object SmithyToIR {
 
@@ -784,8 +784,21 @@ private[codegen] class SmithyToIR(
       def bigIntegerShape(x: BigIntegerShape): Option[Type] =
         primitive(x, "smithy.api#BigInteger", Primitive.BigInteger)
 
-      def bigDecimalShape(x: BigDecimalShape): Option[Type] =
-        primitive(x, "smithy.api#BigDecimal", Primitive.BigDecimal)
+      def bigDecimalShape(x: BigDecimalShape): Option[Type] = x match {
+        case shape if shape.getId() == durationShapeId =>
+          Type.PrimitiveType(Primitive.Duration).some
+        case T.durationSecondsFormat(_) =>
+          Type
+            .Alias(
+              x.namespace,
+              x.name,
+              Type.PrimitiveType(Primitive.Duration),
+              isUnwrapped = false
+            )
+            .some
+        case _ =>
+          primitive(x, "smithy.api#BigDecimal", Primitive.BigDecimal)
+      }
 
       def operationShape(x: OperationShape): Option[Type] = None
 
@@ -803,12 +816,34 @@ private[codegen] class SmithyToIR(
         case T.enumeration(_) => Type.Ref(x.namespace, x.name).some
         case shape if shape.getId() == uuidShapeId =>
           Type.PrimitiveType(Primitive.Uuid).some
+        case shape if shape.getId() == localDateShapeId =>
+          Type.PrimitiveType(Primitive.LocalDate).some
+        case shape if shape.getId() == localTimeShapeId =>
+          Type.PrimitiveType(Primitive.LocalTime).some
         case T.uuidFormat(_) =>
           Type
             .Alias(
               x.namespace,
               x.name,
               Type.PrimitiveType(Primitive.Uuid),
+              isUnwrapped = false
+            )
+            .some
+        case T.localDateFormat(_) =>
+          Type
+            .Alias(
+              x.namespace,
+              x.name,
+              Type.PrimitiveType(Primitive.LocalDate),
+              isUnwrapped = false
+            )
+            .some
+        case T.localTimeFormat(_) =>
+          Type
+            .Alias(
+              x.namespace,
+              x.name,
+              Type.PrimitiveType(Primitive.LocalTime),
               isUnwrapped = false
             )
             .some
@@ -837,8 +872,20 @@ private[codegen] class SmithyToIR(
             .accept(this)
         }
 
-      def timestampShape(x: TimestampShape): Option[Type] =
-        primitive(x, "smithy.api#Timestamp", Primitive.Timestamp)
+      def timestampShape(x: TimestampShape): Option[Type] = x match {
+        case shape if shape.getId() == offsetDateTimeShapeId =>
+          Type.PrimitiveType(Primitive.OffsetDateTime).some
+        case T.offsetDateTimeFormat(_) =>
+          Type
+            .Alias(
+              x.namespace,
+              x.name,
+              Type.PrimitiveType(Primitive.OffsetDateTime),
+              isUnwrapped = false
+            )
+            .some
+        case _ => primitive(x, "smithy.api#Timestamp", Primitive.Timestamp)
+      }
 
     }
 

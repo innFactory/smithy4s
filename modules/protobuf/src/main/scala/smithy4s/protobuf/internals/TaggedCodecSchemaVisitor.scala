@@ -16,29 +16,34 @@
 
 package smithy4s.protobuf.internals
 
+import alloy.proto.ProtoCompactLocalDate
+import alloy.proto.ProtoCompactLocalTime
 import alloy.proto.ProtoCompactUUID
 import alloy.proto.ProtoIndex
 import alloy.proto.ProtoInlinedOneOf
 import alloy.proto.ProtoNumType
+import alloy.proto.ProtoOffsetDateTimeFormat
 import alloy.proto.ProtoTimestampFormat
 import alloy.proto.ProtoWrapped
+import smithy.api.Required
 import smithy4s.Document.DArray
 import smithy4s.Document.DBoolean
 import smithy4s.Document.DNull
 import smithy4s.Document.DNumber
 import smithy4s.Document.DObject
 import smithy4s.Document.DString
+import smithy4s.protobuf.ProtobufReadError
 import smithy4s.protobuf.internals.TaggedCodec._
 import smithy4s.schema.CompilationCache
 import smithy4s.schema.EnumTag.IntEnum
 import smithy4s.schema.EnumTag.StringEnum
 import smithy4s.schema.SchemaVisitor
 import smithy4s.schema._
+import smithy4s.time._
 import smithy4s.{Schema => _, _}
 
 import java.util.UUID
-import smithy.api.Required
-import smithy4s.protobuf.ProtobufReadError
+import scala.concurrent.duration._
 
 // scalafmt: {maxColumn = 120}
 private[protobuf] class TaggedCodecSchemaVisitor(val cache: CompilationCache[TaggedCodec])
@@ -80,6 +85,26 @@ private[protobuf] class TaggedCodecSchemaVisitor(val cache: CompilationCache[Tag
           protoTimestampSchema.compile(this)
         }
       case PDocument => protoJsonSchema.compile(this)
+      case PLocalDate =>
+        if (hints.has(ProtoCompactLocalDate)) {
+          compactLocalDate.compile(this)
+        } else {
+          wrapLen(StringCodec).imap(LocalDate.parseUnsafe(_), _.toString())
+        }
+      case PLocalTime =>
+        if (hints.has(ProtoCompactLocalTime)) {
+          compactLocalTime.compile(this)
+        } else {
+          wrapLen(StringCodec).imap(LocalTime.parseUnsafe(_), _.toString())
+        }
+      case PDuration =>
+        durationSchema.compile(this)
+      case POffsetDateTime =>
+        if (hints.get(ProtoOffsetDateTimeFormat).contains(ProtoOffsetDateTimeFormat.PROTOBUF)) {
+          compactOffsetDateTimeSchema.compile(this)
+        } else {
+          wrapLen(StringCodec).imap(OffsetDateTime.parseUnsafe(_), _.toString())
+        }
     }
     if (hints.has(ProtoWrapped)) underlying.wrap else underlying
   }
@@ -105,11 +130,52 @@ private[protobuf] class TaggedCodecSchemaVisitor(val cache: CompilationCache[Tag
       (uuid.getMostSignificantBits(), uuid.getLeastSignificantBits())
     )
 
+  private val compactLocalDate = Schema
+    .struct(
+      Schema.long.required[LocalDate]("epochDay", _.epochDay).addHints(ProtoIndex(1))
+    )(LocalDate.apply)
+
+  private val compactLocalTime = Schema
+    .struct(
+      Schema.int.required[LocalTime]("seconds", _.seconds).addHints(ProtoIndex(1)),
+      Schema.int.required[LocalTime]("nano", _.nano).addHints(ProtoIndex(2))
+    )(LocalTime.apply)
+
+  private val compactOffsetDateTimeSchema = Schema
+    .tuple(
+      Schema.long.addHints(ProtoIndex(1)),
+      Schema.int.addHints(ProtoIndex(2)),
+      Schema.string.addHints(ProtoIndex(3))
+    )
+    .biject { (offsetTriple: (Long, Int, String)) =>
+      val (seconds, nanos, offsetString) = offsetTriple
+      val offset = ZoneOffset.parseUnsafe(offsetString)
+      OffsetDateTime(seconds, nanos, offset)
+    } { offsetDateTime =>
+      val timestamp = offsetDateTime.timestamp
+      (timestamp.epochSecond, timestamp.nano, offsetDateTime.offset.toString)
+    }
+
   private val protoTimestampSchema = Schema
     .struct(
       Schema.long.required[Timestamp]("seconds", _.epochSecond).addHints(ProtoIndex(1)),
       Schema.int.required[Timestamp]("nanos", _.nano).addHints(ProtoIndex(2))
     )(Timestamp(_, _))
+
+  private val durationSchema: Schema[Duration] = Schema
+    .tuple(
+      Schema.long.addHints(ProtoIndex(1)),
+      Schema.int.addHints(ProtoIndex(2))
+    )
+    .biject { (durationTuple: (Long, Int)) =>
+      {
+        (durationTuple._1.seconds + durationTuple._2.nanos): Duration
+      }
+    }(duration => {
+      val seconds = duration.toSeconds
+      val nano = (duration.toNanos - seconds * 1000000000).toInt
+      (seconds, nano)
+    })
 
   private val protoTimestampMillisecondsSchema = Schema
     .struct(

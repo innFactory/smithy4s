@@ -1671,22 +1671,26 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     }
 
     private def schemaRefP(primitive: Primitive): String = primitive match {
-      case Primitive.Unit       => s"${schemaPkg_}.unit"
-      case Primitive.Blob       => s"${schemaPkg_}.bytes"
-      case Primitive.Bool       => s"${schemaPkg_}.boolean"
-      case Primitive.String     => s"${schemaPkg_}.string"
-      case Primitive.Timestamp  => s"${schemaPkg_}.timestamp"
-      case Primitive.Byte       => s"${schemaPkg_}.byte"
-      case Primitive.Int        => s"${schemaPkg_}.int"
-      case Primitive.Short      => s"${schemaPkg_}.short"
-      case Primitive.Long       => s"${schemaPkg_}.long"
-      case Primitive.Float      => s"${schemaPkg_}.float"
-      case Primitive.Double     => s"${schemaPkg_}.double"
-      case Primitive.BigDecimal => s"${schemaPkg_}.bigdecimal"
-      case Primitive.BigInteger => s"${schemaPkg_}.bigint"
-      case Primitive.Uuid       => s"${schemaPkg_}.uuid"
-      case Primitive.Document   => s"${schemaPkg_}.document"
-      case Primitive.Nothing    => sys.error("Invalid state: Cannot render Nothing")
+      case Primitive.Unit           => s"${schemaPkg_}.unit"
+      case Primitive.Blob           => s"${schemaPkg_}.bytes"
+      case Primitive.Bool           => s"${schemaPkg_}.boolean"
+      case Primitive.String         => s"${schemaPkg_}.string"
+      case Primitive.Timestamp      => s"${schemaPkg_}.timestamp"
+      case Primitive.Byte           => s"${schemaPkg_}.byte"
+      case Primitive.Int            => s"${schemaPkg_}.int"
+      case Primitive.Short          => s"${schemaPkg_}.short"
+      case Primitive.Long           => s"${schemaPkg_}.long"
+      case Primitive.Float          => s"${schemaPkg_}.float"
+      case Primitive.Double         => s"${schemaPkg_}.double"
+      case Primitive.BigDecimal     => s"${schemaPkg_}.bigdecimal"
+      case Primitive.BigInteger     => s"${schemaPkg_}.bigint"
+      case Primitive.Uuid           => s"${schemaPkg_}.uuid"
+      case Primitive.Document       => s"${schemaPkg_}.document"
+      case Primitive.LocalDate      => s"${schemaPkg_}.localdate"
+      case Primitive.LocalTime      => s"${schemaPkg_}.localtime"
+      case Primitive.Duration       => s"${schemaPkg_}.duration"
+      case Primitive.OffsetDateTime => s"${schemaPkg_}.offsetdatetime"
+      case Primitive.Nothing        => sys.error("Invalid state: Cannot render Nothing")
     }
 
     def name: Option[String] = tpe match {
@@ -1843,7 +1847,17 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           else
             line"$blob(Array[Byte](${ba.mkString(", ")}))"
       case Primitive.Timestamp =>
-        ts => line"${NameRef("smithy4s", "Timestamp")}(${ts.getEpochSecond()}L, ${ts.getNano()})"
+        ts => line"$timestamp_(${ts.getEpochSecond()}L, ${ts.getNano()})"
+      case Primitive.LocalDate =>
+        date => line"$localdate_(${date.toEpochDay()})"
+      case Primitive.LocalTime =>
+        time => line"$localtime_(${time.toSecondOfDay()}, ${time.getNano()})"
+      case Primitive.OffsetDateTime =>
+        time =>
+          line"""$offsetdatetime_(${time.toEpochSecond()}, ${time
+            .getNano()}, scala.concurrent.duration.Duration(${time.getOffset().getTotalSeconds()}, "seconds"))"""
+      case Primitive.Duration =>
+        duration => line"$duration_(${renderStringLiteral(duration.toString)})"
       case Primitive.Document => { (node: Node) =>
         node.accept(new NodeVisitor[Line] {
           def arrayNode(x: ArrayNode): Line = {

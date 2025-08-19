@@ -17,31 +17,19 @@
 package smithy4s
 package internals
 
+import alloy.Discriminated
+import alloy.JsonUnknown
+import alloy.Untagged
 import smithy.api.JsonName
 import smithy.api.TimestampFormat
 import smithy.api.TimestampFormat.DATE_TIME
 import smithy.api.TimestampFormat.EPOCH_SECONDS
 import smithy.api.TimestampFormat.HTTP_DATE
-import alloy.Discriminated
-import alloy.JsonUnknown
 import smithy4s.capability.EncoderK
-import smithy4s.schema.Primitive.PBigDecimal
-import smithy4s.schema.Primitive.PBigInt
-import smithy4s.schema.Primitive.PBlob
-import smithy4s.schema.Primitive.PBoolean
-import smithy4s.schema.Primitive.PByte
-import smithy4s.schema.Primitive.PDocument
-import smithy4s.schema.Primitive.PDouble
-import smithy4s.schema.Primitive.PFloat
-import smithy4s.schema.Primitive.PInt
-import smithy4s.schema.Primitive.PLong
-import smithy4s.schema.Primitive.PShort
-import smithy4s.schema.Primitive.PString
-import alloy.Untagged
 import smithy4s.schema.FieldFilter
-import smithy4s.schema.Primitive.PTimestamp
-import smithy4s.schema.Primitive.PUUID
+import smithy4s.schema.Primitive._
 import smithy4s.schema._
+import smithy4s.time.DurationOps._
 
 import scala.collection.mutable.Builder
 
@@ -134,12 +122,17 @@ class DocumentEncoderSchemaVisitor(
               })
             )
       }
-    case PDocument => from(identity)
-    case PFloat    => from(float => DNumber(BigDecimal(float.toDouble)))
-    case PUUID     => from(uuid => DString(uuid.toString()))
-    case PDouble   => from(double => DNumber(BigDecimal(double)))
-    case PLong     => from(long => DNumber(BigDecimal(long)))
-    case PString   => from(DString(_))
+    case PDocument  => from(identity)
+    case PFloat     => from(float => DNumber(BigDecimal(float.toDouble)))
+    case PUUID      => from(uuid => DString(uuid.toString()))
+    case PDouble    => from(double => DNumber(BigDecimal(double)))
+    case PLong      => from(long => DNumber(BigDecimal(long)))
+    case PString    => from(DString(_))
+    case PLocalDate => from(localDate => DString(localDate.toString()))
+    case PLocalTime => from(localTime => DString(localTime.toString()))
+    case PDuration  => from(duration => DNumber(duration.toBigDecimal))
+    case POffsetDateTime =>
+      from(offsetDateTime => DString(offsetDateTime.toString()))
   }
 
   override def collection[C[_], A](

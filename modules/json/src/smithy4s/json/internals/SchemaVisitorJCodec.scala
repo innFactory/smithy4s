@@ -18,29 +18,30 @@ package smithy4s
 package json
 package internals
 
-import java.util.UUID
-import java.util
-
-import com.github.plokhotnyuk.jsoniter_scala.core.JsonReader
-import com.github.plokhotnyuk.jsoniter_scala.core.JsonWriter
-import smithy.api.JsonName
-import smithy.api.TimestampFormat
 import alloy.Discriminated
 import alloy.JsonUnknown
 import alloy.Nullable
 import alloy.Untagged
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonReader
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonWriter
+import smithy.api.JsonName
+import smithy.api.Required
+import smithy.api.TimestampFormat
 import smithy4s.internals.DiscriminatedUnionMember
-import smithy4s.schema._
+import smithy4s.schema.FieldFilter
 import smithy4s.schema.Primitive._
-import smithy4s.Timestamp
+import smithy4s.schema._
+import smithy4s.time.DurationOps._
+import smithy4s.time._
 
+import java.util
+import java.util.UUID
 import scala.collection.compat.immutable.ArraySeq
+import scala.collection.immutable.ListMap
 import scala.collection.immutable.VectorBuilder
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.{Map => MMap}
-import scala.collection.immutable.ListMap
-import smithy4s.schema.FieldFilter
-import smithy.api.Required
+import scala.concurrent.duration._
 
 private[smithy4s] class SchemaVisitorJCodec(
     maxArity: Int,
@@ -440,6 +441,70 @@ private[smithy4s] class SchemaVisitorJCodec(
           out.encodeError("Cannot use Unit as keys")
       }
 
+    val localDate: JCodec[LocalDate] = new JCodec[LocalDate] {
+      def expecting: String = "localDate"
+
+      def decodeValue(cursor: Cursor, in: JsonReader): LocalDate =
+        LocalDate.parseUnsafe(in.readString(null))
+
+      def encodeValue(x: LocalDate, out: JsonWriter): Unit =
+        out.writeNonEscapedAsciiVal(x.toString())
+
+      def decodeKey(in: JsonReader): LocalDate =
+        LocalDate.parseUnsafe(in.readKeyAsString())
+
+      def encodeKey(x: LocalDate, out: JsonWriter): Unit =
+        out.writeNonEscapedAsciiKey(x.toString)
+    }
+
+    val localTime: JCodec[LocalTime] = new JCodec[LocalTime] {
+      def expecting: String = "localTime"
+
+      def decodeValue(cursor: Cursor, in: JsonReader): LocalTime =
+        LocalTime.parseUnsafe(in.readString(null))
+
+      def encodeValue(x: LocalTime, out: JsonWriter): Unit =
+        out.writeNonEscapedAsciiVal(x.toString())
+
+      def decodeKey(in: JsonReader): LocalTime =
+        LocalTime.parseUnsafe(in.readKeyAsString())
+
+      def encodeKey(x: LocalTime, out: JsonWriter): Unit =
+        out.writeNonEscapedAsciiKey(x.toString)
+    }
+
+    val duration: JCodec[Duration] = new JCodec[Duration] {
+      def expecting: String = "duration"
+
+      def decodeValue(cursor: Cursor, in: JsonReader): Duration =
+        DurationOps.fromBigDecimal(in.readBigDecimal(null))
+
+      def encodeValue(x: Duration, out: JsonWriter): Unit =
+        out.writeVal(x.toBigDecimal)
+
+      def decodeKey(in: JsonReader): Duration =
+        DurationOps.fromBigDecimal(in.readKeyAsBigDecimal())
+
+      def encodeKey(x: Duration, out: JsonWriter): Unit =
+        out.writeKey(x.toBigDecimal)
+    }
+
+    val offsetDateTime: JCodec[OffsetDateTime] = new JCodec[OffsetDateTime] {
+      def expecting: String = "offsetDateTime"
+
+      def decodeValue(cursor: Cursor, in: JsonReader): OffsetDateTime =
+        OffsetDateTime.parseUnsafe(in.readString(null))
+
+      def encodeValue(x: OffsetDateTime, out: JsonWriter): Unit =
+        out.writeNonEscapedAsciiVal(x.toString())
+
+      def decodeKey(in: JsonReader): OffsetDateTime =
+        OffsetDateTime.parseUnsafe(in.readKeyAsString())
+
+      def encodeKey(x: OffsetDateTime, out: JsonWriter): Unit =
+        out.writeNonEscapedAsciiKey(x.toString)
+    }
+
     def document(maxArity: Int): JCodec[Document] = new JCodec[Document] {
       import Document._
       override def canBeKey: Boolean = false
@@ -572,7 +637,11 @@ private[smithy4s] class SchemaVisitorJCodec(
       case PString     => PrimitiveJCodecs.string
       case PTimestamp  => timestampJCodec(hints)
 
-      case PUUID => PrimitiveJCodecs.uuid
+      case PUUID           => PrimitiveJCodecs.uuid
+      case PLocalDate      => PrimitiveJCodecs.localDate
+      case PLocalTime      => PrimitiveJCodecs.localTime
+      case PDuration       => PrimitiveJCodecs.duration
+      case POffsetDateTime => PrimitiveJCodecs.offsetDateTime
     }
   }
 

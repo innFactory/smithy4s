@@ -14,16 +14,14 @@
  *  limitations under the License.
  */
 
-package smithy4s
+package smithy4s.time
 
-private[smithy4s] trait TimestampCompanionPlatform {
+import scalajs.js.Date
 
-  def nowUTC(): Timestamp = {
-    val currentMillis = System.currentTimeMillis
-    Timestamp(
-      (currentMillis / 1000).toLong,
-      (currentMillis % 1000).toInt * 100000
-    )
-  }
+private[time] trait TimestampCompanionPlatform {
 
+  def fromDate(x: Date): Timestamp =
+    Timestamp.fromEpochMilli(x.valueOf().toLong)
+
+  def nowUTC(): Timestamp = fromDate(new Date())
 }
