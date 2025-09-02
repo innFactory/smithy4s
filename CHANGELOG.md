@@ -7,7 +7,12 @@ Thank you!
 
 # 0.18.43
 
+* Add support for generating dynamic hint bindings in [#1816](https://github.com/disneystreaming/smithy4s/pull/1816)
 * codegen: Allow `alloy.openapi.*` namespaces by default [#1822](https://github.com/disneystreaming/smithy4s/pull/1822)
+
+# 0.18.42
+
+* Fix for hints in union->unit case in [#1808](https://github.com/disneystreaming/smithy4s/pull/1808)
 
 # 0.18.41
 
