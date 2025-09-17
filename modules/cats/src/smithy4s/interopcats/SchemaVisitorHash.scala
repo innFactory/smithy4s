@@ -71,15 +71,17 @@ final class SchemaVisitorHash(
     }
   }
 
-  override def map[K, V](
+  override def map[C[_, _], K, V](
       shapeId: ShapeId,
       hints: Hints,
+      tag: MapTag[C],
       key: Schema[K],
       value: Schema[V]
-  ): Hash[Map[K, V]] = {
+  ): Hash[C[K, V]] = {
     implicit val keyHash: Hash[K] = self(key)
     implicit val valueHash: Hash[V] = self(value)
-    Hash[Map[K, V]]
+
+    Hash[Map[K, V]].contramap(c => tag.toScalaMap((c)))
   }
 
   override def enumeration[E](

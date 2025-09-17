@@ -98,7 +98,7 @@ abstract class ProtocolComplianceSuite
   def genClientAndServerTests(
       impl: ReverseRouter[IO] with Router[IO],
       shapeIds: ShapeId*
-  )(dsi: DynamicSchemaIndex): List[ComplianceTest[IO]] =
+  )(dsi: DynamicSchemaIndex): List[ComplianceTest[IO]] = {
     shapeIds.toList.flatMap(shapeId =>
       HttpProtocolCompliance
         .clientAndServerTests(
@@ -113,6 +113,7 @@ abstract class ProtocolComplianceSuite
             .service
         )
     )
+  }
 
   def loadDynamic(
       doc: Document
@@ -129,9 +130,10 @@ abstract class ProtocolComplianceSuite
 
   def decodeDocument(
       bytes: Array[Byte],
-      codecApi: BlobDecoder.Compiler
+      codecApi: BlobDecoder.Compiler,
+      documentSchema: Schema[Document] = Schema.document
   ): Document = {
-    val codec: PayloadDecoder[Document] = codecApi.fromSchema(Schema.document)
+    val codec: PayloadDecoder[Document] = codecApi.fromSchema(documentSchema)
     codec
       .decode(Blob(bytes))
       .leftMap(

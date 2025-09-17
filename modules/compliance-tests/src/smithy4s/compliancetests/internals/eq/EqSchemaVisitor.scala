@@ -60,14 +60,21 @@ object EqSchemaVisitor extends SchemaVisitor[Eq] { self =>
     }
   }
 
-  override def map[K, V](
+  override def map[C[_, _], K, V](
       shapeId: ShapeId,
       hints: Hints,
+      tag: MapTag[C],
       key: Schema[K],
       value: Schema[V]
-  ): Eq[Map[K, V]] = {
-    implicit val valueEq: Eq[V] = self(value)
-    Eq[Map[K, V]]
+  ): Eq[C[K, V]] = {
+    val valueEq: Eq[V] = self(value)
+    new Eq[C[K, V]] {
+      def eqv(x: C[K, V], y: C[K, V]): Boolean = {
+        tag.iterator(x).forall { case (key, xValue) =>
+          tag.get(y, key).exists(valueEq.eqv(xValue, _))
+        }
+      }
+    }
   }
 
   override def enumeration[E](
@@ -221,19 +228,20 @@ object EqSchemaVisitor extends SchemaVisitor[Eq] { self =>
       }
     }
 
-    override def map[K, V](
+    override def map[C[_, _], K, V](
         shapeId: ShapeId,
         hints: Hints,
+        tag: MapTag[C],
         key: Schema[K],
         value: Schema[V]
-    ): Option[Eq[Option[Map[K, V]]]] = Some {
-      val mapEq = EqSchemaVisitor.map(shapeId, hints, key, value)
-      new Eq[Option[Map[K, V]]] {
-        def eqv(x: Option[Map[K, V]], y: Option[Map[K, V]]): Boolean =
+    ): Option[Eq[Option[C[K, V]]]] = Some {
+      val mapEq = EqSchemaVisitor.map(shapeId, hints, tag, key, value)
+      new Eq[Option[C[K, V]]] {
+        def eqv(x: Option[C[K, V]], y: Option[C[K, V]]): Boolean =
           (x, y) match {
             case (Some(left), Some(right)) => mapEq.eqv(left, right)
-            case (None, Some(right))       => right.isEmpty
-            case (Some(left), None)        => left.isEmpty
+            case (None, Some(right))       => tag.isEmpty(right)
+            case (Some(left), None)        => tag.isEmpty(left)
             case (None, None)              => true
           }
       }

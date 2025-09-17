@@ -155,40 +155,42 @@ class DocumentEncoderSchemaVisitor(
     }
   }
 
-  override def map[K, V](
+  override def map[C[_, _], K, V](
       shapeId: ShapeId,
       hints: Hints,
+      tag: MapTag[C],
       key: Schema[K],
       value: Schema[V]
-  ): DocumentEncoder[Map[K, V]] = {
+  ): DocumentEncoder[C[K, V]] = {
     val maybeKeyEncoder = DocumentKeyEncoder.trySchemaVisitor(key)
     val valueEncoder = self(value)
     maybeKeyEncoder match {
       case Some(keyEncoder) =>
-        from[Map[K, V]] { map =>
-          val mapBuilder = Map.newBuilder[String, Document]
-          map.foreach { case (k, v) =>
-            val key = keyEncoder.apply(k)
-            val value = valueEncoder.apply(v)
-            mapBuilder.+=((key, value))
+        from[C[K, V]] { c =>
+          val map = tag.build[String, Document] { put =>
+            tag.iterator(c).foreach { case (k, v) =>
+              put(keyEncoder.apply(k), valueEncoder.apply(v))
+            }
           }
-          DObject(mapBuilder.result())
+
+          DObject(tag.toScalaMap(map))
         }
       case None =>
-        from[Map[K, V]] { map =>
+        from[C[K, V]] { c =>
           val keyAsValueEncoder = apply(key)
-          val arrayBuilder = IndexedSeq.newBuilder[Document]
-          map.map { case (k, v) =>
-            arrayBuilder.+=(
+
+          val array = tag
+            .iterator(c)
+            .map { case (k, v) =>
               DObject(
                 Map(
                   "key" -> keyAsValueEncoder.apply(k),
                   "value" -> valueEncoder.apply(v)
                 )
               )
-            )
-          }
-          DArray(arrayBuilder.result())
+            }
+            .toIndexedSeq
+          DArray(array)
         }
     }
   }

@@ -23,6 +23,7 @@ import smithy4s.schema.CollectionTag
 import smithy4s.schema.EnumTag
 import smithy4s.schema.EnumValue
 import smithy4s.schema.Field
+import smithy4s.schema.MapTag
 import smithy4s.schema.OptionalTag
 import smithy4s.schema.Primitive
 import smithy4s.schema.Primitive._
@@ -67,12 +68,13 @@ object DefaultSchemaVisitor extends SchemaVisitor[Id] { self =>
       member: Schema[A]
   ): Id[C[A]] = tag.empty
 
-  override def map[K, V](
+  override def map[C[_, _], K, V](
       shapeId: ShapeId,
       hints: Hints,
+      tag: MapTag[C],
       key: Schema[K],
       value: Schema[V]
-  ): Id[Map[K, V]] = Map.empty
+  ): Id[C[K, V]] = tag.empty
 
   override def enumeration[E](
       shapeId: ShapeId,

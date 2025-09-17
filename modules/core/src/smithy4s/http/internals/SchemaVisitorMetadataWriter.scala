@@ -27,6 +27,7 @@ import smithy4s.schema.EnumTag
 import smithy4s.schema.EnumValue
 import smithy4s.schema.Field
 import smithy4s.schema.FieldFilter
+import smithy4s.schema.MapTag
 import smithy4s.schema.OptionalTag
 import smithy4s.schema.Primitive
 import smithy4s.schema.SchemaVisitor
@@ -137,22 +138,23 @@ class SchemaVisitorMetadataWriter(
       case StructureMetaEncode(_) => EmptyMetaEncode
     }
 
-  override def map[K, V](
+  override def map[C[_, _], K, V](
       shapeId: ShapeId,
       hints: Hints,
+      tag: MapTag[C],
       key: Schema[K],
       value: Schema[V]
-  ): MetaEncode[Map[K, V]] = {
+  ): MetaEncode[C[K, V]] = {
     (self(key), self(value.addHints(httpHints(hints)))) match {
       case (StringValueMetaEncode(keyF), StringValueMetaEncode(valueF)) =>
-        StringMapMetaEncode(map =>
-          map.map { case (k, v) =>
+        StringMapMetaEncode[C[K, V]](map =>
+          tag.toScalaMap(map).map { case (k, v) =>
             (keyF(k), valueF(v))
           }
         )
       case (StringValueMetaEncode(keyF), StringListMetaEncode(valueF)) =>
-        StringListMapMetaEncode(map =>
-          map.map { case (k, v) =>
+        StringListMapMetaEncode[C[K, V]](map =>
+          tag.toScalaMap(map).map { case (k, v) =>
             (keyF(k), valueF(v))
           }
         )
