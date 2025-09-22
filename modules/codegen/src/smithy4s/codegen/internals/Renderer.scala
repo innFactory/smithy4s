@@ -1898,7 +1898,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       case Primitive.Duration =>
         duration => line"$duration_(${renderStringLiteral(duration.toString)})"
       case Primitive.Document => renderNodeToLine(_)
-      case Primitive.Nothing => v => (v: Nothing) // this case can't happen
+      case Primitive.Nothing  => v => (v: Nothing) // this case can't happen
     }
 
   private def renderNodeToLine(node: Node): Line = {
