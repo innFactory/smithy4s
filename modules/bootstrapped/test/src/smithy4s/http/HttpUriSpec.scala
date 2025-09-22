@@ -37,11 +37,41 @@ final class HttpUriSpec extends FunSuite {
         )
       ),
       path = IndexedSeq("foo"),
-      queryParams = Map("bar" -> List("2")),
+      queryParams = Map(
+        "bar" -> List("2"),
+        "baz" -> List("a==2"),
+        "qux" -> List("a&b&c")
+      ),
       pathParams = Option.empty
     )
 
     val uri = httpUri.toURI
+
+    assertEquals(
+      uri.toString,
+      "http://example.com/foo?bar=2&baz=a%3D%3D2&qux=a%26b%26c"
+    )
+    assertEquals(httpUri, HttpUri.fromURI(uri))
+  }
+
+  test("Roundtrip works correctly when HttpUriOrigin is None") {
+    val httpUri = HttpUri(
+      origin = None,
+      path = IndexedSeq("foo"),
+      queryParams = Map(
+        "bar" -> List("2"),
+        "baz" -> List("a==2"),
+        "qux" -> List("a&b&c")
+      ),
+      pathParams = Option.empty
+    )
+
+    val uri = httpUri.toURI
+
+    assertEquals(
+      uri.toString,
+      "/foo?bar=2&baz=a%3D%3D2&qux=a%26b%26c"
+    )
     assertEquals(httpUri, HttpUri.fromURI(uri))
   }
 
