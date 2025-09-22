@@ -1092,13 +1092,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     alt.member match {
       case UnionMember.ProductCase(product) =>
         line"${unionName.down(product.name)}.alt"
-      case UnionMember.TypeCase(_) =>
+      case _ =>
         val n = unionName.down(alt.name.dropWhile(_ == '_').capitalize + "Case")
         line"$n.alt"
-      case UnionMember.UnitCase =>
-        val n =
-          unionName.down(alt.name.dropWhile(_ == '_').capitalize + "CaseAlt")
-        line"$n"
     }
 
   private def renderPrisms(
@@ -1278,12 +1274,18 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         alts.zipWithIndex.map {
           case (a @ Alt(_, realName, UnionMember.UnitCase, altHints), index) =>
             val cn = caseName(name, a)
+            val altsHintNameRef = line"${cn.nameDef}.hints"
             // format: off
             lines(
               documentationAnnotation(altHints),
               deprecationAnnotation(altHints),
-              line"case object ${cn.nameDef} extends $name { final def $$ordinal: Int = $index }",
-              line"""private val ${cn.nameDef}Alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(hints)""",
+              block(
+                line"case object ${cn.nameDef} extends $name"
+              )(
+                line"final def $$ordinal: Int = $index",
+                   renderHintsVal(altHints),
+                  line"""val alt = $Schema_.constant($cn)${renderConstraintValidation(altHints)}.oneOf[$name](${renderStringLiteral(realName)}).addHints(${altsHintNameRef})""",
+              ),
             )
             // format: on
           case (
@@ -1344,9 +1346,8 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
               line"implicit val schema: $Schema_[$name] = $union_"
           union
             .args {
-              caseNamesAndIsUnit.map {
-                case (caseName, false) => caseName + ".alt"
-                case (caseName, true)  => caseName + "Alt"
+              caseNamesAndIsUnit.map { case (caseName, _) =>
+                caseName + ".alt"
               }
             }
             .block {
@@ -1450,7 +1451,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         if (e.hints.isEmpty) baseLine
         else
           block(baseLine)(
-            line"override val hints: $Hints_ = $Hints_(${memberHints(e.hints)}).lazily"
+            line"override val hints: $Hints_ = $Hints_(${memberHints(e.hints)})${getLazySuffix(e.hints)}"
           )
       )
     }
@@ -1710,6 +1711,14 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       .run(true)
       ._2
 
+  private def renderHint(hint: Hint.DynamicBinding): Line = {
+    val ns = hint.shapeId.getNamespace
+    val name = hint.shapeId.getName
+    val sid = line"$ShapeId_(${renderStringLiteral(ns)}, ${renderStringLiteral(name)})"
+    val doc = renderNodeToLine(hint.data)
+    line"Hints.dynamic($sid, $doc)"
+  }
+
   private def renderDefault(hint: Fix[TypedNode]): Line =
     recursion
       .cata(renderTypedNode)(hint)
@@ -1725,15 +1734,27 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
   def renderHintsVal(hints: List[Hint]): Lines = {
     val lhs = line"val hints: $Hints_"
 
-    hints.collect { case nt: Hint.Native => nt }.sortBy(_.shapeId).map(renderHint) match {
+    val rendered = getRenderedHints(hints)
+
+    rendered match {
       case Nil => lines(line"$lhs = $Hints_.empty")
       case args =>
-        line"$lhs = $Hints_".args(args).appendToLast(".lazily")
+        line"$lhs = $Hints_".args(args).appendToLast(getLazySuffix(hints))
     }
   }
 
+  // If there are any native hints (static bindings) to be generated,
+  // we need to use the lazily suffix to prevent compile time
+  // issues
+  private def getLazySuffix(hints: List[Hint]): String =
+    hints
+      .collectFirst { case _: Hint.Native =>
+        ".lazily"
+      }
+      .getOrElse("")
+
   def memberHints(hints: List[Hint]): Line = {
-    val h = hints.collect { case nt: Hint.Native => nt }.sortBy(_.shapeId).map(renderHint)
+    val h = getRenderedHints(hints)
     if (h.isEmpty) Line.empty else h.intercalate(Line.comma)
   }
 
@@ -1863,34 +1884,36 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
             .getNano()}, scala.concurrent.duration.Duration(${time.getOffset().getTotalSeconds()}, "seconds"))"""
       case Primitive.Duration =>
         duration => line"$duration_(${renderStringLiteral(duration.toString)})"
-      case Primitive.Document => { (node: Node) =>
-        node.accept(new NodeVisitor[Line] {
-          def arrayNode(x: ArrayNode): Line = {
-            val innerValues = x.getElements().asScala.map(_.accept(this))
-            line"smithy4s.Document.array(${innerValues.toList.intercalate(Line.comma)})"
-          }
-          def booleanNode(x: BooleanNode): Line =
-            line"smithy4s.Document.fromBoolean(${x.getValue})"
-          def nullNode(x: NullNode): Line =
-            line"smithy4s.Document.nullDoc"
-          def numberNode(x: NumberNode): Line =
-            line"smithy4s.Document.fromDouble(${x.getValue.doubleValue()}d)"
-          def objectNode(x: ObjectNode): Line = {
-            val members = x.getMembers.asScala.map { member =>
-              val key = renderStringLiteral(member._1.getValue)
-              val value = member._2.accept(this)
-              line"$key -> $value"
-            }
-            line"smithy4s.Document.obj(${members.toList.intercalate(Line.comma)})"
-          }
-          def stringNode(x: StringNode): Line =
-            line"""smithy4s.Document.fromString(${renderStringLiteral(
-              x.getValue
-            )})"""
-        })
-      }
+      case Primitive.Document => renderNodeToLine(_)
       case Primitive.Nothing => v => (v: Nothing) // this case can't happen
     }
+
+  private def renderNodeToLine(node: Node): Line = {
+    node.accept(new NodeVisitor[Line] {
+      def arrayNode(x: ArrayNode): Line = {
+        val innerValues = x.getElements().asScala.map(_.accept(this))
+        line"smithy4s.Document.array(${innerValues.toList.intercalate(Line.comma)})"
+      }
+      def booleanNode(x: BooleanNode): Line =
+        line"smithy4s.Document.fromBoolean(${x.getValue})"
+      def nullNode(x: NullNode): Line =
+        line"smithy4s.Document.nullDoc"
+      def numberNode(x: NumberNode): Line =
+        line"smithy4s.Document.fromDouble(${x.getValue.doubleValue()}d)"
+      def objectNode(x: ObjectNode): Line = {
+        val members = x.getMembers.asScala.map { member =>
+          val key = renderStringLiteral(member._1.getValue)
+          val value = member._2.accept(this)
+          line"$key -> $value"
+        }
+        line"smithy4s.Document.obj(${members.toList.intercalate(Line.comma)})"
+      }
+      def stringNode(x: StringNode): Line =
+        line"""smithy4s.Document.fromString(${renderStringLiteral(
+          x.getValue
+        )})"""
+    })
+  }
 
   private def renderStringLiteral(raw: String): Line = {
     import scala.reflect.runtime.universe._
