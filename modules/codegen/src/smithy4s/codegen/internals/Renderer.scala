@@ -1731,6 +1731,19 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
     line"""val id: $ShapeId_ = $ShapeId_(${renderStringLiteral(ns)}, ${renderStringLiteral(name)})"""
   }
 
+  private def getRenderedHints(hints: List[Hint]): List[Line] = {
+    // putting hints into an Either to keep track of dynamic vs native ones since they don't have a common super-type in order
+    // to otherwise access the `shapeId` member on each of them
+    val hintsToRender: List[Either[Hint.DynamicBinding, Hint.Native]] = hints.collect {
+      case nt: Hint.Native         => Right(nt)
+      case nt: Hint.DynamicBinding => Left(nt)
+    }
+
+    hintsToRender
+      .sortBy(_.fold(_.shapeId, _.shapeId))
+      .map(_.fold(renderHint, renderHint))
+  }
+
   def renderHintsVal(hints: List[Hint]): Lines = {
     val lhs = line"val hints: $Hints_"
 
