@@ -208,6 +208,7 @@ lazy val core = projectMatrix
       "smithy.api",
       "smithy.waiters",
       "alloy",
+      "alloy.openapi",
       "alloy.common",
       "alloy.proto"
     ),

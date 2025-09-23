@@ -69,6 +69,15 @@ The behavior of `@default(null)` has changed to better align with Smithy semanti
 
 ## `Bijection` does no longer extends `Function` in [#1794](https://github.com/disneystreaming/smithy4s/pull/1794)
 Prevents using it as an implicit conversion in Scala 2
+# 0.18.43
+
+* Add support for generating dynamic hint bindings in [#1816](https://github.com/disneystreaming/smithy4s/pull/1816)
+* codegen: Allow `alloy.openapi.*` namespaces by default [#1822](https://github.com/disneystreaming/smithy4s/pull/1822)
+* Properly encode special characters when converting HttpUri to Java URI [#1832](https://github.com/disneystreaming/smithy4s/pull/1832)
+
+# 0.18.42
+
+* Fix for hints in union->unit case in [#1808](https://github.com/disneystreaming/smithy4s/pull/1808)
 
 # 0.18.41
 
