@@ -16,12 +16,11 @@
 
 package refinements.validated
 
-import alloy.DateFormat
+import scripted.date.DateFormat
 
 import java.time.LocalDate
 import scala.util.Try
 import smithy4s.{Refinement, RefinementProvider}
-
 
 object Refinements {
   object dateFormat {
