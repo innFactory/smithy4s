@@ -43,6 +43,7 @@ object HttpUnaryClientCodecs {
       rawStringsAndBlobPayloads = false,
       writeEmptyStructs = _ => false,
       requestMediaType = "text/plain",
+      acceptMediaType = "*/*",
       requestTransformation = F.pure(_),
       responseTransformation = F.pure(_),
       hostPrefixInjection = true,
@@ -61,6 +62,7 @@ object HttpUnaryClientCodecs {
     def withRawStringsAndBlobsPayloads: Builder[F, Request, Response]
     def withWriteEmptyStructs(cond: Schema[_] => Boolean): Builder[F, Request, Response]
     def withRequestMediaType(mediaType: String): Builder[F, Request, Response]
+    def withAcceptMediaType(mediaType: String): Builder[F, Request, Response]
     def withRequestTransformation[Request1](f: Request => F[Request1]): Builder[F, Request1, Response]
     def withResponseTransformation[Response0](f: Response0 => F[Response]): Builder[F, Request, Response0]
     def withHostPrefixInjection(enabled: Boolean): Builder[F, Request, Response]
@@ -83,6 +85,7 @@ object HttpUnaryClientCodecs {
       rawStringsAndBlobPayloads: Boolean,
       writeEmptyStructs: Schema[_] => Boolean,
       requestMediaType: String,
+      acceptMediaType: String,
       requestTransformation: HttpRequest[Blob] => F[Request],
       responseTransformation: Response => F[HttpResponse[Blob]],
       hostPrefixInjection: Boolean,
@@ -111,6 +114,9 @@ object HttpUnaryClientCodecs {
       copy(writeEmptyStructs = cond)
     def withRequestMediaType(mediaType: String): Builder[F, Request, Response] =
       copy(requestMediaType = mediaType)
+
+    def withAcceptMediaType(mediaType: String): Builder[F, Request, Response] =
+      copy(acceptMediaType = mediaType)
 
     def withRequestTransformation[Request1](f: Request => F[Request1]): Builder[F, Request1, Response] =
       copy(requestTransformation = requestTransformation.andThen(F.flatMap(_)(f)))
@@ -210,8 +216,35 @@ object HttpUnaryClientCodecs {
               case None => inputEncoders.fromSchema(endpoint.input, inputEncoderCache)
             }
 
+          val acceptHeaderWriter: HttpRequest.Writer[Blob, I] = {
+            if (rawStringsAndBlobPayloads) {
+              // Extract payload field schema if present
+              val payloadSchema = endpoint.output.findPayload(field => field.memberHints.has(smithy.api.HttpPayload)) match {
+                case schema.SchemaPartition.TotalMatch(schema) => Some(schema)
+                case _ => None
+              }
+
+              // Try to extract media type from payload schema, or fall back to full output schema
+              // When rawStringsAndBlobPayloads is true, use the type provided regardless of whether there's a @mediaType hint
+              val maybeMediaType = payloadSchema
+                .flatMap(HttpMediaType.fromSchema)
+                .orElse(HttpMediaType.fromSchema(endpoint.output))
+
+              maybeMediaType match {
+                case Some(mediaType) =>
+                  Writer.lift((req: HttpRequest[Blob], _: I) => req.withAccept(mediaType.value))
+                case None =>
+                  Writer.lift((req: HttpRequest[Blob], _: I) => req.withAccept(acceptMediaType))
+              }
+            } else {
+              Writer.lift((req: HttpRequest[Blob], _: I) => req.withAccept(acceptMediaType))
+            }
+          }
+
+          val inputWriterWithAccept: HttpRequest.Writer[Blob, I] = inputWriter.combine(acceptHeaderWriter)
+
           val prefixedInputWriter: HttpRequest.Writer[Blob, I] =
-            if (hostPrefixInjection) inputWriter.combine(HttpRequest.Writer.hostPrefix(endpoint)) else inputWriter
+            if (hostPrefixInjection) inputWriterWithAccept.combine(HttpRequest.Writer.hostPrefix(endpoint)) else inputWriterWithAccept
 
           val inputEncoder = (i: I) => F.map(baseRequest(endpoint))(prefixedInputWriter.write(_, i))
 
