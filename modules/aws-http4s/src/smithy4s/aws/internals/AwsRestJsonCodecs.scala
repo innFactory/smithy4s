@@ -57,6 +57,7 @@ private[aws] object AwsRestJsonCodecs {
       .withRawStringsAndBlobsPayloads
       .withSmithyPathEncoding(true)
       .withRequestMediaType(contentType)
+      .withAcceptMediaType(contentType)
   }
 
 }

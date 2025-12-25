@@ -45,6 +45,7 @@ private[aws] object AwsRestXmlCodecs {
       .withRawStringsAndBlobsPayloads
       .withSmithyPathEncoding(true)
       .withRequestMediaType("application/xml")
+      .withAcceptMediaType("application/xml")
   }
 
 }
