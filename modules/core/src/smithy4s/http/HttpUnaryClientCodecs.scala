@@ -218,17 +218,12 @@ object HttpUnaryClientCodecs {
 
           val acceptHeaderWriter: HttpRequest.Writer[Blob, I] = {
             if (rawStringsAndBlobPayloads) {
-              // Extract payload field schema if present
-              val payloadSchema = endpoint.output.findPayload(field => field.memberHints.has(smithy.api.HttpPayload)) match {
-                case schema.SchemaPartition.TotalMatch(schema) => Some(schema)
+              // Use HttpRestSchema to extract the body schema, consistent with how Content-Type works
+              val maybeMediaType: Option[HttpMediaType] = HttpRestSchema(endpoint.output) match {
+                case HttpRestSchema.OnlyBody(schema) => HttpMediaType.fromSchema(schema)
+                case HttpRestSchema.MetadataAndBody(_, bodySchema) => HttpMediaType.fromSchema(bodySchema)
                 case _ => None
               }
-
-              // Try to extract media type from payload schema, or fall back to full output schema
-              // When rawStringsAndBlobPayloads is true, use the type provided regardless of whether there's a @mediaType hint
-              val maybeMediaType = payloadSchema
-                .flatMap(HttpMediaType.fromSchema)
-                .orElse(HttpMediaType.fromSchema(endpoint.output))
 
               maybeMediaType match {
                 case Some(mediaType) =>
