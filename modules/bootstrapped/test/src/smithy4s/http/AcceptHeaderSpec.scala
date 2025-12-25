@@ -51,7 +51,7 @@ final class AcceptHeaderSpec extends FunSuite {
         )
       )
 
-  val  codecWithRawStringsAndBlobsPayloads
+  val codecWithRawStringsAndBlobsPayloads
       : UnaryClientCodecs.Make[Id, HttpRequest[Blob], HttpResponse[Blob]] =
     baseBuilder.withRawStringsAndBlobsPayloads.build()
 
@@ -176,4 +176,3 @@ final class AcceptHeaderSpec extends FunSuite {
     assertEquals(acceptHeader, Some("image/png"))
   }
 }
-
