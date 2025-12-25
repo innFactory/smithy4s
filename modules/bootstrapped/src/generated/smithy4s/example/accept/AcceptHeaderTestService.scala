@@ -41,11 +41,6 @@ trait AcceptHeaderTestServiceGen[F[_, _, _, _, _]] {
     *   JSON payload type
     */
   def jsonInputXmlOutput(data: Option[JsonPayload] = None): F[JsonInputXmlOutputInput, Nothing, JsonInputXmlOutputOutput, Nothing, Nothing]
-  /** Operation with String output with custom media type
-    * 
-    * HTTP POST /text-plain
-    */
-  def stringOutputWithMediaType(data: Option[String] = None): F[StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing]
 
   final def transform: Transformation.PartiallyApplied[AcceptHeaderTestServiceGen[F]] = Transformation.of[AcceptHeaderTestServiceGen[F]](this)
 }
@@ -72,7 +67,6 @@ object AcceptHeaderTestServiceGen extends Service.Mixin[AcceptHeaderTestServiceG
     AcceptHeaderTestServiceOperation.BlobOutputNoMediaType,
     AcceptHeaderTestServiceOperation.BlobOutputWithMediaType,
     AcceptHeaderTestServiceOperation.JsonInputXmlOutput,
-    AcceptHeaderTestServiceOperation.StringOutputWithMediaType,
   )
 
   def input[I, E, O, SI, SO](op: AcceptHeaderTestServiceOperation[I, E, O, SI, SO]): I = op.input
@@ -102,7 +96,6 @@ object AcceptHeaderTestServiceOperation {
     def blobOutputNoMediaType(data: Option[String] = None): BlobOutputNoMediaType = BlobOutputNoMediaType(BlobOutputNoMediaTypeInput(data))
     def blobOutputWithMediaType(data: Option[String] = None): BlobOutputWithMediaType = BlobOutputWithMediaType(BlobOutputWithMediaTypeInput(data))
     def jsonInputXmlOutput(data: Option[JsonPayload] = None): JsonInputXmlOutput = JsonInputXmlOutput(JsonInputXmlOutputInput(data))
-    def stringOutputWithMediaType(data: Option[String] = None): StringOutputWithMediaType = StringOutputWithMediaType(StringOutputWithMediaTypeInput(data))
   }
   class Transformed[P[_, _, _, _, _], P1[_ ,_ ,_ ,_ ,_]](alg: AcceptHeaderTestServiceGen[P], f: PolyFunction5[P, P1]) extends AcceptHeaderTestServiceGen[P1] {
     def defaultAcceptHeader(data: Option[String] = None): P1[DefaultAcceptHeaderInput, Nothing, DefaultAcceptHeaderOutput, Nothing, Nothing] = f[DefaultAcceptHeaderInput, Nothing, DefaultAcceptHeaderOutput, Nothing, Nothing](this.alg.defaultAcceptHeader(data))
@@ -110,7 +103,6 @@ object AcceptHeaderTestServiceOperation {
     def blobOutputNoMediaType(data: Option[String] = None): P1[BlobOutputNoMediaTypeInput, Nothing, BlobOutputNoMediaTypeOutput, Nothing, Nothing] = f[BlobOutputNoMediaTypeInput, Nothing, BlobOutputNoMediaTypeOutput, Nothing, Nothing](this.alg.blobOutputNoMediaType(data))
     def blobOutputWithMediaType(data: Option[String] = None): P1[BlobOutputWithMediaTypeInput, Nothing, BlobOutputWithMediaTypeOutput, Nothing, Nothing] = f[BlobOutputWithMediaTypeInput, Nothing, BlobOutputWithMediaTypeOutput, Nothing, Nothing](this.alg.blobOutputWithMediaType(data))
     def jsonInputXmlOutput(data: Option[JsonPayload] = None): P1[JsonInputXmlOutputInput, Nothing, JsonInputXmlOutputOutput, Nothing, Nothing] = f[JsonInputXmlOutputInput, Nothing, JsonInputXmlOutputOutput, Nothing, Nothing](this.alg.jsonInputXmlOutput(data))
-    def stringOutputWithMediaType(data: Option[String] = None): P1[StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing] = f[StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing](this.alg.stringOutputWithMediaType(data))
   }
 
   def toPolyFunction[P[_, _, _, _, _]](impl: AcceptHeaderTestServiceGen[P]): PolyFunction5[AcceptHeaderTestServiceOperation, P] = new PolyFunction5[AcceptHeaderTestServiceOperation, P] {
@@ -175,18 +167,6 @@ object AcceptHeaderTestServiceOperation {
       .withOutput(JsonInputXmlOutputOutput.schema)
       .withHints(smithy.api.Documentation("Operation with different media types for input and output"), smithy.api.Http(method = smithy.api.NonEmptyString("POST"), uri = smithy.api.NonEmptyString("/json-xml"), code = 200))
     def wrap(input: JsonInputXmlOutputInput): JsonInputXmlOutput = JsonInputXmlOutput(input)
-  }
-  final case class StringOutputWithMediaType(input: StringOutputWithMediaTypeInput) extends AcceptHeaderTestServiceOperation[StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing] {
-    def run[F[_, _, _, _, _]](impl: AcceptHeaderTestServiceGen[F]): F[StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing] = impl.stringOutputWithMediaType(input.data)
-    def ordinal: Int = 5
-    def endpoint: smithy4s.Endpoint[AcceptHeaderTestServiceOperation,StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing] = StringOutputWithMediaType
-  }
-  object StringOutputWithMediaType extends smithy4s.Endpoint[AcceptHeaderTestServiceOperation,StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing] {
-    val schema: OperationSchema[StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing] = Schema.operation(ShapeId("smithy4s.example.accept", "StringOutputWithMediaType"))
-      .withInput(StringOutputWithMediaTypeInput.schema)
-      .withOutput(StringOutputWithMediaTypeOutput.schema)
-      .withHints(smithy.api.Documentation("Operation with String output with custom media type"), smithy.api.Http(method = smithy.api.NonEmptyString("POST"), uri = smithy.api.NonEmptyString("/text-plain"), code = 200))
-    def wrap(input: StringOutputWithMediaTypeInput): StringOutputWithMediaType = StringOutputWithMediaType(input)
   }
 }
 

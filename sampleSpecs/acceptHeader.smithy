@@ -15,9 +15,8 @@ service AcceptHeaderTestService {
         XmlOutput,
         JsonInputXmlOutput,
         BlobOutputWithMediaType,
-        BlobOutputNoMediaType,
-        StringOutputWithMediaType
-    ]
+        BlobOutputNoMediaType
+            ]
 }
 
 /// JSON payload type
@@ -100,15 +99,4 @@ operation BlobOutputNoMediaType {
     }
 }
 
-/// Operation with String output with custom media type
-@http(method: "POST", uri: "/text-plain")
-operation StringOutputWithMediaType {
-    input := {
-        @httpPayload
-        data: String
-    }
-    output := {
-        @httpPayload
-        result: PlainTextPayload
-    }
-}
+

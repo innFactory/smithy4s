@@ -113,33 +113,6 @@
                 }
             }
         },
-        "/text-plain": {
-            "post": {
-                "description": "Operation with String output with custom media type",
-                "operationId": "StringOutputWithMediaType",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/StringOutputWithMediaTypeInputPayload"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "StringOutputWithMediaType 200 response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/StringOutputWithMediaTypeOutputPayload"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/xml-output": {
             "post": {
                 "description": "Operation with XML output media type",
@@ -203,13 +176,6 @@
             "JsonInputXmlOutputOutputPayload": {
                 "type": "string",
                 "description": "XML payload type"
-            },
-            "StringOutputWithMediaTypeInputPayload": {
-                "type": "string"
-            },
-            "StringOutputWithMediaTypeOutputPayload": {
-                "type": "string",
-                "description": "Plain text payload type"
             },
             "XmlOutputInputPayload": {
                 "type": "string"
