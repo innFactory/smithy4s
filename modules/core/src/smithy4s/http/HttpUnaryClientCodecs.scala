@@ -43,11 +43,11 @@ object HttpUnaryClientCodecs {
       rawStringsAndBlobPayloads = false,
       writeEmptyStructs = _ => false,
       requestMediaType = "text/plain",
-      acceptMediaType = "*/*",
       requestTransformation = F.pure(_),
       responseTransformation = F.pure(_),
       hostPrefixInjection = true,
-      smithyPathEncoding = false
+      smithyPathEncoding = false,
+      acceptMediaType = "*/*"
     )
 
   trait Builder[F[_], Request, Response] {
@@ -85,11 +85,11 @@ object HttpUnaryClientCodecs {
       rawStringsAndBlobPayloads: Boolean,
       writeEmptyStructs: Schema[_] => Boolean,
       requestMediaType: String,
-      acceptMediaType: String,
       requestTransformation: HttpRequest[Blob] => F[Request],
       responseTransformation: Response => F[HttpResponse[Blob]],
       hostPrefixInjection: Boolean,
-      smithyPathEncoding: Boolean
+      smithyPathEncoding: Boolean,
+      acceptMediaType: String
   )(implicit F: MonadThrowLike[F])
       extends Builder[F, Request, Response] {
     def withOperationPreprocessor(fk: PolyFunction5[OperationSchema, OperationSchema]): Builder[F, Request, Response] =
