@@ -218,7 +218,6 @@ object HttpUnaryClientCodecs {
 
           val acceptHeaderWriter: HttpRequest.Writer[Blob, I] = {
             if (rawStringsAndBlobPayloads) {
-              // Use HttpRestSchema to extract the body schema, consistent with how Content-Type works
               val maybeMediaType: Option[HttpMediaType] = HttpRestSchema(endpoint.output) match {
                 case HttpRestSchema.OnlyBody(schema)               => HttpMediaType.fromSchema(schema)
                 case HttpRestSchema.MetadataAndBody(_, bodySchema) => HttpMediaType.fromSchema(bodySchema)
