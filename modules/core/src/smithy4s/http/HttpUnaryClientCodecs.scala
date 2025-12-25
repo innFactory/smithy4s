@@ -217,29 +217,31 @@ object HttpUnaryClientCodecs {
             }
 
           val acceptHeaderWriter: HttpRequest.Writer[Blob, I] = {
-            if (rawStringsAndBlobPayloads) {
-              // Use HttpRestSchema to extract the body schema, consistent with how Content-Type works
-              val maybeMediaType: Option[HttpMediaType] = HttpRestSchema(endpoint.output) match {
-                case HttpRestSchema.OnlyBody(schema) => HttpMediaType.fromSchema(schema)
-                case HttpRestSchema.MetadataAndBody(_, bodySchema) => HttpMediaType.fromSchema(bodySchema)
-                case _ => None
+            val maybeMediaType = Option
+              .when(rawStringsAndBlobPayloads) {
+                // Use HttpRestSchema to extract the body schema, consistent with how Content-Type works
+                HttpRestSchema(endpoint.output) match {
+                  case HttpRestSchema.OnlyBody(schema)               => HttpMediaType.fromSchema(schema)
+                  case HttpRestSchema.MetadataAndBody(_, bodySchema) => HttpMediaType.fromSchema(bodySchema)
+                  case _                                             => None
+                }
               }
+              .flatten
 
-              maybeMediaType match {
-                case Some(mediaType) =>
-                  Writer.lift((req: HttpRequest[Blob], _: I) => req.withAccept(mediaType.value))
-                case None =>
-                  Writer.lift((req: HttpRequest[Blob], _: I) => req.withAccept(acceptMediaType))
-              }
-            } else {
-              Writer.lift((req: HttpRequest[Blob], _: I) => req.withAccept(acceptMediaType))
+            maybeMediaType match {
+              case Some(mediaType) =>
+                Writer.lift((req: HttpRequest[Blob], _: I) => req.withAccept(mediaType.value))
+              case None =>
+                Writer.lift((req: HttpRequest[Blob], _: I) => req.withAccept(acceptMediaType))
+
             }
           }
 
           val inputWriterWithAccept: HttpRequest.Writer[Blob, I] = inputWriter.combine(acceptHeaderWriter)
 
           val prefixedInputWriter: HttpRequest.Writer[Blob, I] =
-            if (hostPrefixInjection) inputWriterWithAccept.combine(HttpRequest.Writer.hostPrefix(endpoint)) else inputWriterWithAccept
+            if (hostPrefixInjection) inputWriterWithAccept.combine(HttpRequest.Writer.hostPrefix(endpoint))
+            else inputWriterWithAccept
 
           val inputEncoder = (i: I) => F.map(baseRequest(endpoint))(prefixedInputWriter.write(_, i))
 

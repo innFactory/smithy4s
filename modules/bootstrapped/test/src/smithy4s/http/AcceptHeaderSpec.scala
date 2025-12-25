@@ -30,17 +30,29 @@ final class AcceptHeaderSpec extends FunSuite {
     def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = f(fa)
     def raiseError[A](e: Throwable): Id[A] = throw e
     def handleErrorWith[A](fa: Id[A])(f: Throwable => Id[A]): Id[A] =
-      try fa catch { case e: Throwable => f(e) }
+      try fa
+      catch { case e: Throwable => f(e) }
     def pure[A](a: A): Id[A] = a
-    def zipMapAll[A](seq: IndexedSeq[Id[Any]])(f: IndexedSeq[Any] => A): Id[A] = f(seq)
+    def zipMapAll[A](seq: IndexedSeq[Id[Any]])(f: IndexedSeq[Any] => A): Id[A] =
+      f(seq)
   }
 
-  def baseBuilder: HttpUnaryClientCodecs.Builder[Id, HttpRequest[Blob], HttpResponse[Blob]] =
+  def baseBuilder: HttpUnaryClientCodecs.Builder[Id, HttpRequest[
+    Blob
+  ], HttpResponse[Blob]] =
     HttpUnaryClientCodecs
       .builder[Id]
-      .withBaseRequest(_ => HttpRequest(HttpMethod.POST, HttpUri.fromURI(new java.net.URI("/")), Map.empty, Blob.empty))
+      .withBaseRequest(_ =>
+        HttpRequest(
+          HttpMethod.POST,
+          HttpUri.fromURI(new java.net.URI("/")),
+          Map.empty,
+          Blob.empty
+        )
+      )
 
-  def codecWithRawStringsAndBlobsPayloads: UnaryClientCodecs.Make[Id,HttpRequest[Blob],HttpResponse[Blob]] =
+  def codecWithRawStringsAndBlobsPayloads
+      : UnaryClientCodecs.Make[Id, HttpRequest[Blob], HttpResponse[Blob]] =
     baseBuilder.withRawStringsAndBlobsPayloads.build()
 
   def extractAcceptHeader(request: HttpRequest[Blob]): Option[String] = {
@@ -49,12 +61,20 @@ final class AcceptHeaderSpec extends FunSuite {
       .flatMap(_.headOption)
   }
 
-  test("Accept header uses default acceptMediaType when rawStringsAndBlobPayloads is false") {
+  test(
+    "Accept header uses default acceptMediaType when rawStringsAndBlobPayloads is false"
+  ) {
     val codecsMake = baseBuilder
       .withAcceptMediaType("application/json")
       .build()
 
-    val codec = codecsMake.apply[DefaultAcceptHeaderInput, Nothing, DefaultAcceptHeaderOutput, Nothing, Nothing](
+    val codec = codecsMake.apply[
+      DefaultAcceptHeaderInput,
+      Nothing,
+      DefaultAcceptHeaderOutput,
+      Nothing,
+      Nothing
+    ](
       AcceptHeaderTestServiceOperation.DefaultAcceptHeader.schema
     )
     val request = codec.inputEncoder(DefaultAcceptHeaderInput())
@@ -63,10 +83,18 @@ final class AcceptHeaderSpec extends FunSuite {
     assertEquals(acceptHeader, Some("application/json"))
   }
 
-  test("Accept header uses configured default (*/*) when no specific media type is set") {
+  test(
+    "Accept header uses configured default (*/*) when no specific media type is set"
+  ) {
     val codecsMake = baseBuilder.build()
 
-    val codec = codecsMake.apply[DefaultAcceptHeaderInput, Nothing, DefaultAcceptHeaderOutput, Nothing, Nothing](
+    val codec = codecsMake.apply[
+      DefaultAcceptHeaderInput,
+      Nothing,
+      DefaultAcceptHeaderOutput,
+      Nothing,
+      Nothing
+    ](
       AcceptHeaderTestServiceOperation.DefaultAcceptHeader.schema
     )
     val request = codec.inputEncoder(DefaultAcceptHeaderInput())
@@ -75,25 +103,34 @@ final class AcceptHeaderSpec extends FunSuite {
     assertEquals(acceptHeader, Some("*/*"))
   }
 
-  test("Accept header derives from output schema when rawStringsAndBlobPayloads is true and output has @mediaType") {
+  test(
+    "Accept header derives from output schema when rawStringsAndBlobPayloads is true and output has @mediaType"
+  ) {
 
-
-    val codec = codecWithRawStringsAndBlobsPayloads.apply[XmlOutputInput, Nothing, XmlOutputOutput, Nothing, Nothing](
-      AcceptHeaderTestServiceOperation.XmlOutput.schema
-    )
+    val codec = codecWithRawStringsAndBlobsPayloads
+      .apply[XmlOutputInput, Nothing, XmlOutputOutput, Nothing, Nothing](
+        AcceptHeaderTestServiceOperation.XmlOutput.schema
+      )
     val request = codec.inputEncoder(XmlOutputInput())
 
     val acceptHeader = extractAcceptHeader(request)
     assertEquals(acceptHeader, Some("application/xml"))
   }
 
-  test("Accept header uses schema default when rawStringsAndBlobPayloads is true but output has no @mediaType") {
-    val codecsMake = baseBuilder
-      .withRawStringsAndBlobsPayloads
+  test(
+    "Accept header uses schema default when rawStringsAndBlobPayloads is true but output has no @mediaType"
+  ) {
+    val codecsMake = baseBuilder.withRawStringsAndBlobsPayloads
       .withAcceptMediaType("application/json")
       .build()
 
-    val codec = codecsMake.apply[BlobOutputNoMediaTypeInput, Nothing, BlobOutputNoMediaTypeOutput, Nothing, Nothing](
+    val codec = codecsMake.apply[
+      BlobOutputNoMediaTypeInput,
+      Nothing,
+      BlobOutputNoMediaTypeOutput,
+      Nothing,
+      Nothing
+    ](
       AcceptHeaderTestServiceOperation.BlobOutputNoMediaType.schema
     )
     val request = codec.inputEncoder(BlobOutputNoMediaTypeInput())
@@ -103,12 +140,21 @@ final class AcceptHeaderSpec extends FunSuite {
     assertEquals(acceptHeader, Some("application/octet-stream"))
   }
 
-  test("Accept header correctly derives from output when input and output have different media types") {
+  test(
+    "Accept header correctly derives from output when input and output have different media types"
+  ) {
 
-    val codec = codecWithRawStringsAndBlobsPayloads.apply[JsonInputXmlOutputInput, Nothing, JsonInputXmlOutputOutput, Nothing, Nothing](
+    val codec = codecWithRawStringsAndBlobsPayloads.apply[
+      JsonInputXmlOutputInput,
+      Nothing,
+      JsonInputXmlOutputOutput,
+      Nothing,
+      Nothing
+    ](
       AcceptHeaderTestServiceOperation.JsonInputXmlOutput.schema
     )
-    val request = codec.inputEncoder(JsonInputXmlOutputInput(Some(JsonPayload("test"))))
+    val request =
+      codec.inputEncoder(JsonInputXmlOutputInput(Some(JsonPayload("test"))))
 
     val acceptHeader = extractAcceptHeader(request)
     // Accept header should be derived from output (XmlPayload), not input (JsonPayload)
@@ -117,7 +163,13 @@ final class AcceptHeaderSpec extends FunSuite {
 
   test("Accept header for Blob output with @mediaType") {
 
-    val codec = codecWithRawStringsAndBlobsPayloads.apply[BlobOutputWithMediaTypeInput, Nothing, BlobOutputWithMediaTypeOutput, Nothing, Nothing](
+    val codec = codecWithRawStringsAndBlobsPayloads.apply[
+      BlobOutputWithMediaTypeInput,
+      Nothing,
+      BlobOutputWithMediaTypeOutput,
+      Nothing,
+      Nothing
+    ](
       AcceptHeaderTestServiceOperation.BlobOutputWithMediaType.schema
     )
     val request = codec.inputEncoder(BlobOutputWithMediaTypeInput())
@@ -126,9 +178,17 @@ final class AcceptHeaderSpec extends FunSuite {
     assertEquals(acceptHeader, Some("image/png"))
   }
 
-  test("Accept header uses schema default (application/octet-stream) when output is Blob without @mediaType") {
+  test(
+    "Accept header uses schema default (application/octet-stream) when output is Blob without @mediaType"
+  ) {
 
-    val codec = codecWithRawStringsAndBlobsPayloads.apply[BlobOutputNoMediaTypeInput, Nothing, BlobOutputNoMediaTypeOutput, Nothing, Nothing](
+    val codec = codecWithRawStringsAndBlobsPayloads.apply[
+      BlobOutputNoMediaTypeInput,
+      Nothing,
+      BlobOutputNoMediaTypeOutput,
+      Nothing,
+      Nothing
+    ](
       AcceptHeaderTestServiceOperation.BlobOutputNoMediaType.schema
     )
     val request = codec.inputEncoder(BlobOutputNoMediaTypeInput())
@@ -140,7 +200,13 @@ final class AcceptHeaderSpec extends FunSuite {
 
   test("Accept header for String output with @mediaType (text/plain)") {
 
-    val codec = codecWithRawStringsAndBlobsPayloads.apply[StringOutputWithMediaTypeInput, Nothing, StringOutputWithMediaTypeOutput, Nothing, Nothing](
+    val codec = codecWithRawStringsAndBlobsPayloads.apply[
+      StringOutputWithMediaTypeInput,
+      Nothing,
+      StringOutputWithMediaTypeOutput,
+      Nothing,
+      Nothing
+    ](
       AcceptHeaderTestServiceOperation.StringOutputWithMediaType.schema
     )
     val request = codec.inputEncoder(StringOutputWithMediaTypeInput())
