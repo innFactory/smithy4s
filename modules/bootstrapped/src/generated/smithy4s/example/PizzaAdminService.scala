@@ -6,6 +6,8 @@ import smithy4s.Schema
 import smithy4s.Service
 import smithy4s.ShapeId
 import smithy4s.Transformation
+import smithy4s.kinds.BiFunctorAlgebra
+import smithy4s.kinds.FunctorAlgebra
 import smithy4s.kinds.PolyFunction5
 import smithy4s.kinds.toPolyFunction5.const5
 import smithy4s.schema.ErrorSchema
@@ -60,7 +62,6 @@ trait PizzaAdminServiceGen[F[_, _, _, _, _]] {
   /** HTTP GET /query-check?variant=b */
   def checkQueryVariantB(inp: Option[Map[String, List[String]]] = None): F[CheckQueryInput, Nothing, CheckQueryOutput, Nothing, Nothing]
 
-  final def transform: Transformation.PartiallyApplied[PizzaAdminServiceGen[F]] = Transformation.of[PizzaAdminServiceGen[F]](this)
 }
 
 object PizzaAdminServiceGen extends Service.Mixin[PizzaAdminServiceGen, PizzaAdminServiceOperation] {
@@ -125,6 +126,18 @@ object PizzaAdminServiceGen extends Service.Mixin[PizzaAdminServiceGen, PizzaAdm
   val HealthError = PizzaAdminServiceOperation.HealthError
   type GetMenuError = PizzaAdminServiceOperation.GetMenuError
   val GetMenuError = PizzaAdminServiceOperation.GetMenuError
+
+  implicit final class TransformFunctorOps[F[_]](private val alg: FunctorAlgebra[PizzaAdminServiceGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[FunctorAlgebra[PizzaAdminServiceGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformBifunctorOps[F[_, _]](private val alg: BiFunctorAlgebra[PizzaAdminServiceGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[BiFunctorAlgebra[PizzaAdminServiceGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformOps[F[_, _, _, _, _]](private val alg: PizzaAdminServiceGen[F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[PizzaAdminServiceGen[F]] = Transformation.of(alg)
+  }
 }
 
 sealed trait PizzaAdminServiceOperation[Input, Err, Output, StreamedInput, StreamedOutput] {

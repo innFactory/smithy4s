@@ -6,6 +6,8 @@ import smithy4s.Schema
 import smithy4s.Service
 import smithy4s.ShapeId
 import smithy4s.Transformation
+import smithy4s.kinds.BiFunctorAlgebra
+import smithy4s.kinds.FunctorAlgebra
 import smithy4s.kinds.PolyFunction5
 import smithy4s.kinds.toPolyFunction5.const5
 import smithy4s.schema.OperationSchema
@@ -24,7 +26,6 @@ trait ObjectCollisionGen[F[_, _, _, _, _]] {
   def _clone(): F[Unit, Nothing, Unit, Nothing, Nothing]
   def _notifyAll(): F[Unit, Nothing, Unit, Nothing, Nothing]
 
-  final def transform: Transformation.PartiallyApplied[ObjectCollisionGen[F]] = Transformation.of[ObjectCollisionGen[F]](this)
 }
 
 object ObjectCollisionGen extends Service.Mixin[ObjectCollisionGen, ObjectCollisionOperation] {
@@ -63,6 +64,18 @@ object ObjectCollisionGen extends Service.Mixin[ObjectCollisionGen, ObjectCollis
   def fromPolyFunction[P[_, _, _, _, _]](f: PolyFunction5[ObjectCollisionOperation, P]): ObjectCollisionGen[P] = new ObjectCollisionOperation.Transformed(reified, f)
   def toPolyFunction[P[_, _, _, _, _]](impl: ObjectCollisionGen[P]): PolyFunction5[ObjectCollisionOperation, P] = ObjectCollisionOperation.toPolyFunction(impl)
 
+
+  implicit final class TransformFunctorOps[F[_]](private val alg: FunctorAlgebra[ObjectCollisionGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[FunctorAlgebra[ObjectCollisionGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformBifunctorOps[F[_, _]](private val alg: BiFunctorAlgebra[ObjectCollisionGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[BiFunctorAlgebra[ObjectCollisionGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformOps[F[_, _, _, _, _]](private val alg: ObjectCollisionGen[F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[ObjectCollisionGen[F]] = Transformation.of(alg)
+  }
 }
 
 sealed trait ObjectCollisionOperation[Input, Err, Output, StreamedInput, StreamedOutput] {

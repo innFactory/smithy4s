@@ -7,6 +7,8 @@ import smithy4s.Service
 import smithy4s.ServiceProduct
 import smithy4s.ShapeId
 import smithy4s.Transformation
+import smithy4s.kinds.BiFunctorAlgebra
+import smithy4s.kinds.FunctorAlgebra
 import smithy4s.kinds.PolyFunction5
 import smithy4s.kinds.toPolyFunction5.const5
 import smithy4s.schema.OperationSchema
@@ -16,7 +18,6 @@ trait ExampleServiceGen[F[_, _, _, _, _]] {
 
   def exampleOperation(a: String): F[ExampleOperationInput, Nothing, ExampleOperationOutput, Nothing, Nothing]
 
-  final def transform: Transformation.PartiallyApplied[ExampleServiceGen[F]] = Transformation.of[ExampleServiceGen[F]](this)
 }
 
 trait ExampleServiceProductGen[F[_, _, _, _, _]] {
@@ -55,6 +56,18 @@ object ExampleServiceGen extends Service.Mixin[ExampleServiceGen, ExampleService
 
   type Prod[F[_, _, _, _, _]] = ExampleServiceProductGen[F]
   val serviceProduct: ServiceProduct.Aux[ExampleServiceProductGen, ExampleServiceGen] = ExampleServiceProductGen
+
+  implicit final class TransformFunctorOps[F[_]](private val alg: FunctorAlgebra[ExampleServiceGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[FunctorAlgebra[ExampleServiceGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformBifunctorOps[F[_, _]](private val alg: BiFunctorAlgebra[ExampleServiceGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[BiFunctorAlgebra[ExampleServiceGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformOps[F[_, _, _, _, _]](private val alg: ExampleServiceGen[F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[ExampleServiceGen[F]] = Transformation.of(alg)
+  }
 }
 
 object ExampleServiceProductGen extends ServiceProduct[ExampleServiceProductGen] {

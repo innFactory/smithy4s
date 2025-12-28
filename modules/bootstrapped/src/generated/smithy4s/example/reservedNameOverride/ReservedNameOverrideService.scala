@@ -6,6 +6,8 @@ import smithy4s.Schema
 import smithy4s.Service
 import smithy4s.ShapeId
 import smithy4s.Transformation
+import smithy4s.kinds.BiFunctorAlgebra
+import smithy4s.kinds.FunctorAlgebra
 import smithy4s.kinds.PolyFunction5
 import smithy4s.kinds.toPolyFunction5.const5
 import smithy4s.schema.OperationSchema
@@ -17,7 +19,6 @@ trait ReservedNameOverrideServiceGen[F[_, _, _, _, _]] {
   /** HTTP POST /api/set/ */
   def setOp(set: Set): F[SetOpInput, Nothing, Unit, Nothing, Nothing]
 
-  final def transform: Transformation.PartiallyApplied[ReservedNameOverrideServiceGen[F]] = Transformation.of[ReservedNameOverrideServiceGen[F]](this)
 }
 
 object ReservedNameOverrideServiceGen extends Service.Mixin[ReservedNameOverrideServiceGen, ReservedNameOverrideServiceOperation] {
@@ -50,6 +51,18 @@ object ReservedNameOverrideServiceGen extends Service.Mixin[ReservedNameOverride
   def fromPolyFunction[P[_, _, _, _, _]](f: PolyFunction5[ReservedNameOverrideServiceOperation, P]): ReservedNameOverrideServiceGen[P] = new ReservedNameOverrideServiceOperation.Transformed(reified, f)
   def toPolyFunction[P[_, _, _, _, _]](impl: ReservedNameOverrideServiceGen[P]): PolyFunction5[ReservedNameOverrideServiceOperation, P] = ReservedNameOverrideServiceOperation.toPolyFunction(impl)
 
+
+  implicit final class TransformFunctorOps[F[_]](private val alg: FunctorAlgebra[ReservedNameOverrideServiceGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[FunctorAlgebra[ReservedNameOverrideServiceGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformBifunctorOps[F[_, _]](private val alg: BiFunctorAlgebra[ReservedNameOverrideServiceGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[BiFunctorAlgebra[ReservedNameOverrideServiceGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformOps[F[_, _, _, _, _]](private val alg: ReservedNameOverrideServiceGen[F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[ReservedNameOverrideServiceGen[F]] = Transformation.of(alg)
+  }
 }
 
 sealed trait ReservedNameOverrideServiceOperation[Input, Err, Output, StreamedInput, StreamedOutput] {
