@@ -5,6 +5,10 @@ When adding entries, please treat them as if they could end up in a release any 
 
 Thank you!
 
+# 0.18.46
+
+* core: Set the Accept header via the HttpUnaryClientCodecs  (see [#1864](https://github.com/disneystreaming/smithy4s/pull/1864))
+
 # 0.18.45
 
 * Avoid an overloaded method issue in calls to `Schema#error` in [#1861](https://github.com/disneystreaming/smithy4s/pull/1861)
