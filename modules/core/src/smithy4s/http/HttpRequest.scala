@@ -44,6 +44,10 @@ final case class HttpRequest[+A](
     this.copy(headers =
       this.headers + (CaseInsensitive("Content-Type") -> Seq(contentType))
     )
+  def withAccept(accept: String): HttpRequest[A] =
+    this.copy(headers =
+      this.headers + (CaseInsensitive("Accept") -> Seq(accept))
+    )
 }
 
 object HttpRequest {

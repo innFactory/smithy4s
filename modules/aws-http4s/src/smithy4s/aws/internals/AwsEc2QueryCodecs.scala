@@ -107,6 +107,7 @@ private[aws] object AwsEcsQueryCodecs {
       .withWriteEmptyStructs(_ => true)
       .withSmithyPathEncoding(false)
       .withRequestMediaType("application/x-www-form-urlencoded")
+      .withAcceptMediaType("application/xml")
   }
 
 }

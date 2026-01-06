@@ -138,6 +138,7 @@ private[http4s] class SimpleRestJsonCodecs(
       )
       .withBaseRequest(_ => baseRequest.pure[F])
       .withRequestMediaType("application/json")
+      .withAcceptMediaType("application/json")
       .withRequestTransformation(fromSmithy4sHttpRequest[F](_, encodePathSegments = !smithyPathEncoding).pure[F])
       .withResponseTransformation[Response[F]](toSmithy4sHttpResponse[F](_))
       .withHostPrefixInjection(hostPrefixInjection)
