@@ -6,6 +6,8 @@ import smithy4s.Schema
 import smithy4s.Service
 import smithy4s.ShapeId
 import smithy4s.Transformation
+import smithy4s.kinds.BiFunctorAlgebra
+import smithy4s.kinds.FunctorAlgebra
 import smithy4s.kinds.PolyFunction5
 import smithy4s.kinds.toPolyFunction5.const5
 import smithy4s.schema.OperationSchema
@@ -42,7 +44,6 @@ trait AcceptHeaderTestServiceGen[F[_, _, _, _, _]] {
     */
   def jsonInputXmlOutput(data: Option[JsonPayload] = None): F[JsonInputXmlOutputInput, Nothing, JsonInputXmlOutputOutput, Nothing, Nothing]
 
-  final def transform: Transformation.PartiallyApplied[AcceptHeaderTestServiceGen[F]] = Transformation.of[AcceptHeaderTestServiceGen[F]](this)
 }
 
 object AcceptHeaderTestServiceGen extends Service.Mixin[AcceptHeaderTestServiceGen, AcceptHeaderTestServiceOperation] {
@@ -79,6 +80,18 @@ object AcceptHeaderTestServiceGen extends Service.Mixin[AcceptHeaderTestServiceG
   def fromPolyFunction[P[_, _, _, _, _]](f: PolyFunction5[AcceptHeaderTestServiceOperation, P]): AcceptHeaderTestServiceGen[P] = new AcceptHeaderTestServiceOperation.Transformed(reified, f)
   def toPolyFunction[P[_, _, _, _, _]](impl: AcceptHeaderTestServiceGen[P]): PolyFunction5[AcceptHeaderTestServiceOperation, P] = AcceptHeaderTestServiceOperation.toPolyFunction(impl)
 
+
+  implicit final class TransformFunctorOps[F[_]](private val alg: FunctorAlgebra[AcceptHeaderTestServiceGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[FunctorAlgebra[AcceptHeaderTestServiceGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformBifunctorOps[F[_, _]](private val alg: BiFunctorAlgebra[AcceptHeaderTestServiceGen, F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[BiFunctorAlgebra[AcceptHeaderTestServiceGen, F]] = Transformation.of(alg)
+  }
+
+  implicit final class TransformOps[F[_, _, _, _, _]](private val alg: AcceptHeaderTestServiceGen[F]) extends AnyVal {
+    def transform: Transformation.PartiallyApplied[AcceptHeaderTestServiceGen[F]] = Transformation.of(alg)
+  }
 }
 
 sealed trait AcceptHeaderTestServiceOperation[Input, Err, Output, StreamedInput, StreamedOutput] {

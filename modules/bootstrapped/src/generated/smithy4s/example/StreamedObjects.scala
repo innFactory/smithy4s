@@ -86,6 +86,7 @@ object StreamedObjectsOperation {
   }
   class Transformed[P[_, _, _, _, _], P1[_ ,_ ,_ ,_ ,_]](alg: StreamedObjectsGen[P], f: PolyFunction5[P, P1]) extends StreamedObjectsGen[P1] {
     def putStreamedObject(key: String): P1[PutStreamedObjectInput, Nothing, Unit, StreamedBlob, Nothing] = f[PutStreamedObjectInput, Nothing, Unit, StreamedBlob, Nothing](this.alg.putStreamedObject(key))
+    def putAndGetStreamedObject(key: String): P1[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob] = f[PutStreamedObjectInput, Nothing, GetStreamedObjectOutput, StreamedBlob, StreamedBlob](this.alg.putAndGetStreamedObject(key))
     def getStreamedObject(key: String): P1[GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob] = f[GetStreamedObjectInput, Nothing, GetStreamedObjectOutput, Nothing, StreamedBlob](this.alg.getStreamedObject(key))
   }
 
