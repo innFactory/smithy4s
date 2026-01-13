@@ -78,7 +78,7 @@ object AwsClient {
             host = s"$endpointPrefix.$region.amazonaws.com",
             port = None,
             path = IndexedSeq.empty,
-            queryParams = Map.empty,
+            queryParams = IndexedSeq.empty,
             pathParams = None
           )
           // Uri.unsafeFromString(s"https://$endpointPrefix.$region.amazonaws.com/")
