@@ -95,7 +95,7 @@ package object kernel {
     Smithy4sHttpUri(
       origin,
       uri.path.segments.map(_.decoded()),
-      getQueryParams(uri),
+      uri.query.pairs,
       pathParams
     )
   }
@@ -225,8 +225,8 @@ package object kernel {
   private[smithy4s] def getQueryParams[F[_]](
       uri: Uri
   ): IndexedSeq[(String, Option[String])] =
-    uri.query.pairs.map {
-      case (name, value) => name -> value
+    uri.query.pairs.map { case (name, value) =>
+      name -> value
     }.toIndexedSeq
 
   private def collectBytes[F[_]: Concurrent](
