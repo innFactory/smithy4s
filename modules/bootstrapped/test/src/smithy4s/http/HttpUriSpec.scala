@@ -37,11 +37,11 @@ final class HttpUriSpec extends FunSuite {
         )
       ),
       path = IndexedSeq("foo"),
-      queryParams = Map(
+      queryParams = HttpUri.queryParamsFromMap(Map(
         "bar" -> List("2"),
         "baz" -> List("a==2"),
         "qux" -> List("a&b&c")
-      ),
+      )),
       pathParams = Option.empty
     )
 
@@ -58,11 +58,11 @@ final class HttpUriSpec extends FunSuite {
     val httpUri = HttpUri(
       origin = None,
       path = IndexedSeq("foo"),
-      queryParams = Map(
+      queryParams = HttpUri.queryParamsFromMap(Map(
         "bar" -> List("2"),
         "baz" -> List("a==2"),
         "qux" -> List("a&b&c")
-      ),
+      )),
       pathParams = Option.empty
     )
 
@@ -87,7 +87,7 @@ final class HttpUriSpec extends FunSuite {
       val httpUri = HttpUri.fromURI(uri)
       assertEquals(uri, httpUri.toURI)
       assert(httpUri.path == IndexedSeq("foo bar"))
-      assert(httpUri.queryParams == Map("baz" -> List("qux quux")))
+      assert(httpUri.queryParamsAsMap == Map("baz" -> List("qux quux")))
     }
   }
 
@@ -108,7 +108,7 @@ final class HttpUriSpec extends FunSuite {
           )
         ),
         path = IndexedSeq("foo bar"),
-        queryParams = Map("baz" -> List("qux quux")),
+        queryParams = HttpUri.queryParamsFromMap(Map("baz" -> List("qux quux"))),
         pathParams = Option.empty
       )
       val uri = httpUri.toURI

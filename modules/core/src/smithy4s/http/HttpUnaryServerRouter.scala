@@ -197,12 +197,12 @@ object HttpUnaryServerRouter {
       val method = getMethod(request)
       val uri = getUri(request)
       val path = uri.path
-      val query = uri.queryParams
+      val queryMap = uri.queryParamsAsMap
       perMethodEndpoint.get(method).flatMap { httpUnaryEndpoints =>
         httpUnaryEndpoints.iterator
           .flatMap(ep => ep.httpEndpoint.matches(path).map(ep -> _))
           .collectFirst {
-            case (ep, pathParams) if isSubset(larger = query, smaller = ep.httpEndpoint.staticQueryParams) =>
+            case (ep, pathParams) if isSubset(larger = queryMap, smaller = ep.httpEndpoint.staticQueryParams) =>
               val amendedRequest = addDecodedPathParams(request, pathParams)
               ep.handler(amendedRequest)
           }

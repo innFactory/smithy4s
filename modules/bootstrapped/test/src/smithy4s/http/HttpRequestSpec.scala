@@ -47,7 +47,7 @@ final class HttpRequestSpec extends FunSuite {
       "example.com",
       None,
       IndexedSeq.empty,
-      Map.empty,
+      IndexedSeq.empty,
       None
     )
     val request = HttpRequest(HttpMethod.GET, uri, Map.empty, "")

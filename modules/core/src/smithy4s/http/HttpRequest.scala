@@ -33,7 +33,7 @@ final case class HttpRequest[+A](
 
   def toMetadata: Metadata = Metadata(
     path = uri.pathParams.getOrElse(Map.empty),
-    query = uri.queryParams,
+    query = uri.queryParamsAsMap,
     headers = headers
   )
 
@@ -87,7 +87,8 @@ object HttpRequest {
         val path =
           if (smithyPathEncoding) httpEndpoint.encodedPath(input)
           else httpEndpoint.path(input)
-        val staticQueries = httpEndpoint.staticQueryParams
+        val staticQueries =
+          HttpUri.queryParamsFromMap(httpEndpoint.staticQueryParams)
         val oldUri = request.uri
         val newUri = oldUri
           .withQueryParams(staticQueries)
@@ -103,7 +104,9 @@ object HttpRequest {
       (req: HttpRequest[Body], meta: Metadata) =>
         val oldUri = req.uri
         val newUri =
-          oldUri.transformQueryParams(_ ++ meta.query)
+          oldUri.transformQueryParams(
+            _ ++ HttpUri.queryParamsFromMap(meta.query)
+          )
         req.addHeaders(meta.headers).copy(uri = newUri)
     }
 

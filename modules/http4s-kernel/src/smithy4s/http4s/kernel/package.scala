@@ -146,7 +146,7 @@ package object kernel {
         case Smithy4sHttpUriScheme.Https => Uri.Scheme.https
 
       }
-    ).withMultiValueQueryParams(uri.queryParams)
+    ).withMultiValueQueryParams(uri.queryParamsAsMap)
   }
 
   /**
@@ -224,14 +224,10 @@ package object kernel {
 
   private[smithy4s] def getQueryParams[F[_]](
       uri: Uri
-  ): Map[String, List[String]] =
-    uri.query.pairs
-      .collect {
-        case (name, None)        => name -> "true"
-        case (name, Some(value)) => name -> value
-      }
-      .groupBy(_._1)
-      .map { case (k, v) => k -> v.map(_._2).toList }
+  ): IndexedSeq[(String, Option[String])] =
+    uri.query.pairs.map {
+      case (name, value) => name -> value
+    }.toIndexedSeq
 
   private def collectBytes[F[_]: Concurrent](
       stream: fs2.Stream[F, Byte]
