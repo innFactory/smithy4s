@@ -78,7 +78,6 @@ case class Metadata(
   def addQueryParam(key: String, value: String): Metadata =
     addQueryParamOpt(key, Some(value))
 
-
   def addQueryParamsIfNoExist(key: String, values: String*): Metadata =
     addQueryParamsIfNotExist(key, values.map(Some(_)): _*)
 
