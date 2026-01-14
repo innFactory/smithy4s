@@ -40,7 +40,7 @@ import smithy4s.schema.FieldFilter
   */
 case class Metadata(
     path: Map[String, String] = Map.empty,
-    query: Map[String, Seq[String]] = Map.empty,
+    query: Map[String, Seq[Option[String]]] = Map.empty,
     headers: Map[CaseInsensitive, Seq[String]] = Map.empty,
     statusCode: Option[Int] = None
 ) { self =>
@@ -50,9 +50,10 @@ case class Metadata(
       v.map(k -> _)
     }
 
-  def queryFlattened: Vector[(String, String)] = query.toVector.flatMap {
-    case (k, v) => v.map(k -> _)
-  }
+  def queryFlattened: Vector[(String, Option[String])] =
+    query.toVector.flatMap { case (k, v) =>
+      v.map(k -> _)
+    }
 
   def addHeader(ciKey: CaseInsensitive, value: String): Metadata = {
     headers.get(ciKey) match {
@@ -67,17 +68,26 @@ case class Metadata(
   }
   def addPathParam(key: String, value: String): Metadata =
     copy(path = path + (key -> value))
-  def addQueryParam(key: String, value: String): Metadata =
+
+  def addQueryParamOpt(key: String, value: Option[String]): Metadata =
     query.get(key) match {
       case Some(existing) =>
         copy(query = query + (key -> (existing :+ value)))
       case None => copy(query = query + (key -> List(value)))
     }
+  def addQueryParam(key: String, value: String): Metadata =
+    addQueryParamOpt(key, Some(value))
+
+
   def addQueryParamsIfNoExist(key: String, values: String*): Metadata =
+    addQueryParamsIfNotExist(key, values.map(Some(_)): _*)
+
+  def addQueryParamsIfNotExist(key: String, values: Option[String]*): Metadata =
     query.get(key) match {
       case Some(_) => self
       case None    => copy(query = query + (key -> values.toList))
     }
+
   def addMultipleHeaders(
       ciKey: CaseInsensitive,
       value: List[String]
@@ -92,6 +102,12 @@ case class Metadata(
     addMultipleHeaders(CaseInsensitive(key), value)
 
   def addMultipleQueryParams(key: String, value: List[String]): Metadata =
+    addMultipleQueryParamsOpt(key, value.map(Some(_)))
+
+  def addMultipleQueryParamsOpt(
+      key: String,
+      value: List[Option[String]]
+  ): Metadata =
     query.get(key) match {
       case Some(existing) =>
         copy(query = query + (key -> (existing ++ value)))
@@ -128,9 +144,12 @@ case class Metadata(
           case Nil        => None
         }
       case HttpBinding.QueryBinding(httpName) =>
-        query.get(httpName).flatMap {
-          case head :: tl => Some((head, tl))
-          case Nil        => None
+        query.get(httpName).flatMap { values =>
+          val flattenedValues = values.flatMap(opt => opt).toList
+          flattenedValues match {
+            case head :: tl => Some((head, tl))
+            case Nil        => None
+          }
         }
       case HttpBinding.PathBinding(httpName) => path.get(httpName).map(_ -> Nil)
       case _                                 => None

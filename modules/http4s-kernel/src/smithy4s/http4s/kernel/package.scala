@@ -138,6 +138,12 @@ package object kernel {
     val path = Uri.Path.Root.addSegments(uri.path.map(mkSegment))
     val authority =
       uri.host.map(h => Uri.Authority(host = Uri.RegName(h), port = uri.port))
+    val queryMap = uri.queryParamsAsMap.map { case (k, vs) =>
+      k -> vs.flatMap {
+        case Some(v) => Seq(v)
+        case None    => Seq("true")
+      }
+    }
     Uri(
       path = path,
       authority = authority,
@@ -146,7 +152,7 @@ package object kernel {
         case Smithy4sHttpUriScheme.Https => Uri.Scheme.https
 
       }
-    ).withMultiValueQueryParams(uri.queryParamsAsMap)
+    ).withMultiValueQueryParams(queryMap)
   }
 
   /**
@@ -221,13 +227,6 @@ package object kernel {
     req.headers.headers.groupBy(_.name).map { case (k, v) =>
       (CaseInsensitive(k.toString), v.map(_.value))
     }
-
-  private[smithy4s] def getQueryParams[F[_]](
-      uri: Uri
-  ): IndexedSeq[(String, Option[String])] =
-    uri.query.pairs.map { case (name, value) =>
-      name -> value
-    }.toIndexedSeq
 
   private def collectBytes[F[_]: Concurrent](
       stream: fs2.Stream[F, Byte]

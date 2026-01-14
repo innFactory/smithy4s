@@ -88,7 +88,7 @@ object HttpRequest {
           if (smithyPathEncoding) httpEndpoint.encodedPath(input)
           else httpEndpoint.path(input)
         val staticQueries =
-          HttpUri.queryParamsFromMap(httpEndpoint.staticQueryParams)
+          HttpUri.queryParamsFromStringMap(httpEndpoint.staticQueryParams)
         val oldUri = request.uri
         val newUri = oldUri
           .withQueryParams(staticQueries)

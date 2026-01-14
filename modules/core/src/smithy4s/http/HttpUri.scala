@@ -168,13 +168,13 @@ final case class HttpUri private (
 
   /**
    * Converts query parameters to Map format, grouping multiple values for the same key.
-   * Keys without values are represented as empty sequences.
+   * Preserves None values to distinguish between valueless parameters and parameters with empty values.
    */
-  def queryParamsAsMap: Map[String, Seq[String]] = {
+  def queryParamsAsMap: Map[String, Seq[Option[String]]] = {
     queryParams
       .groupBy(_._1)
       .map { case (k, vs) =>
-        k -> vs.flatMap(_._2).toSeq
+        k -> vs.map(_._2).toSeq
       }
   }
 
@@ -303,12 +303,22 @@ object HttpUri {
    * Keys with empty sequences become keys without values.
    */
   def queryParamsFromMap(
-      queryParams: Map[String, Seq[String]]
+      queryParams: Map[String, Seq[Option[String]]]
   ): IndexedSeq[(String, Option[String])] = {
     queryParams.toIndexedSeq.flatMap { case (k, vs) =>
       if (vs.isEmpty) IndexedSeq(k -> None)
-      else vs.map(v => k -> Some(v))
+      else vs.map(v => k -> v)
     }
+  }
+
+  /**
+   * Converts Map format query parameters with String values to IndexedSeq format.
+   * This is a convenience method that wraps String values in Some().
+   */
+  def queryParamsFromStringMap(
+      queryParams: Map[String, Seq[String]]
+  ): IndexedSeq[(String, Option[String])] = {
+    queryParamsFromMap(queryParams.map { case (k, vs) => k -> vs.map(Some(_)) })
   }
 
   private def uriDecode(v: String): String =
