@@ -148,7 +148,7 @@ private[internals] object assert {
   }
 
   private def queryParamsExistenceCheck(
-      queryParameters: Map[String, Seq[String]],
+      queryParameters: Map[String, Seq[Option[String]]],
       requiredParameters: Option[List[String]],
       forbiddenParameters: Option[List[String]]
   ) = {
@@ -174,7 +174,7 @@ private[internals] object assert {
   }
 
   private def queryParamValuesCheck(
-      queryParameters: Map[String, Seq[String]],
+      queryParameters: Map[String, Seq[Option[String]]],
       testCase: Option[List[String]]
   ) = {
     testCase.toList.flatten
@@ -244,7 +244,7 @@ private[internals] object assert {
 
     def checkQueryParameters(
         tc: HttpRequestTestCase,
-        queryParameters: Map[String, Seq[String]]
+        queryParameters: Map[String, Seq[Option[String]]]
     ): ComplianceResult = {
       val existenceChecks = assert.queryParamsExistenceCheck(
         queryParameters = queryParameters,

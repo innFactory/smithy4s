@@ -135,22 +135,19 @@ case class Metadata(
     )
   }
 
-  def find(location: HttpBinding): Option[(String, List[String])] =
+  def find(location: HttpBinding): Option[(Option[String], List[Option[String]])] =
     location match {
       case HttpBinding.HeaderBinding(httpName) =>
         headers.get(httpName).flatMap {
-          case head :: tl => Some((head, tl))
-          case Nil        => None
+          case head :: tl => Some((Some(head), tl.map(Some(_))))
+                    case Nil        => None
         }
       case HttpBinding.QueryBinding(httpName) =>
-        query.get(httpName).flatMap { values =>
-          val flattenedValues = values.flatMap(opt => opt).toList
-          flattenedValues match {
-            case head :: tl => Some((head, tl))
-            case Nil        => None
-          }
-        }
-      case HttpBinding.PathBinding(httpName) => path.get(httpName).map(_ -> Nil)
+      query.get(httpName).flatMap {
+          case head :: tl => Some((head, tl))
+          case Nil        => None
+      } 
+      case HttpBinding.PathBinding(httpName) =>         path.get(httpName).map(v => Some(v) -> Nil)
       case _                                 => None
     }
 }
