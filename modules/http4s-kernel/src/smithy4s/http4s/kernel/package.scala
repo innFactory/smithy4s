@@ -138,12 +138,6 @@ package object kernel {
     val path = Uri.Path.Root.addSegments(uri.path.map(mkSegment))
     val authority =
       uri.host.map(h => Uri.Authority(host = Uri.RegName(h), port = uri.port))
-    val queryMap = uri.queryParamsAsMap.map { case (k, vs) =>
-      k -> vs.flatMap {
-        case Some(v) => Seq(v)
-        case None    => Seq("true")
-      }
-    }
     Uri(
       path = path,
       authority = authority,
@@ -152,7 +146,7 @@ package object kernel {
         case Smithy4sHttpUriScheme.Https => Uri.Scheme.https
 
       }
-    ).withMultiValueQueryParams(queryMap)
+    ).copy(query = Query.fromVector(uri.queryParams.toVector))
   }
 
   /**
