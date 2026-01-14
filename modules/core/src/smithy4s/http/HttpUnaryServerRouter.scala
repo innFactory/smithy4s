@@ -305,28 +305,28 @@ object HttpUnaryServerRouter {
 
   }
 
-  /** Checks if `larger` multimap is a subset of the `smaller` */
-  private def isSubset[K, V](larger: Map[K, Seq[V]], smaller: Map[K, Seq[V]]): Boolean =
-    smaller.forall { case (k, vRequired) =>
-      larger
-        .get(k)
-        .exists(vs =>
-          vRequired.forall { required =>
-            // Direct match
-            vs.contains(required) || {
-              // Special case: treat valueless query params (None) as matching empty values (Some(""))
-              // This only applies when V is Option[String]
-              required match {
-                case None =>
-                  vs.exists {
-                    case Some("") => true
-                    case _        => false
-                  }
-                case _ => false
-              }
-            }
-          }
-        )
+  /** Checks if `smaller` multimap is a subset of the `larger` */
+  private def isSubset(
+      larger: Map[String, Seq[Option[String]]],
+      smaller: Map[String, Seq[Option[String]]]
+  ): Boolean =
+    smaller.forall { case (key, requiredValues) =>
+      larger.get(key).exists { actualValues =>
+        val normalizedActual = normalizeQueryValues(actualValues)
+        requiredValues.forall(normalizedActual.contains)
+      }
     }
 
+  private def normalizeQueryValues(
+      values: Seq[Option[String]]
+  ): Set[Option[String]] = {
+    val asSet = values.toSet
+
+    // HTTP semantics: treat valueless (?foo) and empty (?foo=) as equivalent
+    if (asSet.contains(None) || asSet.contains(Some("")))
+      // this facilitates O(1) lookups for both None and Some("") when either is present
+      asSet + None + Some("")
+    else
+      asSet
+  }
 }
