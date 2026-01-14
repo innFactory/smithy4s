@@ -80,7 +80,8 @@ private[http] sealed abstract class MetaDecode[+A] {
           if (values.size == 1) {
             values.head match {
               case Some(value) => putField(f(value))
-              case None => throw MetadataError.NotFound(fieldName, binding)
+              // Treat valueless query params as empty strings (AWS protocol behavior)
+              case None => putField(f(""))
             }
           } else throw MetadataError.ArityError(fieldName, binding)
         }

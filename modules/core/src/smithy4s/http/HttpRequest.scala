@@ -87,8 +87,7 @@ object HttpRequest {
         val path =
           if (smithyPathEncoding) httpEndpoint.encodedPath(input)
           else httpEndpoint.path(input)
-        val staticQueries =
-          HttpUri.queryParamsFromStringMap(httpEndpoint.staticQueryParams)
+        val staticQueries = mapToIndexedSeq(httpEndpoint.staticQueryParams)
         val oldUri = request.uri
         val newUri = oldUri
           .withQueryParams(staticQueries)
@@ -105,7 +104,7 @@ object HttpRequest {
         val oldUri = req.uri
         val newUri =
           oldUri.transformQueryParams(
-            _ ++ HttpUri.queryParamsFromMap(meta.query)
+            _ ++ mapToIndexedSeq(meta.query)
           )
         req.addHeaders(meta.headers).copy(uri = newUri)
     }
@@ -179,4 +178,6 @@ object HttpRequest {
       : PolyFunction[GenericDecoder[F, Body, *], Decoder[F, Body, *]] =
     GenericDecoder.in[F].composeK(_.body)
 
+  private def mapToIndexedSeq[A, B](m: Map[A, Seq[B]]): IndexedSeq[(A, B)] =
+    m.toIndexedSeq.flatMap { case (k, v) => v.map(k -> _) }
 }

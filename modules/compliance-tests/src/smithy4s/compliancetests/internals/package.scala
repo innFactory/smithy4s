@@ -33,11 +33,13 @@ package object internals {
       case Array(k, v) =>
         (
           k,
-          Some(Uri.decode(
-            toDecode = v,
-            charset = StandardCharsets.UTF_8,
-            plusIsSpace = true
-          ))
+          Some(
+            Uri.decode(
+              toDecode = v,
+              charset = StandardCharsets.UTF_8,
+              plusIsSpace = true
+            )
+          )
         )
       case Array(k) => (k, None)
     }

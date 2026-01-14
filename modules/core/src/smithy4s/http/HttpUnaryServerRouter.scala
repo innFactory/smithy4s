@@ -308,7 +308,25 @@ object HttpUnaryServerRouter {
   /** Checks if `larger` multimap is a subset of the `smaller` */
   private def isSubset[K, V](larger: Map[K, Seq[V]], smaller: Map[K, Seq[V]]): Boolean =
     smaller.forall { case (k, vRequired) =>
-      larger.get(k).exists(vs => vRequired.forall(vs.contains))
+      larger
+        .get(k)
+        .exists(vs =>
+          vRequired.forall { required =>
+            // Direct match
+            vs.contains(required) || {
+              // Special case: treat valueless query params (None) as matching empty values (Some(""))
+              // This only applies when V is Option[String]
+              required match {
+                case None =>
+                  vs.exists {
+                    case Some("") => true
+                    case _        => false
+                  }
+                case _ => false
+              }
+            }
+          }
+        )
     }
 
 }
