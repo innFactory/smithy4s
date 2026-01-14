@@ -23,8 +23,8 @@ import cats.effect.syntax.all._
 import cats.implicits._
 import org.http4s.Headers
 import org.http4s.HttpApp
-import org.http4s.Request
 import org.http4s.Query
+import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
 import org.http4s.Uri
