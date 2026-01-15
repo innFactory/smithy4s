@@ -226,7 +226,8 @@ object HttpUri {
                 pair.split("=", -1).map(uriDecode) match {
                   case Array(k: String, v: String) => k -> Some(v)
                   // cases where you have q1=v1=v2 => q1 -> "v1=v2"
-                  case v @ Array(k: String, _*) => k -> Some(v.tail.mkString("="))
+                  case v @ Array(k: String, _*) =>
+                    k -> Some(v.tail.mkString("="))
                 }
               } else {
                 uriDecode(pair) -> None

@@ -81,7 +81,10 @@ case class Metadata(
   def addQueryParamsIfNoExist(key: String, values: String*): Metadata =
     addQueryParamsIfNotExistOpt(key, values.map(Some(_)): _*)
 
-  def addQueryParamsIfNotExistOpt(key: String, values: Option[String]*): Metadata =
+  def addQueryParamsIfNotExistOpt(
+      key: String,
+      values: Option[String]*
+  ): Metadata =
     query.get(key) match {
       case Some(_) => self
       case None    => copy(query = query + (key -> values.toList))
@@ -152,8 +155,9 @@ case class Metadata(
     location match {
       case HttpBinding.HeaderBinding(httpName) =>
         headers.get(httpName).flatMap {
-          case head :: tl => Some(Metadata.BindingValues(Some(head), tl.map(Some(_))))
-          case Nil        => None
+          case head :: tl =>
+            Some(Metadata.BindingValues(Some(head), tl.map(Some(_))))
+          case Nil => None
         }
       case HttpBinding.QueryBinding(httpName) =>
         query.get(httpName).flatMap {
