@@ -98,8 +98,8 @@ private[http] sealed abstract class MetaDecode[+A] {
               if (values.nonEmpty) {
                 values.head match {
                   case Some(value) => k -> value
-                  case None =>
-                    throw MetadataError.NotFound(fieldName, QueryParamsBinding)
+                  // Treat valueless query params as empty strings (AWS protocol behavior)
+                  case None => k -> ""
                 }
               } else throw MetadataError.NotFound(fieldName, QueryParamsBinding)
             }

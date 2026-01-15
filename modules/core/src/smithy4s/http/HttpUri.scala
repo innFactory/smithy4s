@@ -220,11 +220,16 @@ object HttpUri {
           query
             .split("&")
             .map { pair =>
-              pair.split("=").map(uriDecode) match {
-                case Array(k: String, v: String) => k -> Some(v)
-                case Array(k: String)            => k -> None
-                // cases where you have q1=v1=v2 => q1 -> "v1=v2"
-                case v @ Array(k: String, _*) => k -> Some(v.tail.mkString("="))
+              // Check if the pair contains '=' to distinguish between
+              // valueless params (?foo) and empty-value params (?foo=)
+              if (pair.contains("=")) {
+                pair.split("=", -1).map(uriDecode) match {
+                  case Array(k: String, v: String) => k -> Some(v)
+                  // cases where you have q1=v1=v2 => q1 -> "v1=v2"
+                  case v @ Array(k: String, _*) => k -> Some(v.tail.mkString("="))
+                }
+              } else {
+                uriDecode(pair) -> None
               }
             }
             .toIndexedSeq

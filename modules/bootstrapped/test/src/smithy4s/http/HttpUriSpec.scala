@@ -123,4 +123,76 @@ final class HttpUriSpec extends FunSuite {
     }
   }
 
+  test("Parse URI with valueless query parameter") {
+    val uri = URI.create("http://example.com/foo?bar&baz=value")
+    val httpUri = HttpUri.fromURI(uri)
+    assertEquals(
+      httpUri.queryParams,
+      IndexedSeq("bar" -> None, "baz" -> Some("value"))
+    )
+  }
+
+  test("HttpUri with valueless param converts to URI correctly") {
+    val httpUri = HttpUri(
+      origin = Some(
+        HttpUriOrigin.absolute(
+          HttpUriScheme.Http,
+          "example.com"
+        )
+      ),
+      path = IndexedSeq("foo"),
+      queryParams = IndexedSeq("bar" -> None, "baz" -> Some("value")),
+      pathParams = Option.empty
+    )
+    val uri = httpUri.toURI
+    assertEquals(uri.toString, "http://example.com/foo?bar&baz=value")
+  }
+
+  test("Roundtrip with valueless query parameters") {
+    val uri = URI.create("http://example.com/foo?flag&key=value")
+    val httpUri = HttpUri.fromURI(uri)
+    assertEquals(uri, httpUri.toURI)
+  }
+
+  test("queryParamsAsMap preserves None values") {
+    val httpUri = HttpUri(
+      origin = None,
+      path = IndexedSeq("foo"),
+      queryParams = IndexedSeq(
+        "a" -> None,
+        "b" -> Some(""),
+        "c" -> Some("value")
+      ),
+      pathParams = Option.empty
+    )
+    assertEquals(
+      httpUri.queryParamsAsMap,
+      Map("a" -> Seq(None), "b" -> Seq(Some("")), "c" -> Seq(Some("value")))
+    )
+  }
+
+  test("Distinguish between empty value and valueless params") {
+    val uriEmpty = URI.create("http://example.com/foo?param=")
+    val uriValueless = URI.create("http://example.com/foo?param")
+
+    val httpUriEmpty = HttpUri.fromURI(uriEmpty)
+    val httpUriValueless = HttpUri.fromURI(uriValueless)
+
+    assertEquals(httpUriEmpty.queryParams, IndexedSeq("param" -> Some("")))
+    assertEquals(httpUriValueless.queryParams, IndexedSeq("param" -> None))
+  }
+
+  test("Multiple valueless query parameters") {
+    val uri = URI.create("http://example.com/foo?flag1&flag2&key=value")
+    val httpUri = HttpUri.fromURI(uri)
+    assertEquals(
+      httpUri.queryParams,
+      IndexedSeq(
+        "flag1" -> None,
+        "flag2" -> None,
+        "key" -> Some("value")
+      )
+    )
+  }
+
 }

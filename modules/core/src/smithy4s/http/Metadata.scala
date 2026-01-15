@@ -135,22 +135,33 @@ case class Metadata(
     )
   }
 
+  /**
+   * Finds metadata values for a given HTTP binding location.
+   *
+   * Returns BindingValues if the binding exists:
+   * - For query parameters: head can be None (valueless param like ?foo) or Some(value) (like ?foo=bar)
+   * - For headers: head is always Some(value) since headers cannot be valueless
+   * - For path parameters: returns a single value with empty tail list
+   *
+   * @param location The HTTP binding location to look up (header, query, or path)
+   * @return None if binding not found, otherwise Some(BindingValues)
+   */
   def find(
       location: HttpBinding
-  ): Option[(Option[String], List[Option[String]])] =
+  ): Option[Metadata.BindingValues] =
     location match {
       case HttpBinding.HeaderBinding(httpName) =>
         headers.get(httpName).flatMap {
-          case head :: tl => Some((Some(head), tl.map(Some(_))))
+          case head :: tl => Some(Metadata.BindingValues(Some(head), tl.map(Some(_))))
           case Nil        => None
         }
       case HttpBinding.QueryBinding(httpName) =>
         query.get(httpName).flatMap {
-          case head :: tl => Some((head, tl))
+          case head :: tl => Some(Metadata.BindingValues(head, tl))
           case Nil        => None
         }
       case HttpBinding.PathBinding(httpName) =>
-        path.get(httpName).map(v => Some(v) -> Nil)
+        path.get(httpName).map(v => Metadata.BindingValues(Some(v), Nil))
       case _ => None
     }
 }
@@ -161,6 +172,20 @@ object Metadata {
     i.foldLeft(empty)((acc, a) => acc ++ f(a))
 
   val empty = Metadata(Map.empty, Map.empty, Map.empty)
+
+  /**
+   * Represents values found for a specific HTTP binding location.
+   *
+   * @param head The first value. Can be None for valueless query parameters (e.g., ?foo),
+   *             or Some(value) for parameters with values (e.g., ?foo=bar).
+   *             Always Some for headers and path parameters.
+   * @param tail Additional values for multi-valued parameters. Each value is wrapped in Option
+   *             to support valueless query parameters in lists.
+   */
+  final case class BindingValues(
+      head: Option[String],
+      tail: List[Option[String]]
+  )
 
   trait Access {
     def metadata: Metadata

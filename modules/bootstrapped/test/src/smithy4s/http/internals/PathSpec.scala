@@ -102,6 +102,35 @@ class PathSpec() extends munit.FunSuite {
     )
   }
 
+  test("parse static query params with valueless parameters") {
+    import smithy4s.http.internals.staticQueryParams
+    val params = staticQueryParams("/path?foo&bar&baz=value")
+    val expected =
+      Map("foo" -> Seq(None), "bar" -> Seq(None), "baz" -> Seq(Some("value")))
+    expect(params == expected)
+  }
+
+  test("distinguish between empty value and valueless in static query params") {
+    import smithy4s.http.internals.staticQueryParams
+    val paramsEmpty = staticQueryParams("/path?foo=")
+    val paramsValueless = staticQueryParams("/path?foo")
+
+    expect(paramsEmpty == Map("foo" -> Seq(Some(""))))
+    expect(paramsValueless == Map("foo" -> Seq(None)))
+  }
+
+  test("parse static query params with mixed valueless and valued params") {
+    import smithy4s.http.internals.staticQueryParams
+    val params = staticQueryParams("/path?flag1&key1=a&flag2&key2=b")
+    val expected = Map(
+      "flag1" -> Seq(None),
+      "key1" -> Seq(Some("a")),
+      "flag2" -> Seq(None),
+      "key2" -> Seq(Some("b"))
+    )
+    expect(params == expected)
+  }
+
   test("Write PathParams for DummyPath") {
     val result = HttpEndpoint
       .cast(

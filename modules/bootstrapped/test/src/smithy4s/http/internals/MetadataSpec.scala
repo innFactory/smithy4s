@@ -142,6 +142,26 @@ class MetadataSpec() extends FunSuite {
     checkQueryRoundTrip(queries, expected, finished)
   }
 
+  test("Valueless query parameter decodes as empty string for required field") {
+    val metadata = Metadata(query = Map("str" -> Seq(None)))
+    val decoded = Metadata.Decoder[Queries].decode(metadata)
+    expect(decoded.isRight)
+    expect(decoded.map(_.str) == Right(Some("")))
+  }
+
+  test("Empty value query parameter decodes as empty string") {
+    val metadata = Metadata(query = Map("str" -> Seq(Some(""))))
+    val decoded = Metadata.Decoder[Queries].decode(metadata)
+    expect(decoded.isRight)
+    expect(decoded.map(_.str) == Right(Some("")))
+  }
+
+  test("Distinguish valueless and empty value in Metadata representation") {
+    val metadataValueless = Metadata(query = Map("param" -> Seq(None)))
+    val metadataEmpty = Metadata(query = Map("param" -> Seq(Some(""))))
+    expect(metadataValueless != metadataEmpty)
+  }
+
   // In this test the Metadata Decoder will allow NaN by creating a `Double.NaN` value.
   // The Range RefinementProvider will reject this since `NaN` is not a valid `BigDecimal`
   // which it uses
