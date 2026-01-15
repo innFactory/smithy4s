@@ -79,9 +79,9 @@ case class Metadata(
     addQueryParamOpt(key, Some(value))
 
   def addQueryParamsIfNoExist(key: String, values: String*): Metadata =
-    addQueryParamsIfNotExist(key, values.map(Some(_)): _*)
+    addQueryParamsIfNotExistOpt(key, values.map(Some(_)): _*)
 
-  def addQueryParamsIfNotExist(key: String, values: Option[String]*): Metadata =
+  def addQueryParamsIfNotExistOpt(key: String, values: Option[String]*): Metadata =
     query.get(key) match {
       case Some(_) => self
       case None    => copy(query = query + (key -> values.toList))
