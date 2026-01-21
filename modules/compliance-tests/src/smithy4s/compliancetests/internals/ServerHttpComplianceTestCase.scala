@@ -73,8 +73,8 @@ private[compliancetests] class ServerHttpComplianceTestCase[
       .withPath(
         Uri.Path.unsafeFromString(testCase.uri).addEndsWithSlash
       )
-      .withMultiValueQueryParams(
-        parseQueryParams(testCase.queryParams)
+      .copy(
+        query = Query.fromVector(parseQueryParams(testCase.queryParams))
       )
 
     val body =

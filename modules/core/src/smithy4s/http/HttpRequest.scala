@@ -33,7 +33,7 @@ final case class HttpRequest[+A](
 
   def toMetadata: Metadata = Metadata(
     path = uri.pathParams.getOrElse(Map.empty),
-    query = uri.queryParams,
+    query = uri.queryParamsAsMap,
     headers = headers
   )
 
@@ -87,7 +87,7 @@ object HttpRequest {
         val path =
           if (smithyPathEncoding) httpEndpoint.encodedPath(input)
           else httpEndpoint.path(input)
-        val staticQueries = httpEndpoint.staticQueryParams
+        val staticQueries = mapToIndexedSeq(httpEndpoint.staticQueryParams)
         val oldUri = request.uri
         val newUri = oldUri
           .withQueryParams(staticQueries)
@@ -103,7 +103,9 @@ object HttpRequest {
       (req: HttpRequest[Body], meta: Metadata) =>
         val oldUri = req.uri
         val newUri =
-          oldUri.transformQueryParams(_ ++ meta.query)
+          oldUri.transformQueryParams(
+            _ ++ mapToIndexedSeq(meta.query)
+          )
         req.addHeaders(meta.headers).copy(uri = newUri)
     }
 
@@ -176,4 +178,6 @@ object HttpRequest {
       : PolyFunction[GenericDecoder[F, Body, *], Decoder[F, Body, *]] =
     GenericDecoder.in[F].composeK(_.body)
 
+  private def mapToIndexedSeq[A, B](m: Map[A, Seq[B]]): IndexedSeq[(A, B)] =
+    m.toIndexedSeq.flatMap { case (k, v) => v.map(k -> _) }
 }
