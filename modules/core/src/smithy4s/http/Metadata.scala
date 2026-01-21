@@ -187,8 +187,8 @@ object Metadata {
    *             to support valueless query parameters in lists.
    */
   final class BindingValues(
-      head: Option[String],
-      tail: List[Option[String]]
+      val head: Option[String],
+      val tail: List[Option[String]]
   )
 
   object BindingValues {
@@ -196,6 +196,11 @@ object Metadata {
         head: Option[String],
         tail: List[Option[String]]
     ): BindingValues = new BindingValues(head, tail)
+
+    def unapply(
+        bv: BindingValues
+    ): Option[(Option[String], List[Option[String]])] =
+      Some((bv.head, bv.tail))
   }
 
   trait Access {
