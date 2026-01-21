@@ -186,10 +186,17 @@ object Metadata {
    * @param tail Additional values for multi-valued parameters. Each value is wrapped in Option
    *             to support valueless query parameters in lists.
    */
-  final case class BindingValues(
+  final class BindingValues(
       head: Option[String],
       tail: List[Option[String]]
   )
+
+  object BindingValues {
+    def apply(
+        head: Option[String],
+        tail: List[Option[String]]
+    ): BindingValues = new BindingValues(head, tail)
+  }
 
   trait Access {
     def metadata: Metadata
