@@ -10,6 +10,7 @@ object Dependencies {
 
   val Jsoniter = new {
     val org = "com.github.plokhotnyuk.jsoniter-scala"
+    // must keep 2.30.2 until upgrade to scala native 0.5
     val jsoniterScalaVersion = "2.30.2"
     val core = Def.setting(org %%% "jsoniter-scala-core" % jsoniterScalaVersion)
     val macros = Def.setting(
@@ -19,7 +20,7 @@ object Dependencies {
 
   val Smithy = new {
     val org = "software.amazon.smithy"
-    val smithyVersion = "1.57.1"
+    val smithyVersion = "1.63.0"
     val model = org % "smithy-model" % smithyVersion
     val testTraits = org % "smithy-protocol-test-traits" % smithyVersion
     val build = org % "smithy-build" % smithyVersion
@@ -31,7 +32,7 @@ object Dependencies {
 
   val Alloy = new {
     val org = "com.disneystreaming.alloy"
-    val alloyVersion = "0.3.33"
+    val alloyVersion = "0.3.35"
     val core = org % "alloy-core" % alloyVersion
     val openapi = org %% "alloy-openapi" % alloyVersion
     val protobuf = org % "alloy-protobuf" % alloyVersion
@@ -40,12 +41,13 @@ object Dependencies {
 
   val Smithytranslate = new {
     val org = "com.disneystreaming.smithy"
-    val smithyTranslateVersion = "0.5.10"
+    val smithyTranslateVersion = "0.7.5"
     val proto = org %% "smithytranslate-proto" % smithyTranslateVersion
   }
 
   val Cats = new {
     val core: Def.Initialize[ModuleID] =
+      // must remain on 2.11 until we update scala-native version
       Def.setting("org.typelevel" %%% "cats-core" % "2.11.0")
   }
 
@@ -55,6 +57,7 @@ object Dependencies {
   }
 
   object Circe {
+    // we have to stay on 0.14.8 until we move to scala-native 0.5.x
     val circeVersion = "0.14.8"
     val core = Def.setting("io.circe" %%% "circe-core" % circeVersion)
     val parser = Def.setting("io.circe" %%% "circe-parser" % circeVersion)
@@ -62,6 +65,7 @@ object Dependencies {
   }
 
   object Decline {
+    // must be kept at 2.4.1 until upgrade to scala-native 0.5
     val declineVersion = "2.4.1"
 
     val core = Def.setting("com.monovore" %%% "decline" % declineVersion)
@@ -69,7 +73,7 @@ object Dependencies {
       Def.setting("com.monovore" %%% "decline-effect" % declineVersion)
   }
   object Fs2 {
-    val fs2Version = "3.12.0"
+    val fs2Version = "3.12.2"
 
     val core: Def.Initialize[ModuleID] =
       Def.setting("co.fs2" %%% "fs2-core" % fs2Version)
@@ -104,7 +108,7 @@ object Dependencies {
     Def.setting("org.typelevel" %%% "cats-effect" % "3.6.0")
 
   object Http4s {
-    val http4sVersion = "0.23.30"
+    val http4sVersion = "0.23.33"
 
     val emberServer: Def.Initialize[ModuleID] =
       Def.setting("org.http4s" %%% "http4s-ember-server" % http4sVersion)
