@@ -20,8 +20,8 @@ object OneTwo extends Enumeration[OneTwo] with ShapeTag.Companion[OneTwo] {
   val id: ShapeId = ShapeId("smithy4s.example", "oneTwo")
 
   val hints: Hints = Hints(
-    smithy.api.Trait(selector = None, structurallyExclusive = None, conflicts = None, breakingChanges = None),
-  ).lazily
+    Hints.dynamic(ShapeId("smithy.api", "trait"), smithy4s.Document.obj()),
+  )
 
   case object ONE extends OneTwo("ONE", "ONE", 1, Hints.empty)
   case object TWO extends OneTwo("TWO", "TWO", 2, Hints.empty)

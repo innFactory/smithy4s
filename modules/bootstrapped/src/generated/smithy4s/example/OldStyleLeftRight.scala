@@ -20,8 +20,8 @@ object OldStyleLeftRight extends Enumeration[OldStyleLeftRight] with ShapeTag.Co
   val id: ShapeId = ShapeId("smithy4s.example", "oldStyleLeftRight")
 
   val hints: Hints = Hints(
-    smithy.api.Trait(selector = None, structurallyExclusive = None, conflicts = None, breakingChanges = None),
-  ).lazily
+    Hints.dynamic(ShapeId("smithy.api", "trait"), smithy4s.Document.obj()),
+  )
 
   case object LEFT extends OldStyleLeftRight("LEFT", "left", 0, Hints.empty)
   case object RIGHT extends OldStyleLeftRight("RIGHT", "right", 1, Hints.empty)

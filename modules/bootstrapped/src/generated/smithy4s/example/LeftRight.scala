@@ -20,8 +20,8 @@ object LeftRight extends Enumeration[LeftRight] with ShapeTag.Companion[LeftRigh
   val id: ShapeId = ShapeId("smithy4s.example", "leftRight")
 
   val hints: Hints = Hints(
-    smithy.api.Trait(selector = None, structurallyExclusive = None, conflicts = None, breakingChanges = None),
-  ).lazily
+    Hints.dynamic(ShapeId("smithy.api", "trait"), smithy4s.Document.obj()),
+  )
 
   case object LEFT extends LeftRight("LEFT", "left", 0, Hints.empty)
   case object RIGHT extends LeftRight("RIGHT", "right", 1, Hints.empty)
