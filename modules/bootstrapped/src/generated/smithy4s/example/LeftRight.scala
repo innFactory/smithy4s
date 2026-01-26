@@ -19,7 +19,9 @@ sealed abstract class LeftRight(_name: String, _stringValue: String, _intValue: 
 object LeftRight extends Enumeration[LeftRight] with ShapeTag.Companion[LeftRight] {
   val id: ShapeId = ShapeId("smithy4s.example", "leftRight")
 
-  val hints: Hints = Hints.empty
+  val hints: Hints = Hints(
+    Hints.dynamic(ShapeId("smithy.api", "trait"), smithy4s.Document.obj()),
+  )
 
   case object LEFT extends LeftRight("LEFT", "left", 0, Hints.empty)
   case object RIGHT extends LeftRight("RIGHT", "right", 1, Hints.empty)

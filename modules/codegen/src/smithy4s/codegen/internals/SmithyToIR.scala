@@ -472,9 +472,10 @@ private[codegen] class SmithyToIR(
       override def serviceShape(shape: ServiceShape): Option[Decl] = {
         val generalErrors: List[Type] =
           shape
-            .getErrors()
+            .getErrorsSet()
             .asScala
             .toList
+            .sortBy(_.toShapeId)
             .map(_.tpe)
             .collect { case Some(tpe) => tpe }
 
@@ -511,10 +512,11 @@ private[codegen] class SmithyToIR(
 
             val errorTypes = {
               generalErrors ++ op
-                .getErrors()
+                .getErrorsSet()
                 .asScala
-                .flatMap(_.tpe)
                 .toList
+                .sortBy(_.toShapeId)
+                .flatMap(_.tpe)
             }.distinct
 
             val outputType =

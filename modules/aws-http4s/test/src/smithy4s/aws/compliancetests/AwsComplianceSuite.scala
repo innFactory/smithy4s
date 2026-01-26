@@ -97,7 +97,9 @@ object AwsComplianceSuite extends ProtocolComplianceSuite {
 
   private val modelDump = fileFromEnv("MODEL_DUMP")
 
-  val jsonDecoders = smithy4s.json.Json.payloadCodecs.decoders
+  val jsonDecoders = smithy4s.json.Json.payloadCodecs
+    .configureJsoniterCodecCompiler(_.withMaxArity(Int.MaxValue))
+    .decoders
 
   override def dynamicSchemaIndexLoader: IO[DynamicSchemaIndex] = {
     for {
