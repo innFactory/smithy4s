@@ -24,12 +24,13 @@ import mmill.define.ExternalModule
 import mmill.define.Target
 import mmill.eval.Evaluator
 import smithy4s.codegen.SmithyBuildJson
+import smithy4s.codegen.mill.LSPCompat
 import smithy4s.codegen.mill.Smithy4sModule
 
 import scala.annotation.nowarn
 import scala.collection.immutable.ListSet
 
-object LSP extends ExternalModule {
+object LSP extends ExternalModule with LSPCompat {
   lazy val millDiscover = mmill.define.Discover[this.type]
 
   @nowarn("cat=deprecation")
