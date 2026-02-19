@@ -185,7 +185,7 @@ private[codegen] class SmithyToIR(
 
         shape.tpe.flatMap {
           case Type.Alias(_, name, tpe: Type.ExternalType, isUnwrapped) =>
-            val newHints = hints.filterNot(_ sameNativeTrait tpe.refinementHint)
+            val newHints = hints.filterNot(_.sameNativeTrait(tpe.refinementHint))
             TypeAlias(
               shape.getId(),
               name,
@@ -713,7 +713,7 @@ private[codegen] class SmithyToIR(
         val h = hints(shape)
         tpe match {
           case e: Type.ExternalType =>
-            h.filterNot(_ sameNativeTrait e.refinementHint)
+            h.filterNot(_.sameNativeTrait( e.refinementHint))
           case _ => h
         }
       }
@@ -894,7 +894,7 @@ private[codegen] class SmithyToIR(
       def memberShape(x: MemberShape): Option[Type] =
         model.getShape(x.getTarget()).asScala.flatMap { shape =>
           val builder = (Shape.shapeToBuilder(shape: Shape): Any)
-            .asInstanceOf[AbstractShapeBuilder[_, _]]
+            .asInstanceOf[AbstractShapeBuilder[?, ?]]
 
           builder
             .addTraits(x.getAllTraits().asScala.map(_._2).asJavaCollection)
@@ -1210,7 +1210,7 @@ private[codegen] class SmithyToIR(
         .zipWithIndex
         .collect {
           case ((name, Some(tpe: Type.ExternalType), modifier, hints), index) =>
-            val newHints = hints.filterNot(_ sameNativeTrait tpe.refinementHint)
+            val newHints = hints.filterNot(_.sameNativeTrait(tpe.refinementHint))
             Field(name, tpe, modifier, index, newHints)
           case ((name, Some(tpe), modifier, hints), index) =>
             Field(name, tpe, modifier, index, hints)
@@ -1251,7 +1251,7 @@ private[codegen] class SmithyToIR(
             Alt(
               name,
               UnionMember.TypeCase(tpe),
-              h.filterNot(_ sameNativeTrait tpe.refinementHint)
+              h.filterNot(_.sameNativeTrait(tpe.refinementHint))
             )
           case (name, Some(Right(tpe)), h) =>
             Alt(name, UnionMember.TypeCase(tpe), h)

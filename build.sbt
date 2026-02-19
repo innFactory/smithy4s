@@ -388,7 +388,10 @@ lazy val codegen = projectMatrix
   .in(file("modules/codegen"))
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(protocol)
-  .jvmPlatform(buildtimejvmScala2Versions :+ Scala3 :+ MillScala3, jvmDimSettings)
+  .jvmPlatform(
+    buildtimejvmScala2Versions :+ MillScala3,
+    jvmDimSettings
+  )
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](
       version,
@@ -428,7 +431,10 @@ lazy val codegen = projectMatrix
     excludeDependencies ++= {
       if (scalaVersion.value.startsWith("3."))
         Seq(
-          ExclusionRule("org.scala-lang.modules", "scala-collection-compat_2.13")
+          ExclusionRule(
+            "org.scala-lang.modules",
+            "scala-collection-compat_2.13"
+          )
         )
       else Seq.empty
     },
@@ -438,7 +444,9 @@ lazy val codegen = projectMatrix
       if (scalaVersion.value.startsWith("3."))
         Seq(
           "-Wconf:msg=class EnumTrait in package:silent",
-          "-Wconf:msg=class SetShape in package:silent"
+          "-Wconf:msg=class SetShape in package:silent",
+          // Scala 2.12 does not support the Scala 3 varargs syntax
+          "-Wconf:msg=is no longer supported for vararg splices:silent"
         )
       else Seq.empty
     },
@@ -560,7 +568,6 @@ lazy val millCodegenPlugin = projectMatrix
         (core.jvm(Scala3) / publishLocal).value,
         (dynamic.jvm(Scala213) / publishLocal).value,
         (codegen.jvm(Scala213) / publishLocal).value,
-        (codegen.jvm(Scala3) / publishLocal).value,
         (codegen.jvm(MillScala3) / publishLocal).value,
 
         // for mill
