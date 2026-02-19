@@ -45,7 +45,7 @@ private[codegen] object SmithyBuild {
   implicit def optionalSetDecoder[T](implicit
       base: Decoder[T]
   ): Decoder[Set[T]] =
-    Decoder.decodeOption(using Decoder.decodeSet[T](using base)).map(_.getOrElse(Set.empty))
+    Decoder.decodeOption(Decoder.decodeSet[T]).map(_.getOrElse(Set.empty))
 
   implicit val pathDecoder: Decoder[os.FilePath] =
     Decoder.decodeString.emapTry { raw =>
@@ -53,15 +53,15 @@ private[codegen] object SmithyBuild {
     }
 
   implicit val pluginDecoder: Decoder[Set[SmithyBuildPlugin]] = Decoder
-    .decodeOption( using {(c: HCursor) =>
+    .decodeOption { (c: HCursor) =>
       c.keys match {
         case None => DecodingFailure("Expected JSON object", c.history).asLeft
         case Some(keys) =>
           keys.toList
-            .traverse(key => c.get(key)(using SmithyBuildPlugin.decode(key)))
+            .traverse(key => c.get(key)(SmithyBuildPlugin.decode(key)))
             .map(_.toSet)
       }
-    })
+    }
     .map(_.getOrElse(Set.empty))
 
   /* Class containing only the subset of the smithy-build.json properties that need

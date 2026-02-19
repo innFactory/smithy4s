@@ -59,7 +59,7 @@ object LSP extends ExternalModule with LSPCompat {
     val depsTask = Task
       .traverse(effectiveModules)(_.smithy4sAllDeps)
       .map(_.flatten.flatMap(Smithy4sModule.depIdEncode(_)))
-      .map(s => ListSet(s *))
+      .map(s => ListSet(s*))
 
     val reposTask = Task
       .traverse(effectiveModules)(_.repositoriesTask)
@@ -69,7 +69,7 @@ object LSP extends ExternalModule with LSPCompat {
             r.root
         }
       }
-      .map(s => ListSet(s *))
+      .map(s => ListSet(s*))
 
     val importsTask = Task
       .traverse(effectiveModules)(_.smithy4sInputDirs)
@@ -78,7 +78,7 @@ object LSP extends ExternalModule with LSPCompat {
           .map(p => p.path.relativeTo(rootPath))
           .map(rp => "./" + rp.toString)
       )
-      .map(s => ListSet(s *))
+      .map(s => ListSet(s*))
 
     Task.Command {
       val json = SmithyBuildJson.toJson(importsTask(), depsTask(), reposTask())

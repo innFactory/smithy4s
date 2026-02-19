@@ -38,6 +38,7 @@ trait CustomRow { self =>
 
 sealed trait MillPlatformConfig {
   def scalaVersion: String
+  def depScalaVersion: String
   def millDeps(mv: String): Seq[ModuleID]
   def includesSharedSources: Boolean
   def extraSettings: Seq[Setting[_]]
@@ -46,6 +47,7 @@ sealed trait MillPlatformConfig {
 object MillPlatformConfig {
   case object Legacy extends MillPlatformConfig {
     def scalaVersion = Smithy4sBuildPlugin.Scala213
+    def depScalaVersion = Smithy4sBuildPlugin.Scala213
     def millDeps(mv: String) = Seq(
       Dependencies.Mill.main(mv),
       Dependencies.Mill.mainApi(mv),
@@ -58,6 +60,7 @@ object MillPlatformConfig {
 
   case object Mill1x extends MillPlatformConfig {
     def scalaVersion = Smithy4sBuildPlugin.MillScala3
+    def depScalaVersion = Smithy4sBuildPlugin.Scala3
     def millDeps(mv: String) = Seq(
       Dependencies.Mill.libs(mv),
       Dependencies.Mill.mainTestkit(mv)
@@ -83,6 +86,7 @@ case class MillCustomRow(mv: String) extends CustomRow {
   private val config = MillPlatformConfig(mv)
 
   val scalaVersion: String = config.scalaVersion
+  val depScalaVersion: String = config.depScalaVersion
 
   def axisValues: List[VirtualAxis] =
     List(MillAxis(mv), VirtualAxis.jvm)
@@ -174,7 +178,8 @@ object Smithy4sBuildPlugin extends AutoPlugin {
 
     def millPlatforms(
         scalaVersion: String,
-        millVersions: Seq[String]
+        millVersions: Seq[String],
+        deps: ProjectMatrix*
     ): ProjectMatrix = {
       millVersions
         .map { mv =>
@@ -185,7 +190,13 @@ object Smithy4sBuildPlugin extends AutoPlugin {
             .jvmPlatform(
               scalaVersions = List(row.scalaVersion),
               axisValues = row.axisValues,
-              configure = row.process
+              configure = p => {
+                val configured = row.process(p)
+                val resolvedDeps = deps.map(d =>
+                  d.jvm(row.depScalaVersion): ClasspathDep[ProjectReference]
+                )
+                configured.dependsOn(resolvedDeps: _*)
+              }
             )
         }
         .defaultAxes(

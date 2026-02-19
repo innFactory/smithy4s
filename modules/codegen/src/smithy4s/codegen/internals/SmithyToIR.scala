@@ -185,7 +185,8 @@ private[codegen] class SmithyToIR(
 
         shape.tpe.flatMap {
           case Type.Alias(_, name, tpe: Type.ExternalType, isUnwrapped) =>
-            val newHints = hints.filterNot(_.sameNativeTrait(tpe.refinementHint))
+            val newHints =
+              hints.filterNot(_.sameNativeTrait(tpe.refinementHint))
             TypeAlias(
               shape.getId(),
               name,
@@ -713,7 +714,7 @@ private[codegen] class SmithyToIR(
         val h = hints(shape)
         tpe match {
           case e: Type.ExternalType =>
-            h.filterNot(_.sameNativeTrait( e.refinementHint))
+            h.filterNot(_.sameNativeTrait(e.refinementHint))
           case _ => h
         }
       }
@@ -1210,7 +1211,8 @@ private[codegen] class SmithyToIR(
         .zipWithIndex
         .collect {
           case ((name, Some(tpe: Type.ExternalType), modifier, hints), index) =>
-            val newHints = hints.filterNot(_.sameNativeTrait(tpe.refinementHint))
+            val newHints =
+              hints.filterNot(_.sameNativeTrait(tpe.refinementHint))
             Field(name, tpe, modifier, index, newHints)
           case ((name, Some(tpe), modifier, hints), index) =>
             Field(name, tpe, modifier, index, hints)
