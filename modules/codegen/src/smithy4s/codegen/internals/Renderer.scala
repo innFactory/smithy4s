@@ -1880,14 +1880,10 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       none.toLine.write
   }
 
-  // Scala 3 doesn't refine T through the Aux type alias in GADT-like pattern matches,
-  // so the match result type is the LUB of all branches rather than the expected refined type.
-  // This method encapsulates the necessary cast.
-  private def auxCast[R](matchResult: Any): R = matchResult.asInstanceOf[R]
-
   private def renderPrimitive[T](prim: Primitive.Aux[T]): T => Line =
     // NOTE: this match doesn't have exhaustivity checking on Scala 2! (due to the Aux pattern's weird interaction with GADTs)
-    auxCast[T => Line](prim match {
+    // The asInstanceOf is needed for Scala 3 compatibility since it doesn't refine T through the Aux type alias.
+    (prim match {
       case Primitive.BigDecimal =>
         (bd: BigDecimal) => line"scala.math.BigDecimal($bd)"
       case Primitive.BigInteger => (bi: BigInt) => line"scala.math.BigInt($bi)"
@@ -1921,7 +1917,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         (duration: java.time.Duration) => line"$duration_(${renderStringLiteral(duration.toString)})"
       case Primitive.Document => (node: Node) => renderNodeToLine(node)
       case Primitive.Nothing  => (_: Any) => sys.error("unreachable") // this case can't happen
-    })
+    }).asInstanceOf[T => Line]
 
   private def renderNodeToLine(node: Node): Line = {
     node.accept(new NodeVisitor[Line] {
