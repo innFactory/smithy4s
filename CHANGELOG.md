@@ -7,6 +7,14 @@ Thank you!
 
 # 0.19.0
 
+## Add Mill 1.x support
+
+The Mill codegen plugin now supports Mill 1.x (tested with 1.1.2), in addition to the existing Mill 0.11.x and 0.12.x support.
+
+## Cross-compile codegen module against Scala 3
+
+The codegen module is now cross-compiled against Scala 3 (3.3.x LTS), in addition to Scala 2.12 and 2.13.
+
 ## Move `transform` from algebra traits into extension methods
 
 The `transform` method that used to be generated as a `final def` in the service algebras, is now available as an extension method. For Scala 2.12 compatibility, we generate an additional variant for `F[_]`-shaped instances and `F[_, _]`-shaped instances, in addition to the default one with `F[_, _, _, _, _]`. [#1735](https://github.com/disneystreaming/smithy4s/pull/1735/)
