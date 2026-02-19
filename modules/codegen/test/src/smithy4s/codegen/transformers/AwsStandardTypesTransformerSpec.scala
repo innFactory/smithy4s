@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2025 Disney Streaming
+ *  Copyright 2021-2026 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -218,7 +218,7 @@ final class AwsStandardTypesTransformerSpec extends munit.FunSuite {
         |  private def make(i: Int): TestStructure = TestStructure(i)
         |
         |  implicit val schema: Schema[TestStructure] = struct(
-        |    int.field[TestStructure]("i", _.i).addHints(smithy.api.Default(smithy4s.Document.fromDouble(5.0d))),
+        |    int.field[TestStructure]("i", _.i).addHints(smithy.api.Default(smithy4s.Document.fromLong(5))),
         |  )(make).withId(id).addHints(hints)
         |}""".stripMargin
     )

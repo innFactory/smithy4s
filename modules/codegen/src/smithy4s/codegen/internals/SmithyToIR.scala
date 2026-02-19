@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2025 Disney Streaming
+ *  Copyright 2021-2026 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -462,9 +462,10 @@ private[codegen] class SmithyToIR(
       override def serviceShape(shape: ServiceShape): Option[Decl] = {
         val generalErrors: List[Type] =
           shape
-            .getErrors()
+            .getErrorsSet()
             .asScala
             .toList
+            .sortBy(_.toShapeId)
             .map(_.tpe)
             .collect { case Some(tpe) => tpe }
 
@@ -501,10 +502,11 @@ private[codegen] class SmithyToIR(
 
             val errorTypes = {
               generalErrors ++ op
-                .getErrors()
+                .getErrorsSet()
                 .asScala
-                .flatMap(_.tpe)
                 .toList
+                .sortBy(_.toShapeId)
+                .flatMap(_.tpe)
             }.distinct
 
             val outputType =

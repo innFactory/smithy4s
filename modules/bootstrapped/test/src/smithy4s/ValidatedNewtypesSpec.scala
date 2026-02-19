@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2025 Disney Streaming
+ *  Copyright 2021-2026 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -52,6 +52,32 @@ class ValidatedNewtypesSpec() extends munit.FunSuite {
       e.getMessage(),
       "String '!^%&' does not match pattern '[a-zA-Z0-9]+'"
     )
+  }
+
+  test("should allow to derive typeclasses in a generic way") {
+    trait MyCodec[A] {
+      def decode(str: String): Either[String, A]
+      def encode(a: A): String
+    }
+
+    object MyCodec {
+      implicit val stringCodec: MyCodec[String] = new MyCodec[String] {
+        def decode(str: String): Either[String, String] = Right(str)
+        def encode(a: String): String = a
+      }
+    }
+
+    def genericCodec[A, B: MyCodec](s: Surjection[B, A]) = new MyCodec[A] {
+      def decode(str: String): Either[String, A] =
+        implicitly[MyCodec[B]].decode(str).flatMap(s.to)
+      def encode(a: A): String = implicitly[MyCodec[B]].encode(s.from(a))
+    }
+
+    val accountIdCodec =
+      genericCodec[AccountId, String](implicitly[Surjection[String, AccountId]])
+
+    expect.same(accountIdCodec.encode(AccountId.unsafeApply(id1)), id1)
+    expect.same(accountIdCodec.decode(id1), Right(AccountId.unsafeApply(id1)))
   }
 
   type DeviceId = DeviceId.Type

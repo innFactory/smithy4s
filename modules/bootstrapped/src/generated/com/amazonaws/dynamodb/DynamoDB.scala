@@ -60,7 +60,7 @@ object DynamoDBGen extends Service.Mixin[DynamoDBGen, DynamoDBOperation] {
 
   val hints: Hints = Hints(
     aws.api.ClientEndpointDiscovery(operation = smithy4s.ShapeId(namespace = "com.amazonaws.dynamodb", name = "DescribeEndpoints"), error = Some(smithy4s.ShapeId(namespace = "com.amazonaws.dynamodb", name = "InvalidEndpointException"))),
-    aws.api.Service(sdkId = "DynamoDB", arnNamespace = Some(aws.api.ArnNamespace("dynamodb")), cloudFormationName = Some(aws.api.CloudFormationName("DynamoDB")), cloudTrailEventSource = Some("dynamodb.amazonaws.com"), docId = None, endpointPrefix = Some("dynamodb")),
+    aws.api.Service(sdkId = "DynamoDB", arnNamespace = Some(aws.api.ArnNamespace("dynamodb")), cloudFormationName = Some(aws.api.CloudFormationName("DynamoDB")), cloudTrailEventSource = Some("dynamodb.amazonaws.com"), docId = None, endpointPrefix = Some("dynamodb"), cloudWatchNamespace = None),
     aws.auth.Sigv4(name = "dynamodb"),
     aws.protocols.AwsJson1_0(http = None, eventStreamHttp = None),
     smithy.api.Documentation("<fullname>Amazon DynamoDB</fullname>\n\n\n         <p>Amazon DynamoDB is a fully managed NoSQL database service that provides fast and\n      predictable performance with seamless scalability. DynamoDB lets you offload the\n      administrative burdens of operating and scaling a distributed database, so that you don\'t have\n      to worry about hardware provisioning, setup and configuration, replication, software patching,\n      or cluster scaling.</p>\n\n         <p>With DynamoDB, you can create database tables that can store and retrieve any amount of\n      data, and serve any level of request traffic. You can scale up or scale down your tables\'\n      throughput capacity without downtime or performance degradation, and use the AWS Management\n      Console to monitor resource utilization and performance metrics.</p>\n\n         <p>DynamoDB automatically spreads the data and traffic for your tables over a sufficient\n      number of servers to handle your throughput and storage requirements, while maintaining\n      consistent and fast performance. All of your data is stored on solid state disks (SSDs) and\n      automatically replicated across multiple Availability Zones in an AWS region, providing\n      built-in high availability and data durability. </p>"),
@@ -108,8 +108,8 @@ object DynamoDBOperation {
     def describeEndpoints(): DescribeEndpoints = DescribeEndpoints(DescribeEndpointsRequest())
   }
   class Transformed[P[_, _, _, _, _], P1[_ ,_ ,_ ,_ ,_]](alg: DynamoDBGen[P], f: PolyFunction5[P, P1]) extends DynamoDBGen[P1] {
-    def listTables(exclusiveStartTableName: Option[TableName] = None, limit: Option[ListTablesInputLimit] = None): P1[ListTablesInput, DynamoDBOperation.ListTablesError, ListTablesOutput, Nothing, Nothing] = f[ListTablesInput, DynamoDBOperation.ListTablesError, ListTablesOutput, Nothing, Nothing](alg.listTables(exclusiveStartTableName, limit))
-    def describeEndpoints(): P1[DescribeEndpointsRequest, Nothing, DescribeEndpointsResponse, Nothing, Nothing] = f[DescribeEndpointsRequest, Nothing, DescribeEndpointsResponse, Nothing, Nothing](alg.describeEndpoints())
+    def listTables(exclusiveStartTableName: Option[TableName] = None, limit: Option[ListTablesInputLimit] = None): P1[ListTablesInput, DynamoDBOperation.ListTablesError, ListTablesOutput, Nothing, Nothing] = f[ListTablesInput, DynamoDBOperation.ListTablesError, ListTablesOutput, Nothing, Nothing](this.alg.listTables(exclusiveStartTableName, limit))
+    def describeEndpoints(): P1[DescribeEndpointsRequest, Nothing, DescribeEndpointsResponse, Nothing, Nothing] = f[DescribeEndpointsRequest, Nothing, DescribeEndpointsResponse, Nothing, Nothing](this.alg.describeEndpoints())
   }
 
   def toPolyFunction[P[_, _, _, _, _]](impl: DynamoDBGen[P]): PolyFunction5[DynamoDBOperation, P] = new PolyFunction5[DynamoDBOperation, P] {

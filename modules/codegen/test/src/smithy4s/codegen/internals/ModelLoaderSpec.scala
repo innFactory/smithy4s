@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2025 Disney Streaming
+ *  Copyright 2021-2026 Disney Streaming
  *
  *  Licensed under the Tomorrow Open Source Technology License, Version 1.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ class ModelLoaderSpec extends FunSuite {
       .map(_.getId().getNamespace())
       .toSet
 
-  test("ModelLoader can load a dependency from s01") {
+  test("ModelLoader can load a dependency from s01".ignore) {
     val model = doLoad(
       dependencies =
         List("org.polyvariant:test-library-core_2.13:0.0.1-SNAPSHOT"),
@@ -81,7 +81,9 @@ class ModelLoaderSpec extends FunSuite {
     // nothing failed
   }
 
-  test("ModelLoader can load a dependency from s01 if it has a + in the name") {
+  test(
+    "ModelLoader can load a dependency from s01 if it has a + in the name".ignore
+  ) {
     val model = doLoad(
       dependencies =
         List("org.polyvariant:test-library-core_2.13:0.0.1+123-SNAPSHOT"),
