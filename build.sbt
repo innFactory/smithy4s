@@ -423,12 +423,12 @@ lazy val codegen = projectMatrix
         )
       else Seq.empty
     },
-    // For Scala 3, exclude transitive deps from coursier that conflict with Scala 3 cross versions
+    // For Scala 3, exclude transitive Scala 2.13 deps from coursier that conflict with Scala 3 cross versions.
+    // Note: scala-xml_2.13 is NOT excluded because coursier needs it at runtime.
     excludeDependencies ++= {
       if (scalaVersion.value.startsWith("3."))
         Seq(
-          ExclusionRule("org.scala-lang.modules", "scala-collection-compat_2.13"),
-          ExclusionRule("org.scala-lang.modules", "scala-xml_2.13")
+          ExclusionRule("org.scala-lang.modules", "scala-collection-compat_2.13")
         )
       else Seq.empty
     },
