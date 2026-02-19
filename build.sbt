@@ -388,7 +388,7 @@ lazy val codegen = projectMatrix
   .in(file("modules/codegen"))
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(protocol)
-  .jvmPlatform(buildtimejvmScala2Versions, jvmDimSettings)
+  .jvmPlatform(buildtimejvmScala2Versions :+ Scala3 :+ MillScala3, jvmDimSettings)
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](
       version,
@@ -412,13 +412,36 @@ lazy val codegen = projectMatrix
       Dependencies.Circe.core.value,
       Dependencies.Circe.parser.value,
       Dependencies.Circe.generic.value,
-      Dependencies.collectionsCompat.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "io.get-coursier" %% "coursier" % "2.1.24"
+      ("io.get-coursier" %% "coursier" % "2.1.24")
+        .cross(CrossVersion.for3Use2_13)
     ),
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("2."))
+        Seq(
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+          Dependencies.collectionsCompat.value
+        )
+      else Seq.empty
+    },
+    // For Scala 3, exclude transitive deps from coursier that conflict with Scala 3 cross versions
+    excludeDependencies ++= {
+      if (scalaVersion.value.startsWith("3."))
+        Seq(
+          ExclusionRule("org.scala-lang.modules", "scala-collection-compat_2.13"),
+          ExclusionRule("org.scala-lang.modules", "scala-xml_2.13")
+        )
+      else Seq.empty
+    },
     libraryDependencies ++= munitDeps.value,
     scalacOptions := scalacOptions.value
-      .filterNot(Seq("-Ywarn-value-discard", "-Wvalue-discard").contains),
+      .filterNot(Seq("-Ywarn-value-discard", "-Wvalue-discard").contains) ++ {
+      if (scalaVersion.value.startsWith("3."))
+        Seq(
+          "-Wconf:msg=class EnumTrait in package:silent",
+          "-Wconf:msg=class SetShape in package:silent"
+        )
+      else Seq.empty
+    },
     bloopEnabled := true,
     Compile / sourceGenerators += {
       sourceManaged
@@ -537,6 +560,8 @@ lazy val millCodegenPlugin = projectMatrix
         (core.jvm(Scala3) / publishLocal).value,
         (dynamic.jvm(Scala213) / publishLocal).value,
         (codegen.jvm(Scala213) / publishLocal).value,
+        (codegen.jvm(Scala3) / publishLocal).value,
+        (codegen.jvm(MillScala3) / publishLocal).value,
 
         // for mill
         (protocolJvm / publishLocal).value

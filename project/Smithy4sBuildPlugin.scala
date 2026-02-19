@@ -37,6 +37,12 @@ trait CustomRow { self =>
 }
 
 case class MillCustomRow(mv: String) extends CustomRow {
+  private val isMill1x = mv.startsWith("1.")
+
+  val scalaVersion: String =
+    if (isMill1x) Smithy4sBuildPlugin.MillScala3
+    else Smithy4sBuildPlugin.Scala213
+
   def axisValues: List[VirtualAxis] =
     List(MillAxis(mv), VirtualAxis.jvm)
 
@@ -46,23 +52,58 @@ case class MillCustomRow(mv: String) extends CustomRow {
 
     p.settings(
       crossVersion := CrossVersion
-        .binaryWith(s"mill${Smithy4sBuildPlugin.millPlatform(mv)}_", ""),
-      libraryDependencies ++= Seq(
-        Dependencies.Mill.main(mv),
-        Dependencies.Mill.mainApi(mv),
-        Dependencies.Mill.scalalib(mv),
-        Dependencies.Mill.mainTestkit(mv)
-      ),
-      Compile / unmanagedSourceDirectories ++=
-        Seq(
-          (Compile / sourceDirectory).value.getParentFile.getParentFile / s"src-mill-shared",
-          (Compile / sourceDirectory).value.getParentFile.getParentFile / s"src-mill-${suffix}"
-        ),
-      Test / unmanagedSourceDirectories ++=
-        Seq(
-          (Test / sourceDirectory).value.getParentFile.getParentFile / "test" / s"src-mill-shared",
-          (Test / sourceDirectory).value.getParentFile.getParentFile / "test" / s"src-mill-${suffix}"
-        )
+        .binaryWith(s"mill${millVersion}_", ""),
+      libraryDependencies ++= {
+        if (isMill1x)
+          Seq(
+            Dependencies.Mill.libs(mv),
+            Dependencies.Mill.mainTestkit(mv)
+          )
+        else
+          Seq(
+            Dependencies.Mill.main(mv),
+            Dependencies.Mill.mainApi(mv),
+            Dependencies.Mill.scalalib(mv),
+            Dependencies.Mill.mainTestkit(mv)
+          )
+      },
+      // Mill 1.x uses Scala 3 but some transitive deps bring in Scala 2.13 artifacts,
+      // causing cross-version suffix conflicts that are harmless since these are Provided deps.
+      conflictWarning := {
+        if (isMill1x) ConflictWarning.disable
+        else conflictWarning.value
+      },
+      // coursier (used via for3Use2_13 in codegen) references scala-reflect classes at runtime;
+      // we need scala-reflect:2.13 on the classpath, but sbt's SameVersion rule forces all
+      // org.scala-lang artifacts to the same version. Disable SameVersion rules to allow mixed versions.
+      csrConfiguration := {
+        if (isMill1x) csrConfiguration.value.withSameVersions(Vector.empty)
+        else csrConfiguration.value
+      },
+      libraryDependencies ++= {
+        if (isMill1x)
+          Seq("org.scala-lang" % "scala-reflect" % Smithy4sBuildPlugin.Scala213)
+        else Seq.empty
+      },
+      dependencyOverrides ++= {
+        if (isMill1x)
+          Seq("org.scala-lang" % "scala-reflect" % Smithy4sBuildPlugin.Scala213)
+        else Seq.empty
+      },
+      Compile / unmanagedSourceDirectories ++= {
+        val base = (Compile / sourceDirectory).value.getParentFile.getParentFile
+        if (isMill1x)
+          Seq(base / s"src-mill-${suffix}")
+        else
+          Seq(base / s"src-mill-shared", base / s"src-mill-${suffix}")
+      },
+      Test / unmanagedSourceDirectories ++= {
+        val base = (Test / sourceDirectory).value.getParentFile.getParentFile
+        if (isMill1x)
+          Seq(base / "test" / s"src-mill-${suffix}")
+        else
+          Seq(base / "test" / s"src-mill-shared", base / "test" / s"src-mill-${suffix}")
+      }
     )
   }
 
@@ -73,6 +114,7 @@ object Smithy4sBuildPlugin extends AutoPlugin {
   val Scala212 = "2.12.20"
   val Scala213 = "2.13.18"
   val Scala3 = "3.3.6"
+  val MillScala3 = "3.8.1"
 
   object autoImport {
     // format: off
@@ -132,7 +174,7 @@ object Smithy4sBuildPlugin extends AutoPlugin {
         .foldLeft(pm) { (m, row) =>
           m
             .jvmPlatform(
-              scalaVersions = List(scalaVersion),
+              scalaVersions = List(row.scalaVersion),
               axisValues = row.axisValues,
               configure = row.process
             )
@@ -294,7 +336,7 @@ object Smithy4sBuildPlugin extends AutoPlugin {
   def compilerOptions(scalaVersion: String) = {
     val base =
       if (scalaVersion.startsWith("3."))
-        filterScala3Options(commonCompilerOptions)
+        filterScala3Options(commonCompilerOptions, scalaVersion)
       else if (priorTo2_13(scalaVersion))
         filterScala2_12Options(commonCompilerOptions)
       else
@@ -311,15 +353,24 @@ object Smithy4sBuildPlugin extends AutoPlugin {
   def targetScalacOptions(scalaVersion: String) =
     if (scalaVersion.startsWith("2.12")) Seq("-target:jvm-1.8", "-release", "8")
     else if (scalaVersion.startsWith("2.13")) Seq("-release", "8")
-    else if (scalaVersion.startsWith("3.")) Seq("-release", "8")
+    else if (scalaVersion.startsWith("3.3.")) Seq("-release", "8")
+    else if (scalaVersion.startsWith("3.")) Seq("-release", "17")
     else Seq.empty // when we get Scala 4...
 
-  def filterScala3Options(opts: Seq[String]) =
-    ("-Ykind-projector" +: opts)
+  def filterScala3Options(opts: Seq[String], scalaVersion: String = "3.3.") = {
+    val kindProjector =
+      if (scalaVersion.startsWith("3.3.")) "-Ykind-projector"
+      else "-Xkind-projector"
+    (kindProjector +: opts)
       .filterNot(_.startsWith("-Xlint"))
       .filterNot(_.startsWith("-Ywarn-"))
       .filterNot(_ == "-explaintypes")
       .filterNot(_ == "-Xcheckinit")
+      .map {
+        case "-Xfatal-warnings" if !scalaVersion.startsWith("3.3.") => "-Werror"
+        case other => other
+      }
+  }
 
   def filterScala2_12Options(opts: Seq[String]) =
     opts
@@ -632,9 +683,10 @@ object Smithy4sBuildPlugin extends AutoPlugin {
       .settings(jsDimSettings)
   }
 
-  val millVersions = List("0.11.13", "0.12.11")
+  val millVersions = List("0.11.13", "0.12.11", "1.1.2")
 
   def millPlatform(millVersion: String): String = millVersion match {
+    case mv if mv.startsWith("1.")   => "1"
     case mv if mv.startsWith("0.12") => "0.12"
     case mv if mv.startsWith("0.11") => "0.11"
     case _                           => sys.error("Unsupported mill platform.")

@@ -124,10 +124,10 @@ private[codegen] class SmithyToIR(
 
   private val smithy4sDefaultDynamicHintNamespacePatterns
       : Set[NamespacePattern] = Set(
-    NamespacePattern("smithy.api"),
-    NamespacePattern("smithy.api.*"),
-    NamespacePattern("alloy"),
-    NamespacePattern("alloy.*")
+    NamespacePattern.fromString("smithy.api"),
+    NamespacePattern.fromString("smithy.api.*"),
+    NamespacePattern.fromString("alloy"),
+    NamespacePattern.fromString("alloy.*")
   )
 
   private val smithy4sRenderDynamicHintNamespacePatterns
@@ -141,7 +141,7 @@ private[codegen] class SmithyToIR(
         .flatMap((n: Node) => n.asArrayNode().asScala)
         .flatMap(_.getElements().asScala)
         .flatMap(
-          _.asStringNode().asScala.map(n => NamespacePattern(n.getValue))
+          _.asStringNode().asScala.map(n => NamespacePattern.fromString(n.getValue))
         )
 
   private def fieldModifier(member: MemberShape): Field.Modifier = {
@@ -888,16 +888,18 @@ private[codegen] class SmithyToIR(
       def unionShape(x: UnionShape): Option[Type] =
         Type.Ref(x.namespace, x.name).some
 
+      @SuppressWarnings(Array("all"))
       def memberShape(x: MemberShape): Option[Type] =
         model.getShape(x.getTarget()).asScala.flatMap { shape =>
-          val builder =
-            (Shape.shapeToBuilder(shape: Shape): AbstractShapeBuilder[_, _])
+          val builder = (Shape.shapeToBuilder(shape: Shape): Any)
+            .asInstanceOf[AbstractShapeBuilder[_, _]]
 
           builder
             .addTraits(x.getAllTraits().asScala.map(_._2).asJavaCollection)
 
           builder
             .build()
+            .asInstanceOf[Shape]
             .accept(this)
         }
 
@@ -1521,7 +1523,7 @@ private[codegen] class SmithyToIR(
       case (node, IdRefCase()) =>
         val ref = Type.Ref("smithy4s", "ShapeId")
         val namespace :: name :: _ =
-          node.asStringNode.get.getValue.split("#").toList
+          (node.asStringNode.get.getValue.split("#").toList: @unchecked)
         def toField(value: String) = TypedNode.FieldTN.RequiredTN(
           NodeAndType(
             Node.from(value),
