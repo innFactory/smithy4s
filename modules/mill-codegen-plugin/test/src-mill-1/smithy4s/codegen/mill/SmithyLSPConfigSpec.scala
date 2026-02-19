@@ -43,9 +43,11 @@ class SmithyLSPConfigSpec extends munit.FunSuite {
         override def scalaVersion = "2.13.18"
         override def smithy4sAllowedNamespaces: T[Option[Set[String]]] =
           Task(Some(Set("aws.iam")))
-        override def smithy4sIvyDeps = Task { Seq(
-          mvn"software.amazon.smithy:smithy-aws-iam-traits:${smithy4s.codegen.BuildInfo.smithyVersion}"
-        ) }
+        override def smithy4sIvyDeps = Task {
+          Seq(
+            mvn"software.amazon.smithy:smithy-aws-iam-traits:${smithy4s.codegen.BuildInfo.smithyVersion}"
+          )
+        }
       }
     }
 

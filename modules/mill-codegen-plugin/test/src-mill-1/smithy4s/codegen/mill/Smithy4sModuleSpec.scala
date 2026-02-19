@@ -190,9 +190,11 @@ class Smithy4sModuleSpec extends munit.FunSuite {
       override def mvnDeps = Seq(coreDep)
       override def smithy4sAllowedNamespaces: T[Option[Set[String]]] =
         Task(Some(Set("aws.iam")))
-      override def smithy4sIvyDeps = Task { Seq(
-        mvn"software.amazon.smithy:smithy-aws-iam-traits:${smithy4s.codegen.BuildInfo.smithyVersion}"
-      ) }
+      override def smithy4sIvyDeps = Task {
+        Seq(
+          mvn"software.amazon.smithy:smithy-aws-iam-traits:${smithy4s.codegen.BuildInfo.smithyVersion}"
+        )
+      }
     }
 
     val resourceFolder = resourcePath / "basic"
@@ -307,9 +309,11 @@ class Smithy4sModuleSpec extends munit.FunSuite {
         override def mvnDeps = Seq(
           mvn"com.disneystreaming.smithy4s::smithy4s-aws-kernel:${smithy4s.codegen.BuildInfo.version}"
         )
-        override def smithy4sIvyDeps: T[Seq[Dep]] = Task { Seq(
-          mvn"software.amazon.smithy:smithy-aws-traits:${smithy4s.codegen.BuildInfo.smithyVersion}"
-        ) }
+        override def smithy4sIvyDeps: T[Seq[Dep]] = Task {
+          Seq(
+            mvn"software.amazon.smithy:smithy-aws-traits:${smithy4s.codegen.BuildInfo.smithyVersion}"
+          )
+        }
       }
 
       object bar extends Smithy4sModule {
@@ -366,7 +370,9 @@ class Smithy4sModuleSpec extends munit.FunSuite {
         override def moduleDeps: Seq[JavaModule] = Seq(foo)
         override def mvnDeps = Seq(coreDep)
 
-        override def smithy4sInternalDependenciesAsJars = Task { List.empty[PathRef] }
+        override def smithy4sInternalDependenciesAsJars = Task {
+          List.empty[PathRef]
+        }
       }
     }
 
@@ -387,13 +393,14 @@ class Smithy4sModuleSpec extends munit.FunSuite {
 
     trait Common extends SbtModule with Smithy4sModule with PublishModule {
       override def scalaVersion = "2.13.18"
-      override def repositoriesTask: mill.api.Task[Seq[Repository]] = Task.Anon {
-        val ivy2Local = IvyRepository.fromPattern(
-          (localIvyRepo.toNIO.toUri.toString + "/") +: coursier.ivy.Pattern.default,
-          dropInfoAttributes = true
-        )
-        Seq(ivy2Local) ++ super.repositoriesTask()
-      }
+      override def repositoriesTask: mill.api.Task[Seq[Repository]] =
+        Task.Anon {
+          val ivy2Local = IvyRepository.fromPattern(
+            (localIvyRepo.toNIO.toUri.toString + "/") +: coursier.ivy.Pattern.default,
+            dropInfoAttributes = true
+          )
+          Seq(ivy2Local) ++ super.repositoriesTask()
+        }
       def pomSettings: T[PomSettings] = PomSettings(
         "foo",
         "foobar",
@@ -418,9 +425,11 @@ class Smithy4sModuleSpec extends munit.FunSuite {
           resourcePath / "multimodule-staged" / "foo"
         // foo refers to smithy-aws-traits explicitly as a code-gen only dep, and upon publishing,
         // this information is stored in the manifest of bar's jar, for downstream consumption
-        override def smithy4sIvyDeps = Task { Seq(
-          mvn"software.amazon.smithy:smithy-aws-traits:${smithy4s.codegen.BuildInfo.smithyVersion}"
-        ) }
+        override def smithy4sIvyDeps = Task {
+          Seq(
+            mvn"software.amazon.smithy:smithy-aws-traits:${smithy4s.codegen.BuildInfo.smithyVersion}"
+          )
+        }
       }
 
       object bar extends Common {

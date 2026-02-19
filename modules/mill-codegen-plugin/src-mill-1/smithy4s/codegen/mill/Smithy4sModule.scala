@@ -23,7 +23,11 @@ import mill.api.Task
 import mill.scalalib.*
 import mill.util.JarManifest
 import smithy4s.codegen.{
-  BuildInfo, CodegenArgs, FileType, JarUtils, SMITHY4S_DEPENDENCIES,
+  BuildInfo,
+  CodegenArgs,
+  FileType,
+  JarUtils,
+  SMITHY4S_DEPENDENCIES,
   Codegen => Smithy4s
 }
 
@@ -81,8 +85,7 @@ trait Smithy4sModule extends ScalaModule {
   }
 
   def smithy4sInternalDependenciesAsJars: T[List[PathRef]] = Task {
-    Task.traverse(moduleDeps)(_.jar)()
-      .toList.map(_.path).map(PathRef(_))
+    Task.traverse(moduleDeps)(_.jar)().toList.map(_.path).map(PathRef(_))
   }
 
   def smithy4sModelTransformers: T[List[String]] = List.empty[String]
@@ -99,14 +102,17 @@ trait Smithy4sModule extends ScalaModule {
 
   def smithy4sTransitiveIvyDeps: T[Seq[Dep]] = Task {
     smithy4sAllDeps() ++
-      Task.traverse(moduleDeps) {
-        case m: Smithy4sModule => m.smithy4sTransitiveIvyDeps
-        case _ => Task.Anon { Seq.empty[Dep] }
-      }().flatten
+      Task
+        .traverse(moduleDeps) {
+          case m: Smithy4sModule => m.smithy4sTransitiveIvyDeps
+          case _                 => Task.Anon { Seq.empty[Dep] }
+        }()
+        .flatten
   }
 
   def smithy4sExternallyTrackedIvyDeps: T[Seq[Dep]] = Task {
-    defaultResolver().classpath(allMvnDeps())
+    defaultResolver()
+      .classpath(allMvnDeps())
       .flatMap { pathRef =>
         JarUtils
           .extractSmithy4sDependencies(pathRef.path.toIO)

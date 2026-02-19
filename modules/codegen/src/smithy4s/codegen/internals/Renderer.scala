@@ -1894,9 +1894,10 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
       case Primitive.Int        => (t: Int) => line"${t.toString}"
       case Primitive.Short      => (t: Short) => line"${t.toString}"
       case Primitive.Bool       => (t: Boolean) => line"${t.toString}"
-      case Primitive.Uuid       => (uuid: java.util.UUID) => line"java.util.UUID.fromString(${renderStringLiteral(uuid.toString)})"
-      case Primitive.String     => (s: String) => renderStringLiteral(s)
-      case Primitive.Byte       => (b: Byte) => line"${b.toString}"
+      case Primitive.Uuid =>
+        (uuid: java.util.UUID) => line"java.util.UUID.fromString(${renderStringLiteral(uuid.toString)})"
+      case Primitive.String => (s: String) => renderStringLiteral(s)
+      case Primitive.Byte   => (b: Byte) => line"${b.toString}"
       case Primitive.Blob =>
         (ba: Array[Byte]) =>
           val blob = NameRef("smithy4s", "Blob")
@@ -1953,15 +1954,15 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
   private def escapeForStringLiteral(raw: String): String = {
     val sb = new StringBuilder("\"")
     raw.foreach {
-      case '\b' => sb.append("\\b")
-      case '\t' => sb.append("\\t")
-      case '\n' => sb.append("\\n")
-      case '\f' => sb.append("\\f")
-      case '\r' => sb.append("\\r")
-      case '"'  => sb.append("\\\"")
-      case '\\' => sb.append("\\\\")
+      case '\b'                      => sb.append("\\b")
+      case '\t'                      => sb.append("\\t")
+      case '\n'                      => sb.append("\\n")
+      case '\f'                      => sb.append("\\f")
+      case '\r'                      => sb.append("\\r")
+      case '"'                       => sb.append("\\\"")
+      case '\\'                      => sb.append("\\\\")
       case c if c >= ' ' && c <= '~' => sb.append(c)
-      case c => sb.append("\\u%04x".format(c.toInt))
+      case c                         => sb.append("\\u%04x".format(c.toInt))
     }
     sb.append('"')
     sb.toString()

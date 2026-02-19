@@ -99,7 +99,7 @@ trait Smithy4sModuleCommon extends ScalaModule {
     smithy4sAllDeps() ++ T
       .traverse(moduleDeps) {
         case m: Smithy4sModule => m.smithy4sTransitiveIvyDeps
-        case _ => T.task(mill.api.Result.create(Agg.empty))
+        case _                 => T.task(mill.api.Result.create(Agg.empty))
       }()
       .flatten
   }

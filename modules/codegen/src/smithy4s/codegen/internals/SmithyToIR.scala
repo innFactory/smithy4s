@@ -141,7 +141,9 @@ private[codegen] class SmithyToIR(
         .flatMap((n: Node) => n.asArrayNode().asScala)
         .flatMap(_.getElements().asScala)
         .flatMap(
-          _.asStringNode().asScala.map(n => NamespacePattern.fromString(n.getValue))
+          _.asStringNode().asScala.map(n =>
+            NamespacePattern.fromString(n.getValue)
+          )
         )
 
   private def fieldModifier(member: MemberShape): Field.Modifier = {
