@@ -68,7 +68,7 @@ class ValidatedNewtypesTransformer extends ProjectionTransformer {
       shape match {
         case ValidatedNewtypesTransformer.SupportedShape(s) =>
           val builder = (Shape.shapeToBuilder(s: Shape): Any)
-            .asInstanceOf[AbstractShapeBuilder[?,?]]
+            .asInstanceOf[AbstractShapeBuilder[?, ?]]
           builder.addTrait(new ValidateNewtypeTrait())
           builder.build().asInstanceOf[Shape]
         case _ => shape
