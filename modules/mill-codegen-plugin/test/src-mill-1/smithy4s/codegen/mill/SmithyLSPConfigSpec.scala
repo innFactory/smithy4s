@@ -16,10 +16,10 @@
 
 package smithy4s.codegen.mill
 
-import _root_.mill.*
+import _root_.mill._
 import _root_.mill.api.Discover
-import _root_.mill.scalalib.*
-import _root_.mill.testkit.*
+import _root_.mill.scalalib._
+import _root_.mill.testkit._
 
 import java.nio.file.Paths
 

@@ -18,21 +18,19 @@ package smithy4s.codegen
 
 import _root_.{mill => mmill}
 import coursier.maven.MavenRepository
-import mmill.api.{
-  BuildCtx,
-  Discover,
-  Evaluator,
-  ExternalModule,
-  PathRef,
-  SelectMode,
-  Task
-}
+import mmill.api.BuildCtx
+import mmill.api.Discover
+import mmill.api.Evaluator
+import mmill.api.ExternalModule
+import mmill.api.PathRef
+import mmill.api.SelectMode
+import mmill.api.Task
+import mmill.util.TokenReaders.given
 import smithy4s.codegen.SmithyBuildJson
-import smithy4s.codegen.mill.{LSPCompat, Smithy4sModule}
+import smithy4s.codegen.mill.LSPCompat
+import smithy4s.codegen.mill.Smithy4sModule
 
 import scala.collection.immutable.ListSet
-
-import mmill.util.TokenReaders.given
 
 object LSP extends ExternalModule with LSPCompat {
   lazy val millDiscover: Discover = Discover[this.type]

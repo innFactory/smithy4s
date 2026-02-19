@@ -17,19 +17,17 @@
 package smithy4s.codegen.mill
 
 import coursier.maven.MavenRepository
-import mill.*
+import mill._
 import mill.api.PathRef
 import mill.api.Task
-import mill.scalalib.*
+import mill.scalalib._
 import mill.util.JarManifest
-import smithy4s.codegen.{
-  BuildInfo,
-  CodegenArgs,
-  FileType,
-  JarUtils,
-  SMITHY4S_DEPENDENCIES,
-  Codegen => Smithy4s
-}
+import smithy4s.codegen.BuildInfo
+import smithy4s.codegen.CodegenArgs
+import smithy4s.codegen.FileType
+import smithy4s.codegen.JarUtils
+import smithy4s.codegen.SMITHY4S_DEPENDENCIES
+import smithy4s.codegen.{Codegen => Smithy4s}
 
 import scala.util.Success
 import scala.util.Try

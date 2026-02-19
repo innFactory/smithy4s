@@ -18,12 +18,13 @@ package smithy4s.codegen.mill
 
 import coursier.Repository
 import coursier.ivy.IvyRepository
-import mill.*
+import mill._
 import mill.api.Discover
-import mill.scalalib.*
+import mill.scalalib._
 import mill.scalalib.publish.PomSettings
 import mill.scalalib.publish.VersionControl
-import mill.testkit.{TestRootModule, UnitTester}
+import mill.testkit.TestRootModule
+import mill.testkit.UnitTester
 import munit.Location
 
 import java.nio.file.Paths
