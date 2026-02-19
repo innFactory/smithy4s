@@ -88,13 +88,13 @@ case class MillCustomRow(mv: String) extends CustomRow {
     List(MillAxis(mv), VirtualAxis.jvm)
 
   def process: Project => Project = { p: Project =>
-    val millVersion = Smithy4sBuildPlugin.millPlatform(mv)
-    val suffix = millVersion.replace('.', '_')
+    val millPlatformStr = Smithy4sBuildPlugin.millPlatform(mv)
+    val suffix = millPlatformStr.replace('.', '_')
 
     p.settings(
       Seq(
         crossVersion := CrossVersion
-          .binaryWith(s"mill${millVersion}_", ""),
+          .binaryWith(s"mill${millPlatformStr}_", ""),
         libraryDependencies ++= config.millDeps(mv),
         Compile / unmanagedSourceDirectories ++= {
           val base = (Compile / sourceDirectory).value.getParentFile.getParentFile

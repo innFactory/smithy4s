@@ -36,8 +36,6 @@ class Smithy4sModuleSpec extends munit.FunSuite {
   private val coreDep =
     mvn"com.disneystreaming.smithy4s::smithy4s-core:${smithy4s.codegen.BuildInfo.version}"
 
-  mvn"com.disneystreaming.smithy4s::smithy4s-aws-kernel:${smithy4s.codegen.BuildInfo.version}"
-
   test("basic codegen runs") {
     object foo extends TestRootModule with Smithy4sModule {
       lazy val millDiscover = Discover[this.type]
