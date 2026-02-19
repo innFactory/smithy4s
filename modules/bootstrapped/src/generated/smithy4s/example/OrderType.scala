@@ -38,7 +38,7 @@ object OrderType extends ShapeTag.Companion[OrderType] {
   val id: ShapeId = ShapeId("smithy4s.example", "OrderType")
 
   val hints: Hints = Hints(
-    Hints.dynamic(ShapeId("smithy.api", "documentation"), smithy4s.Document.fromString("Our order types have different ways to identify a product\nExcept for preview orders, these don\'t have an ID")),
+    Hints.dynamic(ShapeId("smithy.api", "documentation"), smithy4s.Document.fromString("Our order types have different ways to identify a product\nExcept for preview orders, these don't have an ID")),
   )
 
   final case class OnlineCase(online: OrderNumber) extends OrderType { final def $ordinal: Int = 0 }
@@ -51,7 +51,7 @@ object OrderType extends ShapeTag.Companion[OrderType] {
     val id: ShapeId = ShapeId("smithy4s.example", "InStoreOrder")
 
     val hints: Hints = Hints(
-      Hints.dynamic(ShapeId("smithy.api", "documentation"), smithy4s.Document.fromString("For an InStoreOrder a location ID isn\'t needed")),
+      Hints.dynamic(ShapeId("smithy.api", "documentation"), smithy4s.Document.fromString("For an InStoreOrder a location ID isn't needed")),
     )
 
     // constructor using the original order from the spec

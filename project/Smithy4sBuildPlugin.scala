@@ -36,12 +36,53 @@ trait CustomRow { self =>
   def process: Project => Project
 }
 
-case class MillCustomRow(mv: String) extends CustomRow {
-  private val isMill1x = mv.startsWith("1.")
+sealed trait MillPlatformConfig {
+  def scalaVersion: String
+  def millDeps(mv: String): Seq[ModuleID]
+  def includesSharedSources: Boolean
+  def extraSettings: Seq[Setting[_]]
+}
 
-  val scalaVersion: String =
-    if (isMill1x) Smithy4sBuildPlugin.MillScala3
-    else Smithy4sBuildPlugin.Scala213
+object MillPlatformConfig {
+  case object Legacy extends MillPlatformConfig {
+    def scalaVersion = Smithy4sBuildPlugin.Scala213
+    def millDeps(mv: String) = Seq(
+      Dependencies.Mill.main(mv),
+      Dependencies.Mill.mainApi(mv),
+      Dependencies.Mill.scalalib(mv),
+      Dependencies.Mill.mainTestkit(mv)
+    )
+    def includesSharedSources = true
+    def extraSettings = Seq.empty
+  }
+
+  case object Mill1x extends MillPlatformConfig {
+    def scalaVersion = Smithy4sBuildPlugin.MillScala3
+    def millDeps(mv: String) = Seq(
+      Dependencies.Mill.libs(mv),
+      Dependencies.Mill.mainTestkit(mv)
+    )
+    def includesSharedSources = false
+    // Mill 1.x mixes Scala 2.13 and 3.x artifacts on the classpath, requiring
+    // conflict suppression and explicit scala-reflect for coursier compatibility.
+    def extraSettings = Seq(
+      conflictWarning := ConflictWarning.disable,
+      csrConfiguration := csrConfiguration.value.withSameVersions(Vector.empty),
+      libraryDependencies +=
+        "org.scala-lang" % "scala-reflect" % Smithy4sBuildPlugin.Scala213,
+      dependencyOverrides +=
+        "org.scala-lang" % "scala-reflect" % Smithy4sBuildPlugin.Scala213
+    )
+  }
+
+  def apply(mv: String): MillPlatformConfig =
+    if (mv.startsWith("1.")) Mill1x else Legacy
+}
+
+case class MillCustomRow(mv: String) extends CustomRow {
+  private val config = MillPlatformConfig(mv)
+
+  val scalaVersion: String = config.scalaVersion
 
   def axisValues: List[VirtualAxis] =
     List(MillAxis(mv), VirtualAxis.jvm)
@@ -51,59 +92,27 @@ case class MillCustomRow(mv: String) extends CustomRow {
     val suffix = millVersion.replace('.', '_')
 
     p.settings(
-      crossVersion := CrossVersion
-        .binaryWith(s"mill${millVersion}_", ""),
-      libraryDependencies ++= {
-        if (isMill1x)
-          Seq(
-            Dependencies.Mill.libs(mv),
-            Dependencies.Mill.mainTestkit(mv)
-          )
-        else
-          Seq(
-            Dependencies.Mill.main(mv),
-            Dependencies.Mill.mainApi(mv),
-            Dependencies.Mill.scalalib(mv),
-            Dependencies.Mill.mainTestkit(mv)
-          )
-      },
-      // Mill 1.x uses Scala 3 but some transitive deps bring in Scala 2.13 artifacts,
-      // causing cross-version suffix conflicts that are harmless since these are Provided deps.
-      conflictWarning := {
-        if (isMill1x) ConflictWarning.disable
-        else conflictWarning.value
-      },
-      // coursier (used via for3Use2_13 in codegen) references scala-reflect classes at runtime;
-      // we need scala-reflect:2.13 on the classpath, but sbt's SameVersion rule forces all
-      // org.scala-lang artifacts to the same version. Disable SameVersion rules to allow mixed versions.
-      csrConfiguration := {
-        if (isMill1x) csrConfiguration.value.withSameVersions(Vector.empty)
-        else csrConfiguration.value
-      },
-      libraryDependencies ++= {
-        if (isMill1x)
-          Seq("org.scala-lang" % "scala-reflect" % Smithy4sBuildPlugin.Scala213)
-        else Seq.empty
-      },
-      dependencyOverrides ++= {
-        if (isMill1x)
-          Seq("org.scala-lang" % "scala-reflect" % Smithy4sBuildPlugin.Scala213)
-        else Seq.empty
-      },
-      Compile / unmanagedSourceDirectories ++= {
-        val base = (Compile / sourceDirectory).value.getParentFile.getParentFile
-        if (isMill1x)
-          Seq(base / s"src-mill-${suffix}")
-        else
-          Seq(base / s"src-mill-shared", base / s"src-mill-${suffix}")
-      },
-      Test / unmanagedSourceDirectories ++= {
-        val base = (Test / sourceDirectory).value.getParentFile.getParentFile
-        if (isMill1x)
-          Seq(base / "test" / s"src-mill-${suffix}")
-        else
-          Seq(base / "test" / s"src-mill-shared", base / "test" / s"src-mill-${suffix}")
-      }
+      Seq(
+        crossVersion := CrossVersion
+          .binaryWith(s"mill${millVersion}_", ""),
+        libraryDependencies ++= config.millDeps(mv),
+        Compile / unmanagedSourceDirectories ++= {
+          val base = (Compile / sourceDirectory).value.getParentFile.getParentFile
+          val versionDir = base / s"src-mill-${suffix}"
+          if (config.includesSharedSources)
+            Seq(base / "src-mill-shared", versionDir)
+          else
+            Seq(versionDir)
+        },
+        Test / unmanagedSourceDirectories ++= {
+          val base = (Test / sourceDirectory).value.getParentFile.getParentFile
+          val versionDir = base / "test" / s"src-mill-${suffix}"
+          if (config.includesSharedSources)
+            Seq(base / "test" / "src-mill-shared", versionDir)
+          else
+            Seq(versionDir)
+        }
+      ) ++ config.extraSettings: _*
     )
   }
 
