@@ -98,8 +98,7 @@ trait Smithy4sModuleCommon extends ScalaModule {
   def smithy4sTransitiveIvyDeps: T[Agg[Dep]] = T {
     smithy4sAllDeps() ++ T
       .traverse(moduleDeps) {
-        case m if m.isInstanceOf[Smithy4sModule] =>
-          m.asInstanceOf[Smithy4sModule].smithy4sTransitiveIvyDeps
+        case m: Smithy4sModule => m.smithy4sTransitiveIvyDeps
         case _ => T.task(mill.api.Result.create(Agg.empty))
       }()
       .flatten
