@@ -112,7 +112,7 @@ In your `build.mill`:
 package build
 
 import mill._, mill.scalalib._
-import $ivy.`com.disneystreaming.smithy4s::smithy4s-mill-codegen-plugin_mill1:@VERSION@`
+import $ivy.`com.disneystreaming.smithy4s::smithy4s-mill-codegen-plugin::@VERSION@`
 import smithy4s.codegen.mill._
 
 object example extends ScalaModule with Smithy4sModule {
