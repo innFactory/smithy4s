@@ -47,7 +47,7 @@ object PackageUnion extends ShapeTag.Companion[PackageUnion] {
     }
   }
 
-  implicit val schema: Schema[PackageUnion] = union(
+  implicit val schema: Schema[PackageUnion] = union[PackageUnion](
     PackageUnion.ClassCase.alt,
   ){
     _.$ordinal

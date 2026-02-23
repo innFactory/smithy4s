@@ -57,7 +57,7 @@ object OrderType extends ShapeTag.Companion[OrderType] {
     // constructor using the original order from the spec
     private def make(id: OrderNumber, locationId: Option[String]): InStoreOrder = InStoreOrder(id, locationId)
 
-    val schema: Schema[InStoreOrder] = struct(
+    val schema: Schema[InStoreOrder] = struct[InStoreOrder](
       OrderNumber.schema.required[InStoreOrder]("id", _.id),
       string.optional[InStoreOrder]("locationId", _.locationId),
     )(make).withId(id).addHints(hints)
@@ -93,7 +93,7 @@ object OrderType extends ShapeTag.Companion[OrderType] {
     }
   }
 
-  implicit val schema: Schema[OrderType] = union(
+  implicit val schema: Schema[OrderType] = union[OrderType](
     OrderType.OnlineCase.alt,
     OrderType.InStoreOrder.alt,
     OrderType.PreviewCase.alt,

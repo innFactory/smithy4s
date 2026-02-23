@@ -139,7 +139,7 @@ object HelloWorldServiceOperation {
       }
     }
 
-    implicit val schema: Schema[HelloError] = union(
+    implicit val schema: Schema[HelloError] = union[HelloError](
       HelloError.GenericServerErrorCase.alt,
       HelloError.SpecificServerErrorCase.alt,
     ){

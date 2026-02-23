@@ -154,7 +154,7 @@ object ObjectServiceOperation {
       }
     }
 
-    implicit val schema: Schema[GetObjectError] = union(
+    implicit val schema: Schema[GetObjectError] = union[GetObjectError](
       GetObjectError.ClientErrorCase.alt,
       GetObjectError.ServerErrorCase.alt,
     ){
@@ -244,7 +244,7 @@ object ObjectServiceOperation {
       }
     }
 
-    implicit val schema: Schema[PutObjectError] = union(
+    implicit val schema: Schema[PutObjectError] = union[PutObjectError](
       PutObjectError.ClientErrorCase.alt,
       PutObjectError.ServerErrorCase.alt,
       PutObjectError.NoMoreSpaceCase.alt,

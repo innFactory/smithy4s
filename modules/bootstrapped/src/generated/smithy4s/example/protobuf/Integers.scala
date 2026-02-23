@@ -19,7 +19,7 @@ object Integers extends ShapeTag.Companion[Integers] {
   // constructor using the original order from the spec
   private def make(int: Int, sint: Int, uint: Int, fixedUint: Int, fixedSint: Int): Integers = Integers(int, sint, uint, fixedUint, fixedSint)
 
-  implicit val schema: Schema[Integers] = struct(
+  implicit val schema: Schema[Integers] = struct[Integers](
     int.required[Integers]("int", _.int),
     int.required[Integers]("sint", _.sint).addHints(alloy.proto.ProtoNumType.SIGNED.widen),
     int.required[Integers]("uint", _.uint).addHints(alloy.proto.ProtoNumType.UNSIGNED.widen),

@@ -250,7 +250,7 @@ object PizzaAdminServiceOperation {
       }
     }
 
-    implicit val schema: Schema[CustomCodeError] = union(
+    implicit val schema: Schema[CustomCodeError] = union[CustomCodeError](
       CustomCodeError.UnknownServerErrorCase.alt,
     ){
       _.$ordinal
@@ -352,7 +352,7 @@ object PizzaAdminServiceOperation {
       }
     }
 
-    implicit val schema: Schema[GetIntEnumError] = union(
+    implicit val schema: Schema[GetIntEnumError] = union[GetIntEnumError](
       GetIntEnumError.UnknownServerErrorCase.alt,
     ){
       _.$ordinal
@@ -478,7 +478,7 @@ object PizzaAdminServiceOperation {
       }
     }
 
-    implicit val schema: Schema[GetEnumError] = union(
+    implicit val schema: Schema[GetEnumError] = union[GetEnumError](
       GetEnumError.UnknownServerErrorCase.alt,
     ){
       _.$ordinal
@@ -603,7 +603,7 @@ object PizzaAdminServiceOperation {
       }
     }
 
-    implicit val schema: Schema[AddMenuItemError] = union(
+    implicit val schema: Schema[AddMenuItemError] = union[AddMenuItemError](
       AddMenuItemError.GenericClientErrorCase.alt,
       AddMenuItemError.GenericServerErrorCase.alt,
       AddMenuItemError.PriceErrorCase.alt,
@@ -686,7 +686,7 @@ object PizzaAdminServiceOperation {
       }
     }
 
-    implicit val schema: Schema[HealthError] = union(
+    implicit val schema: Schema[HealthError] = union[HealthError](
       HealthError.UnknownServerErrorCase.alt,
     ){
       _.$ordinal
@@ -796,7 +796,7 @@ object PizzaAdminServiceOperation {
       }
     }
 
-    implicit val schema: Schema[GetMenuError] = union(
+    implicit val schema: Schema[GetMenuError] = union[GetMenuError](
       GetMenuError.FallbackErrorCase.alt,
       GetMenuError.FallbackError2Case.alt,
       GetMenuError.GenericClientErrorCase.alt,

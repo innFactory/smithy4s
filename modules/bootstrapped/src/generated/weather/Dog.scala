@@ -17,7 +17,7 @@ object Dog extends ShapeTag.Companion[Dog] {
   // constructor using the original order from the spec
   private def make(name: String): Dog = Dog(name)
 
-  implicit val schema: Schema[Dog] = struct(
+  implicit val schema: Schema[Dog] = struct[Dog](
     string.required[Dog]("name", _.name),
   )(make).withId(id).addHints(hints)
 }

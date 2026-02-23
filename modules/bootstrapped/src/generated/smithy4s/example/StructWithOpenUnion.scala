@@ -17,7 +17,7 @@ object StructWithOpenUnion extends ShapeTag.Companion[StructWithOpenUnion] {
   // constructor using the original order from the spec
   private def make(union: SampleOpenUnion, str: String): StructWithOpenUnion = StructWithOpenUnion(union, str)
 
-  implicit val schema: Schema[StructWithOpenUnion] = struct(
+  implicit val schema: Schema[StructWithOpenUnion] = struct[StructWithOpenUnion](
     SampleOpenUnion.schema.required[StructWithOpenUnion]("union", _.union),
     string.required[StructWithOpenUnion]("str", _.str),
   )(make).withId(id).addHints(hints)

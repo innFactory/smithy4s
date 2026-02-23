@@ -38,7 +38,7 @@ object UnionWithCollision extends ShapeTag.Companion[UnionWithCollision] {
     // constructor using the original order from the spec
     private def make(name: Option[String]): Struct = Struct(name)
 
-    val schema: Schema[Struct] = smithy4s.schema.Schema.struct(
+    val schema: Schema[Struct] = smithy4s.schema.Schema.struct[Struct](
       String.schema.optional[Struct]("name", _.name),
     )(make).withId(id).addHints(hints)
 
@@ -57,7 +57,7 @@ object UnionWithCollision extends ShapeTag.Companion[UnionWithCollision] {
     }
   }
 
-  implicit val schema: Schema[UnionWithCollision] = union(
+  implicit val schema: Schema[UnionWithCollision] = union[UnionWithCollision](
     UnionWithCollision.Struct.alt,
   ){
     _.$ordinal

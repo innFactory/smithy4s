@@ -51,7 +51,7 @@ object OpticsUnion extends ShapeTag.Companion[OpticsUnion] {
     }
   }
 
-  implicit val schema: Schema[OpticsUnion] = union(
+  implicit val schema: Schema[OpticsUnion] = union[OpticsUnion](
     OpticsUnion.OneCase.alt,
   ){
     _.$ordinal

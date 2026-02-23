@@ -19,7 +19,7 @@ object SayHelloInput extends ShapeTag.Companion[SayHelloInput] {
   // constructor using the original order from the spec
   private def make(greeting: Option[String], query: Option[String], name: Option[String]): SayHelloInput = SayHelloInput(greeting, query, name)
 
-  implicit val schema: Schema[SayHelloInput] = struct(
+  implicit val schema: Schema[SayHelloInput] = struct[SayHelloInput](
     string.optional[SayHelloInput]("greeting", _.greeting).addHints(smithy.api.HttpHeader("X-Greeting")),
     string.optional[SayHelloInput]("query", _.query).addHints(smithy.api.HttpQuery("Hi")),
     string.optional[SayHelloInput]("name", _.name),

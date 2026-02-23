@@ -18,7 +18,7 @@ object EncryptionMetadata extends ShapeTag.Companion[EncryptionMetadata] {
   // constructor using the original order from the spec
   private def make(system: Option[String], credentials: Option[Creds], partial: Option[Boolean]): EncryptionMetadata = EncryptionMetadata(system, credentials, partial)
 
-  implicit val schema: Schema[EncryptionMetadata] = struct(
+  implicit val schema: Schema[EncryptionMetadata] = struct[EncryptionMetadata](
     string.optional[EncryptionMetadata]("system", _.system),
     Creds.schema.optional[EncryptionMetadata]("credentials", _.credentials),
     boolean.optional[EncryptionMetadata]("partial", _.partial),

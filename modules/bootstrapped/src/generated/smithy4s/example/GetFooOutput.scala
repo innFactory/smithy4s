@@ -21,7 +21,7 @@ object GetFooOutput extends ShapeTag.Companion[GetFooOutput] {
   // constructor using the original order from the spec
   private def make(foo: Option[Foo]): GetFooOutput = GetFooOutput(foo)
 
-  implicit val schema: Schema[GetFooOutput] = struct(
+  implicit val schema: Schema[GetFooOutput] = struct[GetFooOutput](
     Foo.schema.optional[GetFooOutput]("foo", _.foo),
   )(make).withId(id).addHints(hints)
 }

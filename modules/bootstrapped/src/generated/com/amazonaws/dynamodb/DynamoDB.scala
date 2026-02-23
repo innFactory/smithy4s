@@ -178,7 +178,7 @@ object DynamoDBOperation {
       }
     }
 
-    implicit val schema: Schema[ListTablesError] = union(
+    implicit val schema: Schema[ListTablesError] = union[ListTablesError](
       ListTablesError.InternalServerErrorCase.alt,
       ListTablesError.InvalidEndpointExceptionCase.alt,
     ){

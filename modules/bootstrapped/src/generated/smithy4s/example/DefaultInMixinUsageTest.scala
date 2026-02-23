@@ -17,7 +17,7 @@ object DefaultInMixinUsageTest extends ShapeTag.Companion[DefaultInMixinUsageTes
   // constructor using the original order from the spec
   private def make(one: String): DefaultInMixinUsageTest = DefaultInMixinUsageTest(one)
 
-  implicit val schema: Schema[DefaultInMixinUsageTest] = struct(
+  implicit val schema: Schema[DefaultInMixinUsageTest] = struct[DefaultInMixinUsageTest](
     string.field[DefaultInMixinUsageTest]("one", _.one).addHints(smithy.api.Default(smithy4s.Document.fromString("test"))),
   )(make).withId(id).addHints(hints)
 }

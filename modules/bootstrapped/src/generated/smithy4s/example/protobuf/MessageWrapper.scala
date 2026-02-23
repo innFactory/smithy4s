@@ -18,7 +18,7 @@ object MessageWrapper extends ShapeTag.Companion[MessageWrapper] {
   // constructor using the original order from the spec
   private def make(message: Integers): MessageWrapper = MessageWrapper(message)
 
-  implicit val schema: Schema[MessageWrapper] = struct(
+  implicit val schema: Schema[MessageWrapper] = struct[MessageWrapper](
     Integers.schema.required[MessageWrapper]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

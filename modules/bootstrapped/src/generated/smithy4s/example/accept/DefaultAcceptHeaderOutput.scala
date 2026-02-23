@@ -19,7 +19,7 @@ object DefaultAcceptHeaderOutput extends ShapeTag.Companion[DefaultAcceptHeaderO
   // constructor using the original order from the spec
   private def make(result: Option[String]): DefaultAcceptHeaderOutput = DefaultAcceptHeaderOutput(result)
 
-  implicit val schema: Schema[DefaultAcceptHeaderOutput] = struct(
+  implicit val schema: Schema[DefaultAcceptHeaderOutput] = struct[DefaultAcceptHeaderOutput](
     string.optional[DefaultAcceptHeaderOutput]("result", _.result).addHints(smithy.api.HttpPayload()),
   )(make).withId(id).addHints(hints)
 }

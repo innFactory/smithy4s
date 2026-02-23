@@ -58,7 +58,7 @@ object TestIdRefUnion extends ShapeTag.Companion[TestIdRefUnion] {
     }
   }
 
-  implicit val schema: Schema[TestIdRefUnion] = union(
+  implicit val schema: Schema[TestIdRefUnion] = union[TestIdRefUnion](
     TestIdRefUnion.TestCase.alt,
     TestIdRefUnion.TestTwoCase.alt,
   ){

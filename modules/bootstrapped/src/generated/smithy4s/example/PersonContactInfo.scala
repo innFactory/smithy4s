@@ -66,7 +66,7 @@ object PersonContactInfo extends ShapeTag.Companion[PersonContactInfo] {
     }
   }
 
-  implicit val schema: Schema[PersonContactInfo] = union(
+  implicit val schema: Schema[PersonContactInfo] = union[PersonContactInfo](
     PersonContactInfo.EmailCase.alt,
     PersonContactInfo.PhoneCase.alt,
   ){

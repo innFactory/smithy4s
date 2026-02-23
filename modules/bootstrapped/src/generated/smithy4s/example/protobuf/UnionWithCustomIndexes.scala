@@ -75,7 +75,7 @@ object UnionWithCustomIndexes extends ShapeTag.Companion[UnionWithCustomIndexes]
     }
   }
 
-  implicit val schema: Schema[UnionWithCustomIndexes] = union(
+  implicit val schema: Schema[UnionWithCustomIndexes] = union[UnionWithCustomIndexes](
     UnionWithCustomIndexes.ACase.alt,
     UnionWithCustomIndexes.BCase.alt,
     UnionWithCustomIndexes.CCase.alt,

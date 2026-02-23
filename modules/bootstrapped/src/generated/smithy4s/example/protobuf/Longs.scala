@@ -19,7 +19,7 @@ object Longs extends ShapeTag.Companion[Longs] {
   // constructor using the original order from the spec
   private def make(long: Long, slong: Long, ulong: Long, fixedLong: Long, fixedSlong: Long): Longs = Longs(long, slong, ulong, fixedLong, fixedSlong)
 
-  implicit val schema: Schema[Longs] = struct(
+  implicit val schema: Schema[Longs] = struct[Longs](
     long.required[Longs]("long", _.long),
     long.required[Longs]("slong", _.slong).addHints(alloy.proto.ProtoNumType.SIGNED.widen),
     long.required[Longs]("ulong", _.ulong).addHints(alloy.proto.ProtoNumType.UNSIGNED.widen),

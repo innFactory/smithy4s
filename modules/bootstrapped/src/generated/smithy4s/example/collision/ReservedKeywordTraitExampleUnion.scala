@@ -50,7 +50,7 @@ object ReservedKeywordTraitExampleUnion extends ShapeTag.Companion[ReservedKeywo
     }
   }
 
-  implicit val schema: Schema[ReservedKeywordTraitExampleUnion] = union(
+  implicit val schema: Schema[ReservedKeywordTraitExampleUnion] = union[ReservedKeywordTraitExampleUnion](
     ReservedKeywordTraitExampleUnion.MemberCase.alt,
   ){
     _.$ordinal

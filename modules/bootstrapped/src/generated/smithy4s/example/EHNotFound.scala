@@ -23,7 +23,7 @@ object EHNotFound extends ShapeTag.Companion[EHNotFound] {
   // constructor using the original order from the spec
   private def make(message: Option[String]): EHNotFound = EHNotFound(message)
 
-  implicit val schema: Schema[EHNotFound] = struct(
+  implicit val schema: Schema[EHNotFound] = struct[EHNotFound](
     string.optional[EHNotFound]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

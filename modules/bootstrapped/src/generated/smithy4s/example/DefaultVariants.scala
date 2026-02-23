@@ -17,7 +17,7 @@ object DefaultVariants extends ShapeTag.Companion[DefaultVariants] {
   // constructor using the original order from the spec
   private def make(req: String, reqDef: String, opt: Option[String], optDef: String): DefaultVariants = DefaultVariants(req, reqDef, optDef, opt)
 
-  implicit val schema: Schema[DefaultVariants] = struct(
+  implicit val schema: Schema[DefaultVariants] = struct[DefaultVariants](
     string.required[DefaultVariants]("req", _.req),
     string.required[DefaultVariants]("reqDef", _.reqDef).addHints(smithy.api.Default(smithy4s.Document.fromString("default"))),
     string.optional[DefaultVariants]("opt", _.opt),

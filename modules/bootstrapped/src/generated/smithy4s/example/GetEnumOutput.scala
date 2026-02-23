@@ -17,7 +17,7 @@ object GetEnumOutput extends ShapeTag.Companion[GetEnumOutput] {
   // constructor using the original order from the spec
   private def make(result: Option[String]): GetEnumOutput = GetEnumOutput(result)
 
-  implicit val schema: Schema[GetEnumOutput] = struct(
+  implicit val schema: Schema[GetEnumOutput] = struct[GetEnumOutput](
     string.optional[GetEnumOutput]("result", _.result),
   )(make).withId(id).addHints(hints)
 }

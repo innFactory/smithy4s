@@ -20,7 +20,7 @@ object Metadata extends ShapeTag.Companion[Metadata] {
   // constructor using the original order from the spec
   private def make(contentType: Option[String], lastModified: Option[Timestamp], checkSum: Option[String], pendingDeletion: Option[Boolean], etag: Option[String]): Metadata = Metadata(contentType, lastModified, checkSum, pendingDeletion, etag)
 
-  implicit val schema: Schema[Metadata] = struct(
+  implicit val schema: Schema[Metadata] = struct[Metadata](
     string.optional[Metadata]("contentType", _.contentType),
     timestamp.optional[Metadata]("lastModified", _.lastModified).addHints(smithy.api.TimestampFormat.EPOCH_SECONDS.widen),
     string.optional[Metadata]("checkSum", _.checkSum),

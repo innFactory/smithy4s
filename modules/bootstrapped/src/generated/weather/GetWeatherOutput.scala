@@ -19,7 +19,7 @@ object GetWeatherOutput extends ShapeTag.Companion[GetWeatherOutput] {
   // constructor using the original order from the spec
   private def make(weather: String): GetWeatherOutput = GetWeatherOutput(weather)
 
-  implicit val schema: Schema[GetWeatherOutput] = struct(
+  implicit val schema: Schema[GetWeatherOutput] = struct[GetWeatherOutput](
     string.required[GetWeatherOutput]("weather", _.weather),
   )(make).withId(id).addHints(hints)
 }

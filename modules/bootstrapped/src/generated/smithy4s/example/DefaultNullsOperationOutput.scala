@@ -19,7 +19,7 @@ object DefaultNullsOperationOutput extends ShapeTag.Companion[DefaultNullsOperat
   // constructor using the original order from the spec
   private def make(optional: Option[String], optionalWithDefault: String, requiredWithDefault: String, optionalHeader: Option[String], optionalHeaderWithDefault: String, requiredHeaderWithDefault: String): DefaultNullsOperationOutput = DefaultNullsOperationOutput(optionalWithDefault, requiredWithDefault, optionalHeaderWithDefault, requiredHeaderWithDefault, optional, optionalHeader)
 
-  implicit val schema: Schema[DefaultNullsOperationOutput] = struct(
+  implicit val schema: Schema[DefaultNullsOperationOutput] = struct[DefaultNullsOperationOutput](
     string.optional[DefaultNullsOperationOutput]("optional", _.optional),
     string.field[DefaultNullsOperationOutput]("optionalWithDefault", _.optionalWithDefault).addHints(smithy.api.Default(smithy4s.Document.fromString("optional-default"))),
     string.required[DefaultNullsOperationOutput]("requiredWithDefault", _.requiredWithDefault).addHints(smithy.api.Default(smithy4s.Document.fromString("required-default"))),
