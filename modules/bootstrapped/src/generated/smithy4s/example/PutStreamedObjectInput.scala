@@ -17,7 +17,7 @@ object PutStreamedObjectInput extends ShapeTag.Companion[PutStreamedObjectInput]
   // constructor using the original order from the spec
   private def make(key: String): PutStreamedObjectInput = PutStreamedObjectInput(key)
 
-  implicit val schema: Schema[PutStreamedObjectInput] = struct(
+  implicit val schema: Schema[PutStreamedObjectInput] = struct[PutStreamedObjectInput](
     string.required[PutStreamedObjectInput]("key", _.key),
   )(make).withId(id).addHints(hints)
 }

@@ -96,7 +96,7 @@ object Foo extends ShapeTag.Companion[Foo] {
     }
   }
 
-  implicit val schema: Schema[Foo] = union(
+  implicit val schema: Schema[Foo] = union[Foo](
     Foo.IntCase.alt,
     Foo.StrCase.alt,
     Foo.BIntCase.alt,

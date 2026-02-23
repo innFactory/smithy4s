@@ -17,7 +17,7 @@ object TestEmptyMixin extends ShapeTag.Companion[TestEmptyMixin] {
   // constructor using the original order from the spec
   private def make(a: Option[Long]): TestEmptyMixin = TestEmptyMixin(a)
 
-  implicit val schema: Schema[TestEmptyMixin] = struct(
+  implicit val schema: Schema[TestEmptyMixin] = struct[TestEmptyMixin](
     long.optional[TestEmptyMixin]("a", _.a),
   )(make).withId(id).addHints(hints)
 }

@@ -17,7 +17,7 @@ object TestDiscriminatedInput extends ShapeTag.Companion[TestDiscriminatedInput]
   // constructor using the original order from the spec
   private def make(key: String): TestDiscriminatedInput = TestDiscriminatedInput(key)
 
-  implicit val schema: Schema[TestDiscriminatedInput] = struct(
+  implicit val schema: Schema[TestDiscriminatedInput] = struct[TestDiscriminatedInput](
     string.required[TestDiscriminatedInput]("key", _.key).addHints(smithy.api.HttpLabel()),
   )(make).withId(id).addHints(hints)
 }

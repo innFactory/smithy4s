@@ -21,7 +21,7 @@ object TestDynamicBinding extends ShapeTag.Companion[TestDynamicBinding] {
   // constructor using the original order from the spec
   private def make(str: Option[String], int: Option[Int]): TestDynamicBinding = TestDynamicBinding(str, int)
 
-  implicit val schema: Schema[TestDynamicBinding] = recursive(struct(
+  implicit val schema: Schema[TestDynamicBinding] = recursive(struct[TestDynamicBinding](
     string.optional[TestDynamicBinding]("str", _.str),
     int.optional[TestDynamicBinding]("int", _.int),
   )(make).withId(id).addHints(hints))

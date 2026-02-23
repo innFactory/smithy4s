@@ -21,7 +21,7 @@ object JsonInputXmlOutputInput extends ShapeTag.Companion[JsonInputXmlOutputInpu
   // constructor using the original order from the spec
   private def make(data: Option[JsonPayload]): JsonInputXmlOutputInput = JsonInputXmlOutputInput(data)
 
-  implicit val schema: Schema[JsonInputXmlOutputInput] = struct(
+  implicit val schema: Schema[JsonInputXmlOutputInput] = struct[JsonInputXmlOutputInput](
     JsonPayload.schema.optional[JsonInputXmlOutputInput]("data", _.data).addHints(smithy.api.HttpPayload()),
   )(make).withId(id).addHints(hints)
 }

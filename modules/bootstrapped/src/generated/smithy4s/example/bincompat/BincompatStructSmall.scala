@@ -33,7 +33,7 @@ object BincompatStructSmall extends ShapeTag.Companion[BincompatStructSmall] {
   // Members available up to version 2.0 (inclusive)
   def apply(base1: String, added2_1: Option[String]): BincompatStructSmall = new BincompatStructSmall(base1 = base1, added2_1 = added2_1)
 
-  implicit val schema: Schema[BincompatStructSmall] = struct(
+  implicit val schema: Schema[BincompatStructSmall] = struct[BincompatStructSmall](
     string.required[BincompatStructSmall]("base1", _.base1),
     string.optional[BincompatStructSmall]("added2_1", _.added2_1),
   )(make).withId(id).addHints(hints)

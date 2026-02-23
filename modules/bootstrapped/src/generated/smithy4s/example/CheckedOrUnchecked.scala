@@ -58,7 +58,7 @@ object CheckedOrUnchecked extends ShapeTag.Companion[CheckedOrUnchecked] {
     }
   }
 
-  implicit val schema: Schema[CheckedOrUnchecked] = union(
+  implicit val schema: Schema[CheckedOrUnchecked] = union[CheckedOrUnchecked](
     CheckedOrUnchecked.CheckedCase.alt,
     CheckedOrUnchecked.RawCase.alt,
   ){

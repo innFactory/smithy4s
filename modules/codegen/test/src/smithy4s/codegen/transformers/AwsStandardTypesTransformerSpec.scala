@@ -91,7 +91,7 @@ final class AwsStandardTypesTransformerSpec extends munit.FunSuite {
         |  // constructor using the original order from the spec
         |  private def make(i: Int, d: Option[Date], l: Option[Long]): TestStructure = TestStructure(i, d, l)
         |
-        |  implicit val schema: Schema[TestStructure] = struct(
+        |  implicit val schema: Schema[TestStructure] = struct[TestStructure](
         |    int.required[TestStructure]("i", _.i),
         |    Date.schema.optional[TestStructure]("d", _.d),
         |    Long.schema.optional[TestStructure]("l", _.l),
@@ -154,7 +154,7 @@ final class AwsStandardTypesTransformerSpec extends munit.FunSuite {
         |  // constructor using the original order from the spec
         |  private def make(s: Option[String]): TestStructure = TestStructure(s)
         |
-        |  implicit val schema: Schema[TestStructure] = struct(
+        |  implicit val schema: Schema[TestStructure] = struct[TestStructure](
         |    string.validated(smithy.api.Length(min = Some(5L), max = Some(10L))).optional[TestStructure]("s", _.s),
         |  )(make).withId(id).addHints(hints)
         |}""".stripMargin
@@ -217,7 +217,7 @@ final class AwsStandardTypesTransformerSpec extends munit.FunSuite {
         |  // constructor using the original order from the spec
         |  private def make(i: Int): TestStructure = TestStructure(i)
         |
-        |  implicit val schema: Schema[TestStructure] = struct(
+        |  implicit val schema: Schema[TestStructure] = struct[TestStructure](
         |    int.field[TestStructure]("i", _.i).addHints(smithy.api.Default(smithy4s.Document.fromLong(5))),
         |  )(make).withId(id).addHints(hints)
         |}""".stripMargin

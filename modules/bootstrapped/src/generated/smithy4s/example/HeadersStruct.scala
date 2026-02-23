@@ -21,7 +21,7 @@ object HeadersStruct extends ShapeTag.Companion[HeadersStruct] {
   // constructor using the original order from the spec
   private def make(str: Option[String], int: Option[Int], ts1: Option[Timestamp], ts2: Option[Timestamp], ts3: Option[Timestamp], ts4: Option[Timestamp], b: Option[Boolean], sl: Option[List[String]], ie: Option[Numbers], on: Option[OpenNums], ons: Option[OpenNumsStr], slm: Option[Map[String, String]]): HeadersStruct = HeadersStruct(str, int, ts1, ts2, ts3, ts4, b, sl, ie, on, ons, slm)
 
-  implicit val schema: Schema[HeadersStruct] = struct(
+  implicit val schema: Schema[HeadersStruct] = struct[HeadersStruct](
     string.optional[HeadersStruct]("str", _.str).addHints(smithy.api.HttpHeader("str")),
     int.optional[HeadersStruct]("int", _.int).addHints(smithy.api.HttpHeader("int")),
     timestamp.optional[HeadersStruct]("ts1", _.ts1).addHints(smithy.api.HttpHeader("ts1")),

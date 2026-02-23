@@ -19,7 +19,7 @@ object BigDecimalWrapper extends ShapeTag.Companion[BigDecimalWrapper] {
   // constructor using the original order from the spec
   private def make(bigDecimal: BigDecimal): BigDecimalWrapper = BigDecimalWrapper(bigDecimal)
 
-  implicit val schema: Schema[BigDecimalWrapper] = struct(
+  implicit val schema: Schema[BigDecimalWrapper] = struct[BigDecimalWrapper](
     bigdecimal.required[BigDecimalWrapper]("bigDecimal", _.bigDecimal),
   )(make).withId(id).addHints(hints)
 }

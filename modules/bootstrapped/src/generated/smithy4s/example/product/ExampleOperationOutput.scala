@@ -19,7 +19,7 @@ object ExampleOperationOutput extends ShapeTag.Companion[ExampleOperationOutput]
   // constructor using the original order from the spec
   private def make(b: String): ExampleOperationOutput = ExampleOperationOutput(b)
 
-  implicit val schema: Schema[ExampleOperationOutput] = struct(
+  implicit val schema: Schema[ExampleOperationOutput] = struct[ExampleOperationOutput](
     string.required[ExampleOperationOutput]("b", _.b),
   )(make).withId(id).addHints(hints)
 }

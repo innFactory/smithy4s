@@ -18,7 +18,7 @@ object InlinedUnionWrapper extends ShapeTag.Companion[InlinedUnionWrapper] {
   // constructor using the original order from the spec
   private def make(myInlinedUnion: Option[MyInlinedUnion]): InlinedUnionWrapper = InlinedUnionWrapper(myInlinedUnion)
 
-  implicit val schema: Schema[InlinedUnionWrapper] = struct(
+  implicit val schema: Schema[InlinedUnionWrapper] = struct[InlinedUnionWrapper](
     MyInlinedUnion.schema.optional[InlinedUnionWrapper]("myInlinedUnion", _.myInlinedUnion),
   )(make).withId(id).addHints(hints)
 }

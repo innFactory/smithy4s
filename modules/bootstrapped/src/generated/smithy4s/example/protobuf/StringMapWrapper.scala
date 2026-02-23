@@ -18,7 +18,7 @@ object StringMapWrapper extends ShapeTag.Companion[StringMapWrapper] {
   // constructor using the original order from the spec
   private def make(values: Map[String, Int]): StringMapWrapper = StringMapWrapper(values)
 
-  implicit val schema: Schema[StringMapWrapper] = struct(
+  implicit val schema: Schema[StringMapWrapper] = struct[StringMapWrapper](
     StringMap.underlyingSchema.required[StringMapWrapper]("values", _.values),
   )(make).withId(id).addHints(hints)
 }

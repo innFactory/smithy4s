@@ -25,7 +25,7 @@ object ComplexError extends ShapeTag.Companion[ComplexError] {
   // constructor using the original order from the spec
   private def make(value: Int, message: String, details: Option[ErrorDetails]): ComplexError = ComplexError(value, message, details)
 
-  implicit val schema: Schema[ComplexError] = struct(
+  implicit val schema: Schema[ComplexError] = struct[ComplexError](
     int.required[ComplexError]("value", _.value),
     string.required[ComplexError]("message", _.message),
     ErrorDetails.schema.optional[ComplexError]("details", _.details),

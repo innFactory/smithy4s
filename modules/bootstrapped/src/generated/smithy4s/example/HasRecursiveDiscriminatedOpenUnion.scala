@@ -17,7 +17,7 @@ object HasRecursiveDiscriminatedOpenUnion extends ShapeTag.Companion[HasRecursiv
   // constructor using the original order from the spec
   private def make(rec: RecursiveDiscriminatedOpenUnion): HasRecursiveDiscriminatedOpenUnion = HasRecursiveDiscriminatedOpenUnion(rec)
 
-  implicit val schema: Schema[HasRecursiveDiscriminatedOpenUnion] = recursive(struct(
+  implicit val schema: Schema[HasRecursiveDiscriminatedOpenUnion] = recursive(struct[HasRecursiveDiscriminatedOpenUnion](
     RecursiveDiscriminatedOpenUnion.schema.required[HasRecursiveDiscriminatedOpenUnion]("rec", _.rec),
   )(make).withId(id).addHints(hints))
 }

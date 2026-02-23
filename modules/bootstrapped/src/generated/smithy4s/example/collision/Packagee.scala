@@ -17,7 +17,7 @@ object Packagee extends ShapeTag.Companion[Packagee] {
   // constructor using the original order from the spec
   private def make(_class: Option[Int]): Packagee = Packagee(_class)
 
-  implicit val schema: Schema[Packagee] = struct(
+  implicit val schema: Schema[Packagee] = struct[Packagee](
     int.optional[Packagee]("class", _._class),
   )(make).withId(id).addHints(hints)
 }

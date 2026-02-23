@@ -23,7 +23,7 @@ object OtherScalars extends ShapeTag.Companion[OtherScalars] {
   // constructor using the original order from the spec
   private def make(boolean: Boolean, byte: Byte, float: Float, double: Double, short: Short): OtherScalars = OtherScalars(boolean, byte, float, double, short)
 
-  implicit val schema: Schema[OtherScalars] = struct(
+  implicit val schema: Schema[OtherScalars] = struct[OtherScalars](
     boolean.required[OtherScalars]("boolean", _.boolean),
     byte.required[OtherScalars]("byte", _.byte),
     float.required[OtherScalars]("float", _.float),

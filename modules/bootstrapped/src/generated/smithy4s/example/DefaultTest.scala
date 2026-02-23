@@ -30,7 +30,7 @@ object DefaultTest extends ShapeTag.Companion[DefaultTest] {
   // constructor using the original order from the spec
   private def make(one: Int, two: String, three: List[String], four: List[String], five: String, six: Int, seven: Document, eight: Map[String, String], nine: Short, ten: Double, eleven: Float, twelve: Long, thirteen: Timestamp, fourteen: Timestamp, fifteen: Timestamp, sixteen: Byte, seventeen: Blob, eighteen: Boolean): DefaultTest = DefaultTest(one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen, eighteen)
 
-  implicit val schema: Schema[DefaultTest] = struct(
+  implicit val schema: Schema[DefaultTest] = struct[DefaultTest](
     int.field[DefaultTest]("one", _.one).addHints(smithy.api.Default(smithy4s.Document.fromLong(1))),
     string.field[DefaultTest]("two", _.two).addHints(smithy.api.Default(smithy4s.Document.fromString("test"))),
     StringList.underlyingSchema.field[DefaultTest]("three", _.three).addHints(smithy.api.Default(smithy4s.Document.array())),

@@ -27,7 +27,7 @@ object Endpoint extends ShapeTag.Companion[Endpoint] {
   // constructor using the original order from the spec
   private def make(address: String, cachePeriodInMinutes: Long): Endpoint = Endpoint(address, cachePeriodInMinutes)
 
-  implicit val schema: Schema[Endpoint] = struct(
+  implicit val schema: Schema[Endpoint] = struct[Endpoint](
     string.required[Endpoint]("Address", _.address).addHints(smithy.api.Documentation("<p>IP address of the endpoint.</p>")),
     long.required[Endpoint]("CachePeriodInMinutes", _.cachePeriodInMinutes).addHints(smithy.api.Default(smithy4s.Document.fromLong(0)), smithy.api.Documentation("<p>Endpoint cache time to live (TTL) value.</p>")),
   )(make).withId(id).addHints(hints)

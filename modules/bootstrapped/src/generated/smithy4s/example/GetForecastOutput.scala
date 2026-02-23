@@ -21,7 +21,7 @@ object GetForecastOutput extends ShapeTag.Companion[GetForecastOutput] {
   // constructor using the original order from the spec
   private def make(forecast: Option[ForecastResult]): GetForecastOutput = GetForecastOutput(forecast)
 
-  implicit val schema: Schema[GetForecastOutput] = struct(
+  implicit val schema: Schema[GetForecastOutput] = struct[GetForecastOutput](
     ForecastResult.schema.optional[GetForecastOutput]("forecast", _.forecast),
   )(make).withId(id).addHints(hints)
 }

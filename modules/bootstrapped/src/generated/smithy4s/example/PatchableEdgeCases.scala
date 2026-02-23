@@ -19,7 +19,7 @@ object PatchableEdgeCases extends ShapeTag.Companion[PatchableEdgeCases] {
   // constructor using the original order from the spec
   private def make(required: Nullable[Int], requiredDefaultValue: Nullable[Int], requiredDefaultNull: Nullable[Int], defaultValue: Nullable[Int], defaultNull: Nullable[Int]): PatchableEdgeCases = PatchableEdgeCases(required, requiredDefaultValue, requiredDefaultNull, defaultValue, defaultNull)
 
-  implicit val schema: Schema[PatchableEdgeCases] = struct(
+  implicit val schema: Schema[PatchableEdgeCases] = struct[PatchableEdgeCases](
     int.nullable.required[PatchableEdgeCases]("required", _.required),
     int.nullable.required[PatchableEdgeCases]("requiredDefaultValue", _.requiredDefaultValue).addHints(smithy.api.Default(smithy4s.Document.fromLong(3))),
     int.nullable.required[PatchableEdgeCases]("requiredDefaultNull", _.requiredDefaultNull).addHints(smithy.api.Default(smithy4s.Document.nullDoc)),

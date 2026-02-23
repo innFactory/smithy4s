@@ -17,7 +17,7 @@ object MenuItem extends ShapeTag.Companion[MenuItem] {
   // constructor using the original order from the spec
   private def make(food: Food, price: Float, tags: Option[List[String]], extraData: Option[Map[String, String]]): MenuItem = MenuItem(food, price, tags, extraData)
 
-  implicit val schema: Schema[MenuItem] = struct(
+  implicit val schema: Schema[MenuItem] = struct[MenuItem](
     Food.schema.required[MenuItem]("food", _.food),
     float.required[MenuItem]("price", _.price),
     Tags.underlyingSchema.optional[MenuItem]("tags", _.tags),

@@ -19,7 +19,7 @@ object S3Object extends ShapeTag.Companion[S3Object] {
   // constructor using the original order from the spec
   private def make(id: String, owner: String, attributes: Attributes, data: Blob): S3Object = S3Object(id, owner, attributes, data)
 
-  implicit val schema: Schema[S3Object] = struct(
+  implicit val schema: Schema[S3Object] = struct[S3Object](
     string.required[S3Object]("id", _.id),
     string.required[S3Object]("owner", _.owner),
     Attributes.schema.required[S3Object]("attributes", _.attributes),

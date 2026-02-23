@@ -17,7 +17,7 @@ object World extends ShapeTag.Companion[World] {
   // constructor using the original order from the spec
   private def make(message: String): World = World(message)
 
-  implicit val schema: Schema[World] = struct(
+  implicit val schema: Schema[World] = struct[World](
     string.field[World]("message", _.message).addHints(smithy.api.Default(smithy4s.Document.fromString("World !"))),
   )(make).withId(id).addHints(hints)
 }

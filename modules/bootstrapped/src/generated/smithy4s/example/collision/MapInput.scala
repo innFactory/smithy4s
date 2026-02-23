@@ -18,7 +18,7 @@ object MapInput extends ShapeTag.Companion[MapInput] {
   // constructor using the original order from the spec
   private def make(value: Map[String, String]): MapInput = MapInput(value)
 
-  implicit val schema: Schema[MapInput] = struct(
+  implicit val schema: Schema[MapInput] = struct[MapInput](
     MyMap.underlyingSchema.required[MapInput]("value", _.value),
   )(make).withId(id).addHints(hints)
 }

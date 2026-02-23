@@ -40,7 +40,7 @@ object PersonUnion extends ShapeTag.Companion[PersonUnion] {
     // constructor using the original order from the spec
     private def make(name: String): OtherPerson = OtherPerson(name)
 
-    val schema: Schema[OtherPerson] = struct(
+    val schema: Schema[OtherPerson] = struct[OtherPerson](
       string.required[OtherPerson]("name", _.name),
     )(make).withId(id).addHints(hints)
 
@@ -59,7 +59,7 @@ object PersonUnion extends ShapeTag.Companion[PersonUnion] {
     }
   }
 
-  implicit val schema: Schema[PersonUnion] = union(
+  implicit val schema: Schema[PersonUnion] = union[PersonUnion](
     PersonUnion.OtherPerson.alt,
   ){
     _.$ordinal

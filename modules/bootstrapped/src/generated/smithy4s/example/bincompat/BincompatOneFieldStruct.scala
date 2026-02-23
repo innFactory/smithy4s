@@ -30,7 +30,7 @@ object BincompatOneFieldStruct extends ShapeTag.Companion[BincompatOneFieldStruc
   // Members available since the beginning
   def apply(s: Option[String] = None): BincompatOneFieldStruct = new BincompatOneFieldStruct(s = s)
 
-  implicit val schema: Schema[BincompatOneFieldStruct] = struct(
+  implicit val schema: Schema[BincompatOneFieldStruct] = struct[BincompatOneFieldStruct](
     string.optional[BincompatOneFieldStruct]("s", _.s),
   )(make).withId(id).addHints(hints)
 }

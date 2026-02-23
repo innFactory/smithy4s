@@ -21,7 +21,7 @@ object XmlOutputOutput extends ShapeTag.Companion[XmlOutputOutput] {
   // constructor using the original order from the spec
   private def make(result: Option[XmlPayload]): XmlOutputOutput = XmlOutputOutput(result)
 
-  implicit val schema: Schema[XmlOutputOutput] = struct(
+  implicit val schema: Schema[XmlOutputOutput] = struct[XmlOutputOutput](
     XmlPayload.schema.optional[XmlOutputOutput]("result", _.result).addHints(smithy.api.HttpPayload()),
   )(make).withId(id).addHints(hints)
 }

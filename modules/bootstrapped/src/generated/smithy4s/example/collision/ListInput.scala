@@ -18,7 +18,7 @@ object ListInput extends ShapeTag.Companion[ListInput] {
   // constructor using the original order from the spec
   private def make(list: List[String]): ListInput = ListInput(list)
 
-  implicit val schema: Schema[ListInput] = struct(
+  implicit val schema: Schema[ListInput] = struct[ListInput](
     MyList.underlyingSchema.required[ListInput]("list", _.list),
   )(make).withId(id).addHints(hints)
 }

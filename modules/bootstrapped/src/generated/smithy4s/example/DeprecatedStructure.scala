@@ -20,7 +20,7 @@ object DeprecatedStructure extends ShapeTag.Companion[DeprecatedStructure] {
   // constructor using the original order from the spec
   private def make(strings: Option[List[String]], other: Option[List[String]], name: Option[String], nameV2: Option[String]): DeprecatedStructure = DeprecatedStructure(strings, other, name, nameV2)
 
-  implicit val schema: Schema[DeprecatedStructure] = struct(
+  implicit val schema: Schema[DeprecatedStructure] = struct[DeprecatedStructure](
     Strings.underlyingSchema.optional[DeprecatedStructure]("strings", _.strings).addHints(smithy.api.Deprecated(message = None, since = None)),
     Strings.underlyingSchema.optional[DeprecatedStructure]("other", _.other),
     string.optional[DeprecatedStructure]("name", _.name).addHints(smithy.api.Deprecated(message = None, since = None)),

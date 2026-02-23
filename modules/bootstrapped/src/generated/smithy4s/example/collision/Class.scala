@@ -57,7 +57,7 @@ object Class extends ShapeTag.Companion[Class] {
     }
   }
 
-  implicit val schema: Schema[Class] = recursive(union(
+  implicit val schema: Schema[Class] = recursive(union[Class](
     Class.AdtStruct.alt,
   ){
     _.$ordinal

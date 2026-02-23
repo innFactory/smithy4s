@@ -23,7 +23,7 @@ object SpecificServerError extends ShapeTag.Companion[SpecificServerError] {
   // constructor using the original order from the spec
   private def make(message: Option[String]): SpecificServerError = SpecificServerError(message)
 
-  implicit val schema: Schema[SpecificServerError] = struct(
+  implicit val schema: Schema[SpecificServerError] = struct[SpecificServerError](
     string.optional[SpecificServerError]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

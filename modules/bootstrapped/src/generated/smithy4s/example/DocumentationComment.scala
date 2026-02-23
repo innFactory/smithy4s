@@ -24,7 +24,7 @@ object DocumentationComment extends ShapeTag.Companion[DocumentationComment] {
   // constructor using the original order from the spec
   private def make(member: Option[String]): DocumentationComment = DocumentationComment(member)
 
-  implicit val schema: Schema[DocumentationComment] = struct(
+  implicit val schema: Schema[DocumentationComment] = struct[DocumentationComment](
     string.optional[DocumentationComment]("member", _.member).addHints(smithy.api.Documentation("/*")),
   )(make).withId(id).addHints(hints)
 }

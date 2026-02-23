@@ -57,7 +57,7 @@ object UnionWithRefinedTypes extends ShapeTag.Companion[UnionWithRefinedTypes] {
     }
   }
 
-  implicit val schema: Schema[UnionWithRefinedTypes] = union(
+  implicit val schema: Schema[UnionWithRefinedTypes] = union[UnionWithRefinedTypes](
     UnionWithRefinedTypes.AgeCase.alt,
     UnionWithRefinedTypes.DogNameCase.alt,
   ){

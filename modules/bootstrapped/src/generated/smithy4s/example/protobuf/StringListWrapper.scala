@@ -18,7 +18,7 @@ object StringListWrapper extends ShapeTag.Companion[StringListWrapper] {
   // constructor using the original order from the spec
   private def make(strings: List[String], wrappedStrings: List[String]): StringListWrapper = StringListWrapper(strings, wrappedStrings)
 
-  implicit val schema: Schema[StringListWrapper] = struct(
+  implicit val schema: Schema[StringListWrapper] = struct[StringListWrapper](
     StringList.underlyingSchema.required[StringListWrapper]("strings", _.strings),
     WrappedStringList.underlyingSchema.required[StringListWrapper]("wrappedStrings", _.wrappedStrings),
   )(make).withId(id).addHints(hints)

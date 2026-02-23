@@ -19,7 +19,7 @@ object TestPathInput extends ShapeTag.Companion[TestPathInput] {
   // constructor using the original order from the spec
   private def make(path: String): TestPathInput = TestPathInput(path)
 
-  implicit val schema: Schema[TestPathInput] = struct(
+  implicit val schema: Schema[TestPathInput] = struct[TestPathInput](
     string.required[TestPathInput]("path", _.path).addHints(smithy.api.HttpLabel()),
   )(make).withId(id).addHints(hints)
 }

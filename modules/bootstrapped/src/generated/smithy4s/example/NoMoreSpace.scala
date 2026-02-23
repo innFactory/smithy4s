@@ -28,7 +28,7 @@ object NoMoreSpace extends ShapeTag.Companion[NoMoreSpace] {
   // constructor using the original order from the spec
   private def make(message: String, foo: Option[Foo]): NoMoreSpace = NoMoreSpace(message, foo)
 
-  implicit val schema: Schema[NoMoreSpace] = struct(
+  implicit val schema: Schema[NoMoreSpace] = struct[NoMoreSpace](
     string.required[NoMoreSpace]("message", _.message),
     Foo.schema.optional[NoMoreSpace]("foo", _.foo),
   )(make).withId(id).addHints(hints)

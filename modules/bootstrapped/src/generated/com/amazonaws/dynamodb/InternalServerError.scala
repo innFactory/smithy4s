@@ -27,7 +27,7 @@ object InternalServerError extends ShapeTag.Companion[InternalServerError] {
   // constructor using the original order from the spec
   private def make(message: Option[ErrorMessage]): InternalServerError = InternalServerError(message)
 
-  implicit val schema: Schema[InternalServerError] = struct(
+  implicit val schema: Schema[InternalServerError] = struct[InternalServerError](
     ErrorMessage.schema.optional[InternalServerError]("message", _.message).addHints(smithy.api.Documentation("<p>The server encountered an internal error trying to fulfill the request.</p>")),
   )(make).withId(id).addHints(hints)
 }

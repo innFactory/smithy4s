@@ -17,7 +17,7 @@ object CityCoordinates extends ShapeTag.Companion[CityCoordinates] {
   // constructor using the original order from the spec
   private def make(latitude: Float, longitude: Float): CityCoordinates = CityCoordinates(latitude, longitude)
 
-  implicit val schema: Schema[CityCoordinates] = struct(
+  implicit val schema: Schema[CityCoordinates] = struct[CityCoordinates](
     float.required[CityCoordinates]("latitude", _.latitude),
     float.required[CityCoordinates]("longitude", _.longitude),
   )(make).withId(id).addHints(hints)

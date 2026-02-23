@@ -19,7 +19,7 @@ object ErrorDetails extends ShapeTag.Companion[ErrorDetails] {
   // constructor using the original order from the spec
   private def make(date: Timestamp, location: String): ErrorDetails = ErrorDetails(date, location)
 
-  implicit val schema: Schema[ErrorDetails] = struct(
+  implicit val schema: Schema[ErrorDetails] = struct[ErrorDetails](
     timestamp.required[ErrorDetails]("date", _.date).addHints(smithy.api.TimestampFormat.EPOCH_SECONDS.widen),
     string.required[ErrorDetails]("location", _.location),
   )(make).withId(id).addHints(hints)

@@ -19,7 +19,7 @@ object DefaultNullsOperationInput extends ShapeTag.Companion[DefaultNullsOperati
   // constructor using the original order from the spec
   private def make(optional: Option[String], optionalWithDefault: String, requiredLabel: String, requiredWithDefault: String, optionalHeader: Option[String], optionalHeaderWithDefault: String, requiredHeaderWithDefault: String, optionalQuery: Option[String], optionalQueryWithDefault: String, requiredQueryWithDefault: String): DefaultNullsOperationInput = DefaultNullsOperationInput(optionalWithDefault, requiredLabel, requiredWithDefault, optionalHeaderWithDefault, requiredHeaderWithDefault, optionalQueryWithDefault, requiredQueryWithDefault, optional, optionalHeader, optionalQuery)
 
-  implicit val schema: Schema[DefaultNullsOperationInput] = struct(
+  implicit val schema: Schema[DefaultNullsOperationInput] = struct[DefaultNullsOperationInput](
     string.optional[DefaultNullsOperationInput]("optional", _.optional),
     string.field[DefaultNullsOperationInput]("optionalWithDefault", _.optionalWithDefault).addHints(smithy.api.Default(smithy4s.Document.fromString("optional-default"))),
     string.required[DefaultNullsOperationInput]("requiredLabel", _.requiredLabel).addHints(smithy.api.Default(smithy4s.Document.fromString("required-label-with-default")), smithy.api.HttpLabel()),
