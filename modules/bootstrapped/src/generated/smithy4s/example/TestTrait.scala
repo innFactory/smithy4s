@@ -23,7 +23,7 @@ object TestTrait extends ShapeTag.Companion[TestTrait] {
   // constructor using the original order from the spec
   private def make(orderType: Option[OrderType]): TestTrait = TestTrait(orderType)
 
-  implicit val schema: Schema[TestTrait] = recursive(struct(
+  implicit val schema: Schema[TestTrait] = recursive(struct[TestTrait](
     OrderType.schema.optional[TestTrait]("orderType", _.orderType),
   )(make).withId(id).addHints(hints))
 }

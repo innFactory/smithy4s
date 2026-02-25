@@ -50,7 +50,7 @@ object OnlyUnknownOpenUnion extends ShapeTag.Companion[OnlyUnknownOpenUnion] {
     }
   }
 
-  implicit val schema: Schema[OnlyUnknownOpenUnion] = union(
+  implicit val schema: Schema[OnlyUnknownOpenUnion] = union[OnlyUnknownOpenUnion](
     OnlyUnknownOpenUnion.UnknownCase.alt,
   ){
     _.$ordinal

@@ -18,7 +18,7 @@ object LocalDateStructure extends ShapeTag.Companion[LocalDateStructure] {
   // constructor using the original order from the spec
   private def make(localDate: LocalDate, localDate2: MyLocalDate): LocalDateStructure = LocalDateStructure(localDate, localDate2)
 
-  implicit val schema: Schema[LocalDateStructure] = struct(
+  implicit val schema: Schema[LocalDateStructure] = struct[LocalDateStructure](
     localdate.required[LocalDateStructure]("localDate", _.localDate),
     MyLocalDate.schema.required[LocalDateStructure]("localDate2", _.localDate2),
   )(make).withId(id).addHints(hints)

@@ -19,7 +19,7 @@ object Recursive extends ShapeTag.Companion[Recursive] {
   // constructor using the original order from the spec
   private def make(recursive: Option[smithy4s.example.protobuf.Recursive]): Recursive = Recursive(recursive)
 
-  implicit val schema: Schema[Recursive] = recursive(struct(
+  implicit val schema: Schema[Recursive] = recursive(struct[Recursive](
     smithy4s.example.protobuf.Recursive.schema.optional[Recursive]("recursive", _.recursive),
   )(make).withId(id).addHints(hints))
 }

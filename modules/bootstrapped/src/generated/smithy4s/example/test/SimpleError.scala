@@ -21,7 +21,7 @@ object SimpleError extends ShapeTag.Companion[SimpleError] {
   // constructor using the original order from the spec
   private def make(expected: Int): SimpleError = SimpleError(expected)
 
-  implicit val schema: Schema[SimpleError] = struct(
+  implicit val schema: Schema[SimpleError] = struct[SimpleError](
     int.required[SimpleError]("expected", _.expected),
   )(make).withId(id).addHints(hints)
 }

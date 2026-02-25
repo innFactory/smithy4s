@@ -21,7 +21,7 @@ object ClientError extends ShapeTag.Companion[ClientError] {
   // constructor using the original order from the spec
   private def make(code: Int, details: String): ClientError = ClientError(code, details)
 
-  implicit val schema: Schema[ClientError] = struct(
+  implicit val schema: Schema[ClientError] = struct[ClientError](
     int.required[ClientError]("code", _.code),
     string.required[ClientError]("details", _.details),
   )(make).withId(id).addHints(hints)

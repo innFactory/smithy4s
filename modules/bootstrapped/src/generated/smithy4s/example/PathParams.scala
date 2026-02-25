@@ -21,7 +21,7 @@ object PathParams extends ShapeTag.Companion[PathParams] {
   // constructor using the original order from the spec
   private def make(str: String, int: Int, ts1: Timestamp, ts2: Timestamp, ts3: Timestamp, ts4: Timestamp, b: Boolean, ie: Numbers): PathParams = PathParams(str, int, ts1, ts2, ts3, ts4, b, ie)
 
-  implicit val schema: Schema[PathParams] = struct(
+  implicit val schema: Schema[PathParams] = struct[PathParams](
     string.required[PathParams]("str", _.str).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),
     int.required[PathParams]("int", _.int).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),
     timestamp.required[PathParams]("ts1", _.ts1).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),

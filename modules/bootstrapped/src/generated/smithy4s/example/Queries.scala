@@ -22,7 +22,7 @@ object Queries extends ShapeTag.Companion[Queries] {
   // constructor using the original order from the spec
   private def make(str: Option[String], int: Option[Int], ts1: Option[Timestamp], ts2: Option[Timestamp], ts3: Option[Timestamp], ts4: Option[Timestamp], b: Option[Boolean], sl: Option[List[String]], ie: Option[Numbers], on: Option[OpenNums], ons: Option[OpenNumsStr], dbl: Option[Double], slm: Option[Map[String, String]]): Queries = Queries(str, int, ts1, ts2, ts3, ts4, b, sl, ie, on, ons, dbl, slm)
 
-  implicit val schema: Schema[Queries] = struct(
+  implicit val schema: Schema[Queries] = struct[Queries](
     string.optional[Queries]("str", _.str).addHints(Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("str"))),
     int.optional[Queries]("int", _.int).addHints(Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("int"))),
     timestamp.optional[Queries]("ts1", _.ts1).addHints(Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("ts1"))),

@@ -48,7 +48,7 @@ object TestAdt extends ShapeTag.Companion[TestAdt] {
     // constructor using the original order from the spec
     private def make(lng: Option[Long], sht: Option[Short], blb: Option[Blob], str: Option[String]): AdtOne = AdtOne(lng, sht, blb, str)
 
-    val schema: Schema[AdtOne] = struct(
+    val schema: Schema[AdtOne] = struct[AdtOne](
       long.optional[AdtOne]("lng", _.lng),
       short.optional[AdtOne]("sht", _.sht),
       bytes.optional[AdtOne]("blb", _.blb),
@@ -69,7 +69,7 @@ object TestAdt extends ShapeTag.Companion[TestAdt] {
     // constructor using the original order from the spec
     private def make(lng: Option[Long], sht: Option[Short], int: Option[Int]): AdtTwo = AdtTwo(lng, sht, int)
 
-    val schema: Schema[AdtTwo] = struct(
+    val schema: Schema[AdtTwo] = struct[AdtTwo](
       long.optional[AdtTwo]("lng", _.lng),
       short.optional[AdtTwo]("sht", _.sht),
       int.optional[AdtTwo]("int", _.int),
@@ -92,7 +92,7 @@ object TestAdt extends ShapeTag.Companion[TestAdt] {
     }
   }
 
-  implicit val schema: Schema[TestAdt] = union(
+  implicit val schema: Schema[TestAdt] = union[TestAdt](
     TestAdt.AdtOne.alt,
     TestAdt.AdtTwo.alt,
   ){

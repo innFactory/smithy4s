@@ -17,7 +17,7 @@ object GetCityOutput extends ShapeTag.Companion[GetCityOutput] {
   // constructor using the original order from the spec
   private def make(name: String, coordinates: CityCoordinates): GetCityOutput = GetCityOutput(name, coordinates)
 
-  implicit val schema: Schema[GetCityOutput] = struct(
+  implicit val schema: Schema[GetCityOutput] = struct[GetCityOutput](
     string.required[GetCityOutput]("name", _.name),
     CityCoordinates.schema.required[GetCityOutput]("coordinates", _.coordinates),
   )(make).withId(id).addHints(hints)

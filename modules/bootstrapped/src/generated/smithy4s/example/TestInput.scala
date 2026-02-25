@@ -24,7 +24,7 @@ object TestInput extends ShapeTag.Companion[TestInput] {
   // constructor using the original order from the spec
   private def make(pathParam: String, queryParam: Option[String], body: TestBody): TestInput = TestInput(pathParam, body, queryParam)
 
-  implicit val schema: Schema[TestInput] = struct(
+  implicit val schema: Schema[TestInput] = struct[TestInput](
     string.validated(smithy.api.Length(min = Some(10L), max = None)).required[TestInput]("pathParam", _.pathParam).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),
     string.validated(smithy.api.Length(min = Some(10L), max = None)).optional[TestInput]("queryParam", _.queryParam).addHints(Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("queryParam"))),
     TestBody.schema.required[TestInput]("body", _.body).addHints(Hints.dynamic(ShapeId("smithy.api", "httpPayload"), smithy4s.Document.obj())),

@@ -18,7 +18,7 @@ object OptionInput extends ShapeTag.Companion[OptionInput] {
   // constructor using the original order from the spec
   private def make(value: Option[String]): OptionInput = OptionInput(value)
 
-  implicit val schema: Schema[OptionInput] = struct(
+  implicit val schema: Schema[OptionInput] = struct[OptionInput](
     String.schema.optional[OptionInput]("value", _.value),
   )(make).withId(id).addHints(hints)
 }

@@ -20,7 +20,7 @@ object FallbackError extends ShapeTag.Companion[FallbackError] {
   // constructor using the original order from the spec
   private def make(error: String): FallbackError = FallbackError(error)
 
-  implicit val schema: Schema[FallbackError] = struct(
+  implicit val schema: Schema[FallbackError] = struct[FallbackError](
     string.required[FallbackError]("error", _.error),
   )(make).withId(id).addHints(hints)
 }

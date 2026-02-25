@@ -22,7 +22,7 @@ object KeyNotFoundError extends ShapeTag.Companion[KeyNotFoundError] {
   // constructor using the original order from the spec
   private def make(message: String): KeyNotFoundError = KeyNotFoundError(message)
 
-  implicit val schema: Schema[KeyNotFoundError] = struct(
+  implicit val schema: Schema[KeyNotFoundError] = struct[KeyNotFoundError](
     string.required[KeyNotFoundError]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

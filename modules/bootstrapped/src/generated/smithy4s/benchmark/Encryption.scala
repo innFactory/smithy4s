@@ -19,7 +19,7 @@ object Encryption extends ShapeTag.Companion[Encryption] {
   // constructor using the original order from the spec
   private def make(user: Option[String], date: Option[Timestamp], metadata: Option[EncryptionMetadata]): Encryption = Encryption(user, date, metadata)
 
-  implicit val schema: Schema[Encryption] = struct(
+  implicit val schema: Schema[Encryption] = struct[Encryption](
     string.optional[Encryption]("user", _.user),
     timestamp.optional[Encryption]("date", _.date).addHints(Hints.dynamic(ShapeId("smithy.api", "timestampFormat"), smithy4s.Document.fromString("epoch-seconds"))),
     EncryptionMetadata.schema.optional[Encryption]("metadata", _.metadata),

@@ -17,7 +17,7 @@ object PackedInput extends ShapeTag.Companion[PackedInput] {
   // constructor using the original order from the spec
   private def make(key: String): PackedInput = PackedInput(key)
 
-  implicit val schema: Schema[PackedInput] = struct(
+  implicit val schema: Schema[PackedInput] = struct[PackedInput](
     string.required[PackedInput]("key", _.key),
   )(make).withId(id).addHints(hints)
 }

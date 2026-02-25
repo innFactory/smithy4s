@@ -22,7 +22,7 @@ object EHFallbackClientError extends ShapeTag.Companion[EHFallbackClientError] {
   // constructor using the original order from the spec
   private def make(message: Option[String]): EHFallbackClientError = EHFallbackClientError(message)
 
-  implicit val schema: Schema[EHFallbackClientError] = struct(
+  implicit val schema: Schema[EHFallbackClientError] = struct[EHFallbackClientError](
     string.optional[EHFallbackClientError]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

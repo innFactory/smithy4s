@@ -19,7 +19,7 @@ object ErrorHandlingOperationOutput extends ShapeTag.Companion[ErrorHandlingOper
   // constructor using the original order from the spec
   private def make(out: Option[String]): ErrorHandlingOperationOutput = ErrorHandlingOperationOutput(out)
 
-  implicit val schema: Schema[ErrorHandlingOperationOutput] = struct(
+  implicit val schema: Schema[ErrorHandlingOperationOutput] = struct[ErrorHandlingOperationOutput](
     string.optional[ErrorHandlingOperationOutput]("out", _.out),
   )(make).withId(id).addHints(hints)
 }

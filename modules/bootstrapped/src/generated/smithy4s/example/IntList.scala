@@ -18,7 +18,7 @@ object IntList extends ShapeTag.Companion[IntList] {
   // constructor using the original order from the spec
   private def make(head: Int, tail: Option[smithy4s.example.IntList]): IntList = IntList(head, tail)
 
-  implicit val schema: Schema[IntList] = recursive(struct(
+  implicit val schema: Schema[IntList] = recursive(struct[IntList](
     int.required[IntList]("head", _.head),
     smithy4s.example.IntList.schema.optional[IntList]("tail", _.tail),
   )(make).withId(id).addHints(hints))

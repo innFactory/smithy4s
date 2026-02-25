@@ -21,7 +21,7 @@ object NotFoundError extends ShapeTag.Companion[NotFoundError] {
   // constructor using the original order from the spec
   private def make(error: Option[String]): NotFoundError = NotFoundError(error)
 
-  implicit val schema: Schema[NotFoundError] = struct(
+  implicit val schema: Schema[NotFoundError] = struct[NotFoundError](
     string.optional[NotFoundError]("error", _.error),
   )(make).withId(id).addHints(hints)
 }

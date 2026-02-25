@@ -21,7 +21,7 @@ object BlobOutputWithMediaTypeOutput extends ShapeTag.Companion[BlobOutputWithMe
   // constructor using the original order from the spec
   private def make(image: Option[PngImage]): BlobOutputWithMediaTypeOutput = BlobOutputWithMediaTypeOutput(image)
 
-  implicit val schema: Schema[BlobOutputWithMediaTypeOutput] = struct(
+  implicit val schema: Schema[BlobOutputWithMediaTypeOutput] = struct[BlobOutputWithMediaTypeOutput](
     PngImage.schema.optional[BlobOutputWithMediaTypeOutput]("image", _.image).addHints(Hints.dynamic(ShapeId("smithy.api", "httpPayload"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)
 }

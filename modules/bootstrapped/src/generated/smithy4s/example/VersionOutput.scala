@@ -17,7 +17,7 @@ object VersionOutput extends ShapeTag.Companion[VersionOutput] {
   // constructor using the original order from the spec
   private def make(version: String): VersionOutput = VersionOutput(version)
 
-  implicit val schema: Schema[VersionOutput] = struct(
+  implicit val schema: Schema[VersionOutput] = struct[VersionOutput](
     string.required[VersionOutput]("version", _.version).addHints(Hints.dynamic(ShapeId("smithy.api", "httpPayload"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)
 }

@@ -73,7 +73,7 @@ object SampleOpenDiscriminatedUnion extends ShapeTag.Companion[SampleOpenDiscrim
     }
   }
 
-  implicit val schema: Schema[SampleOpenDiscriminatedUnion] = union(
+  implicit val schema: Schema[SampleOpenDiscriminatedUnion] = union[SampleOpenDiscriminatedUnion](
     SampleOpenDiscriminatedUnion.SCase.alt,
     SampleOpenDiscriminatedUnion.UCase.alt,
     SampleOpenDiscriminatedUnion.UnknownCase.alt,

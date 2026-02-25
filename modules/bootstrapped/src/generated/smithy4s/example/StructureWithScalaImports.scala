@@ -18,7 +18,7 @@ object StructureWithScalaImports extends ShapeTag.Companion[StructureWithScalaIm
   // constructor using the original order from the spec
   private def make(teenage: Option[Age]): StructureWithScalaImports = StructureWithScalaImports(teenage)
 
-  implicit val schema: Schema[StructureWithScalaImports] = struct(
+  implicit val schema: Schema[StructureWithScalaImports] = struct[StructureWithScalaImports](
     Age.schema.validated(smithy.api.Range(min = Some(scala.math.BigDecimal(13.0)), max = Some(scala.math.BigDecimal(19.0)))).optional[StructureWithScalaImports]("teenage", _.teenage),
   )(make).withId(id).addHints(hints)
 }

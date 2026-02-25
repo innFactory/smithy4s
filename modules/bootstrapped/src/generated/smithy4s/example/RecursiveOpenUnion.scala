@@ -72,7 +72,7 @@ object RecursiveOpenUnion extends ShapeTag.Companion[RecursiveOpenUnion] {
     }
   }
 
-  implicit val schema: Schema[RecursiveOpenUnion] = recursive(union(
+  implicit val schema: Schema[RecursiveOpenUnion] = recursive(union[RecursiveOpenUnion](
     RecursiveOpenUnion.RecCase.alt,
     RecursiveOpenUnion.EndCase.alt,
     RecursiveOpenUnion.UnknownCase.alt,

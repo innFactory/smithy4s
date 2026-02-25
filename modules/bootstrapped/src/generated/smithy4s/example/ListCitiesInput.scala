@@ -18,7 +18,7 @@ object ListCitiesInput extends ShapeTag.Companion[ListCitiesInput] {
   // constructor using the original order from the spec
   private def make(nextToken: Option[String], pageSize: Option[Int]): ListCitiesInput = ListCitiesInput(nextToken, pageSize)
 
-  implicit val schema: Schema[ListCitiesInput] = struct(
+  implicit val schema: Schema[ListCitiesInput] = struct[ListCitiesInput](
     string.optional[ListCitiesInput]("nextToken", _.nextToken),
     int.optional[ListCitiesInput]("pageSize", _.pageSize),
   )(make).withId(id).addHints(hints)

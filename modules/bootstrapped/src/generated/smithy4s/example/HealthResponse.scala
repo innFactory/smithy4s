@@ -19,7 +19,7 @@ object HealthResponse extends ShapeTag.Companion[HealthResponse] {
   // constructor using the original order from the spec
   private def make(status: String): HealthResponse = HealthResponse(status)
 
-  implicit val schema: Schema[HealthResponse] = struct(
+  implicit val schema: Schema[HealthResponse] = struct[HealthResponse](
     string.required[HealthResponse]("status", _.status),
   )(make).withId(id).addHints(hints)
 }

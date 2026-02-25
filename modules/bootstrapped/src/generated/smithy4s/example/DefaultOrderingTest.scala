@@ -18,7 +18,7 @@ object DefaultOrderingTest extends ShapeTag.Companion[DefaultOrderingTest] {
   // constructor using the original order from the spec
   private def make(one: Int, two: Option[String], three: String): DefaultOrderingTest = DefaultOrderingTest(three, one, two)
 
-  implicit val schema: Schema[DefaultOrderingTest] = struct(
+  implicit val schema: Schema[DefaultOrderingTest] = struct[DefaultOrderingTest](
     int.field[DefaultOrderingTest]("one", _.one).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.fromLong(1))),
     string.optional[DefaultOrderingTest]("two", _.two),
     string.required[DefaultOrderingTest]("three", _.three),

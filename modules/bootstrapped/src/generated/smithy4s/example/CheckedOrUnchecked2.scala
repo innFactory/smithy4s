@@ -60,7 +60,7 @@ object CheckedOrUnchecked2 extends ShapeTag.Companion[CheckedOrUnchecked2] {
     }
   }
 
-  implicit val schema: Schema[CheckedOrUnchecked2] = union(
+  implicit val schema: Schema[CheckedOrUnchecked2] = union[CheckedOrUnchecked2](
     CheckedOrUnchecked2.CheckedCase.alt,
     CheckedOrUnchecked2.RawCase.alt,
   ){

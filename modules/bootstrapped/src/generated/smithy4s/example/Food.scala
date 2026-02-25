@@ -57,7 +57,7 @@ object Food extends ShapeTag.Companion[Food] {
     }
   }
 
-  implicit val schema: Schema[Food] = union(
+  implicit val schema: Schema[Food] = union[Food](
     Food.PizzaCase.alt,
     Food.SaladCase.alt,
   ){

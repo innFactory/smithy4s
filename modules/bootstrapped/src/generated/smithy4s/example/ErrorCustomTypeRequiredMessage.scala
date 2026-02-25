@@ -21,7 +21,7 @@ object ErrorCustomTypeRequiredMessage extends ShapeTag.Companion[ErrorCustomType
   // constructor using the original order from the spec
   private def make(message: CustomErrorMessageType): ErrorCustomTypeRequiredMessage = ErrorCustomTypeRequiredMessage(message)
 
-  implicit val schema: Schema[ErrorCustomTypeRequiredMessage] = struct(
+  implicit val schema: Schema[ErrorCustomTypeRequiredMessage] = struct[ErrorCustomTypeRequiredMessage](
     CustomErrorMessageType.schema.required[ErrorCustomTypeRequiredMessage]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

@@ -790,14 +790,14 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
           if (fields.size <= 22) {
             val definition =
               if (recursive) line"$recursive_($struct_" else line"$struct_"
-            line"${schemaImplicit}val schema: $Schema_[${product.nameRef}] = $definition"
+            line"${schemaImplicit}val schema: $Schema_[${product.nameRef}] = $definition[${product.nameRef}]"
               .args(renderedFields)
               .appendToLast("(make).withId(id).addHints(hints)")
               .appendToLast(if (recursive) ")" else "")
           } else {
             val definition =
-              if (recursive) line"$recursive_($struct_.genericArity"
-              else line"$struct_.genericArity"
+              if (recursive) line"$recursive_($struct_[${product.nameRef}].genericArity"
+              else line"$struct_[${product.nameRef}].genericArity"
             line"${schemaImplicit}val schema: $Schema_[${product.nameRef}] = $definition"
               .args(renderedFields)
               .block(
@@ -1064,7 +1064,7 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
             )} = $tpe.schema.oneOf[${name}](${renderStringLiteral(altName)})"""
           },
           block(
-            line"$union_(${members.map { case (n, _) => altVal(n) }.intercalate(line", ")})"
+            line"$union_[${name}](${members.map { case (n, _) => altVal(n) }.intercalate(line", ")})"
           )(
             members.zipWithIndex.map { case ((altName, _), index) =>
               line"case _: $altName => $index"
@@ -1358,9 +1358,9 @@ private[internals] class Renderer(compilationUnit: CompilationUnit) { self =>
         locally {
           val union =
             if (recursive)
-              line"implicit val schema: $Schema_[$name] = $recursive_($union_"
+              line"implicit val schema: $Schema_[$name] = $recursive_($union_[$name]"
             else
-              line"implicit val schema: $Schema_[$name] = $union_"
+              line"implicit val schema: $Schema_[$name] = $union_[$name]"
           union
             .args {
               caseNamesAndIsUnit.map { case (caseName, _) =>

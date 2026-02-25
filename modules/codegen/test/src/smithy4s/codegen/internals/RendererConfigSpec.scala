@@ -141,7 +141,7 @@ final class RendererConfigSpec extends munit.FunSuite {
          |  val schema: Schema[OperationError] = {
          |    val badRequestAlt = BadRequest.schema.oneOf[OperationError]("BadRequest")
          |    val internalServerErrorAlt = InternalServerError.schema.oneOf[OperationError]("InternalServerError")
-         |    union(badRequestAlt, internalServerErrorAlt) {
+         |    union[OperationError](badRequestAlt, internalServerErrorAlt) {
          |      case _: BadRequest => 0
          |      case _: InternalServerError => 1
          |    }
@@ -273,7 +273,7 @@ final class RendererConfigSpec extends munit.FunSuite {
          |      def internalServerError(value: InternalServerError): A = default
          |    }
          |  }
-         |  implicit val schema: Schema[OperationError] = union(
+         |  implicit val schema: Schema[OperationError] = union[OperationError](
          |    OperationError.BadRequestCase.alt,
          |    OperationError.InternalServerErrorCase.alt,
          |  ){

@@ -16,7 +16,7 @@ object ValidatedFoo extends ShapeTag.Companion[ValidatedFoo] {
   // constructor using the original order from the spec
   private def make(name: ValidatedString): ValidatedFoo = ValidatedFoo(name)
 
-  implicit val schema: Schema[ValidatedFoo] = struct(
+  implicit val schema: Schema[ValidatedFoo] = struct[ValidatedFoo](
     ValidatedString.schema.field[ValidatedFoo]("name", _.name).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.fromString("abc"))),
   )(make).withId(id).addHints(hints)
 }

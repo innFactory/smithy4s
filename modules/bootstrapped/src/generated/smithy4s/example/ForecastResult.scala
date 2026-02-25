@@ -63,7 +63,7 @@ object ForecastResult extends ShapeTag.Companion[ForecastResult] {
     }
   }
 
-  implicit val schema: Schema[ForecastResult] = union(
+  implicit val schema: Schema[ForecastResult] = union[ForecastResult](
     ForecastResult.RainCase.alt,
     ForecastResult.SunCase.alt,
   ){

@@ -47,7 +47,7 @@ object BincompatTinyUnion extends ShapeTag.Companion[BincompatTinyUnion] {
     }
   }
 
-  implicit val schema: Schema[BincompatTinyUnion] = union(
+  implicit val schema: Schema[BincompatTinyUnion] = union[BincompatTinyUnion](
     BincompatTinyUnion.S1Case.alt,
   ){
     _.$ordinal

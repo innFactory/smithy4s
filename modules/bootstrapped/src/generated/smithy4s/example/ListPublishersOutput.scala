@@ -18,7 +18,7 @@ object ListPublishersOutput extends ShapeTag.Companion[ListPublishersOutput] {
   // constructor using the original order from the spec
   private def make(publishers: List[PublisherId]): ListPublishersOutput = ListPublishersOutput(publishers)
 
-  implicit val schema: Schema[ListPublishersOutput] = struct(
+  implicit val schema: Schema[ListPublishersOutput] = struct[ListPublishersOutput](
     PublishersList.underlyingSchema.required[ListPublishersOutput]("publishers", _.publishers),
   )(make).withId(id).addHints(hints)
 }

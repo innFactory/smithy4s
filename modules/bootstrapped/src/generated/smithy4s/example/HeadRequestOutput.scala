@@ -17,7 +17,7 @@ object HeadRequestOutput extends ShapeTag.Companion[HeadRequestOutput] {
   // constructor using the original order from the spec
   private def make(test: String): HeadRequestOutput = HeadRequestOutput(test)
 
-  implicit val schema: Schema[HeadRequestOutput] = struct(
+  implicit val schema: Schema[HeadRequestOutput] = struct[HeadRequestOutput](
     string.required[HeadRequestOutput]("test", _.test).addHints(Hints.dynamic(ShapeId("smithy.api", "httpHeader"), smithy4s.Document.fromString("Test"))),
   )(make).withId(id).addHints(hints)
 }

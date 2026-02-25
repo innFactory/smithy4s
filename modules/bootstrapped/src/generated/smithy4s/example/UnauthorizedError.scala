@@ -20,7 +20,7 @@ object UnauthorizedError extends ShapeTag.Companion[UnauthorizedError] {
   // constructor using the original order from the spec
   private def make(reason: String): UnauthorizedError = UnauthorizedError(reason)
 
-  implicit val schema: Schema[UnauthorizedError] = struct(
+  implicit val schema: Schema[UnauthorizedError] = struct[UnauthorizedError](
     string.required[UnauthorizedError]("reason", _.reason),
   )(make).withId(id).addHints(hints)
 }

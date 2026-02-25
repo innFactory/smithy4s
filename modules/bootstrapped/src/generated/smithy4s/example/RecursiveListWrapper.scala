@@ -17,7 +17,7 @@ object RecursiveListWrapper extends ShapeTag.Companion[RecursiveListWrapper] {
   // constructor using the original order from the spec
   private def make(items: List[smithy4s.example.RecursiveListWrapper]): RecursiveListWrapper = RecursiveListWrapper(items)
 
-  implicit val schema: Schema[RecursiveListWrapper] = recursive(struct(
+  implicit val schema: Schema[RecursiveListWrapper] = recursive(struct[RecursiveListWrapper](
     RecursiveList.underlyingSchema.required[RecursiveListWrapper]("items", _.items),
   )(make).withId(id).addHints(hints))
 }

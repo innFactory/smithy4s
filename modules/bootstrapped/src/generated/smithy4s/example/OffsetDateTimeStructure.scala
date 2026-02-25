@@ -18,7 +18,7 @@ object OffsetDateTimeStructure extends ShapeTag.Companion[OffsetDateTimeStructur
   // constructor using the original order from the spec
   private def make(offsetDateTime: OffsetDateTime, offsetDateTime2: MyOffsetDateTime): OffsetDateTimeStructure = OffsetDateTimeStructure(offsetDateTime, offsetDateTime2)
 
-  implicit val schema: Schema[OffsetDateTimeStructure] = struct(
+  implicit val schema: Schema[OffsetDateTimeStructure] = struct[OffsetDateTimeStructure](
     offsetdatetime.required[OffsetDateTimeStructure]("offsetDateTime", _.offsetDateTime),
     MyOffsetDateTime.schema.required[OffsetDateTimeStructure]("offsetDateTime2", _.offsetDateTime2),
   )(make).withId(id).addHints(hints)

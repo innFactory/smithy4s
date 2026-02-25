@@ -17,7 +17,7 @@ object TestReservedNamespaceImport extends ShapeTag.Companion[TestReservedNamesp
   // constructor using the original order from the spec
   private def make(_package: Option[MyPackageString]): TestReservedNamespaceImport = TestReservedNamespaceImport(_package)
 
-  implicit val schema: Schema[TestReservedNamespaceImport] = struct(
+  implicit val schema: Schema[TestReservedNamespaceImport] = struct[TestReservedNamespaceImport](
     MyPackageString.schema.optional[TestReservedNamespaceImport]("package", _._package),
   )(make).withId(id).addHints(hints)
 }

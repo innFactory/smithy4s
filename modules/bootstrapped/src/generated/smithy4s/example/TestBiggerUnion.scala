@@ -59,7 +59,7 @@ object TestBiggerUnion extends ShapeTag.Companion[TestBiggerUnion] {
     }
   }
 
-  implicit val schema: Schema[TestBiggerUnion] = union(
+  implicit val schema: Schema[TestBiggerUnion] = union[TestBiggerUnion](
     TestBiggerUnion.OneCase.alt,
     TestBiggerUnion.TwoCase.alt,
   ){

@@ -18,7 +18,7 @@ object ValidationChecks extends ShapeTag.Companion[ValidationChecks] {
   // constructor using the original order from the spec
   private def make(str: Option[String], lst: Option[List[String]], int: Option[Int]): ValidationChecks = ValidationChecks(str, lst, int)
 
-  implicit val schema: Schema[ValidationChecks] = struct(
+  implicit val schema: Schema[ValidationChecks] = struct[ValidationChecks](
     string.validated(smithy.api.Length(min = Some(1L), max = Some(10L))).optional[ValidationChecks]("str", _.str).addHints(Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("str"))),
     StringList.underlyingSchema.validated(smithy.api.Length(min = Some(1L), max = Some(10L))).optional[ValidationChecks]("lst", _.lst).addHints(Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("lst"))),
     int.validated(smithy.api.Range(min = Some(scala.math.BigDecimal(1.0)), max = Some(scala.math.BigDecimal(10.0)))).optional[ValidationChecks]("int", _.int).addHints(Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("int"))),

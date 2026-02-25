@@ -22,7 +22,7 @@ object ErrorNullableCustomTypeMessage extends ShapeTag.Companion[ErrorNullableCu
   // constructor using the original order from the spec
   private def make(message: Option[Nullable[CustomErrorMessageType]]): ErrorNullableCustomTypeMessage = ErrorNullableCustomTypeMessage(message)
 
-  implicit val schema: Schema[ErrorNullableCustomTypeMessage] = struct(
+  implicit val schema: Schema[ErrorNullableCustomTypeMessage] = struct[ErrorNullableCustomTypeMessage](
     CustomErrorMessageType.schema.nullable.optional[ErrorNullableCustomTypeMessage]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

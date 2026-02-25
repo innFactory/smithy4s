@@ -19,7 +19,7 @@ object AddMenuItemResult extends ShapeTag.Companion[AddMenuItemResult] {
   // constructor using the original order from the spec
   private def make(itemId: String, added: Timestamp): AddMenuItemResult = AddMenuItemResult(itemId, added)
 
-  implicit val schema: Schema[AddMenuItemResult] = struct(
+  implicit val schema: Schema[AddMenuItemResult] = struct[AddMenuItemResult](
     string.required[AddMenuItemResult]("itemId", _.itemId).addHints(Hints.dynamic(ShapeId("smithy.api", "httpPayload"), smithy4s.Document.obj())),
     timestamp.required[AddMenuItemResult]("added", _.added).addHints(Hints.dynamic(ShapeId("smithy.api", "httpHeader"), smithy4s.Document.fromString("X-ADDED-AT")), Hints.dynamic(ShapeId("smithy.api", "timestampFormat"), smithy4s.Document.fromString("epoch-seconds"))),
   )(make).withId(id).addHints(hints)

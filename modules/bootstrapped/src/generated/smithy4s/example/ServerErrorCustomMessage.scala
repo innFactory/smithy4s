@@ -22,7 +22,7 @@ object ServerErrorCustomMessage extends ShapeTag.Companion[ServerErrorCustomMess
   // constructor using the original order from the spec
   private def make(messageField: Option[String]): ServerErrorCustomMessage = ServerErrorCustomMessage(messageField)
 
-  implicit val schema: Schema[ServerErrorCustomMessage] = struct(
+  implicit val schema: Schema[ServerErrorCustomMessage] = struct[ServerErrorCustomMessage](
     string.optional[ServerErrorCustomMessage]("messageField", _.messageField),
   )(make).withId(id).addHints(hints)
 }

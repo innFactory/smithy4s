@@ -20,7 +20,7 @@ object DurationWrapper extends ShapeTag.Companion[DurationWrapper] {
   // constructor using the original order from the spec
   private def make(duration: Option[Duration]): DurationWrapper = DurationWrapper(duration)
 
-  implicit val schema: Schema[DurationWrapper] = struct(
+  implicit val schema: Schema[DurationWrapper] = struct[DurationWrapper](
     duration.optional[DurationWrapper]("duration", _.duration),
   )(make).withId(id).addHints(hints)
 }

@@ -167,7 +167,7 @@ object WeatherOperation {
       }
     }
 
-    implicit val schema: Schema[GetCityError] = union(
+    implicit val schema: Schema[GetCityError] = union[GetCityError](
       GetCityError.NoSuchResourceCase.alt,
     ){
       _.$ordinal

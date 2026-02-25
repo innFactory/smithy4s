@@ -23,7 +23,7 @@ object RandomOtherServerErrorWithCode extends ShapeTag.Companion[RandomOtherServ
   // constructor using the original order from the spec
   private def make(message: Option[String]): RandomOtherServerErrorWithCode = RandomOtherServerErrorWithCode(message)
 
-  implicit val schema: Schema[RandomOtherServerErrorWithCode] = struct(
+  implicit val schema: Schema[RandomOtherServerErrorWithCode] = struct[RandomOtherServerErrorWithCode](
     string.optional[RandomOtherServerErrorWithCode]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

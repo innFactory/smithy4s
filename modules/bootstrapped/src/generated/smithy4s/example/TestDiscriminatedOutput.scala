@@ -16,7 +16,7 @@ object TestDiscriminatedOutput extends ShapeTag.Companion[TestDiscriminatedOutpu
   // constructor using the original order from the spec
   private def make(data: Option[PayloadData]): TestDiscriminatedOutput = TestDiscriminatedOutput(data)
 
-  implicit val schema: Schema[TestDiscriminatedOutput] = struct(
+  implicit val schema: Schema[TestDiscriminatedOutput] = struct[TestDiscriminatedOutput](
     PayloadData.schema.optional[TestDiscriminatedOutput]("data", _.data).addHints(Hints.dynamic(ShapeId("smithy.api", "httpPayload"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)
 }
