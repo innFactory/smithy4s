@@ -18,7 +18,7 @@ object SetInput extends ShapeTag.Companion[SetInput] {
   // constructor using the original order from the spec
   private def make(set: Set[String]): SetInput = SetInput(set)
 
-  implicit val schema: Schema[SetInput] = struct(
+  implicit val schema: Schema[SetInput] = struct[SetInput](
     MySet.underlyingSchema.required[SetInput]("set", _.set),
   )(make).withId(id).addHints(hints)
 }

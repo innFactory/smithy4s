@@ -16,7 +16,7 @@ object CheckQueryOutput extends ShapeTag.Companion[CheckQueryOutput] {
   // constructor using the original order from the spec
   private def make(variants: Option[List[String]], staticVariants: Option[List[String]], kinds: Option[List[String]], staticKinds: Option[List[String]]): CheckQueryOutput = CheckQueryOutput(variants, staticVariants, kinds, staticKinds)
 
-  implicit val schema: Schema[CheckQueryOutput] = struct(
+  implicit val schema: Schema[CheckQueryOutput] = struct[CheckQueryOutput](
     QueryVariants.underlyingSchema.optional[CheckQueryOutput]("variants", _.variants).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.nullDoc)),
     QueryVariants.underlyingSchema.optional[CheckQueryOutput]("staticVariants", _.staticVariants).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.nullDoc)),
     QueryKinds.underlyingSchema.optional[CheckQueryOutput]("kinds", _.kinds).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.nullDoc)),

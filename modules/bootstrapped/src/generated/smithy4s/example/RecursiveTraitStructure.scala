@@ -20,7 +20,7 @@ object RecursiveTraitStructure extends ShapeTag.Companion[RecursiveTraitStructur
   // constructor using the original order from the spec
   private def make(name: Option[String]): RecursiveTraitStructure = RecursiveTraitStructure(name)
 
-  implicit val schema: Schema[RecursiveTraitStructure] = recursive(struct(
+  implicit val schema: Schema[RecursiveTraitStructure] = recursive(struct[RecursiveTraitStructure](
     string.optional[RecursiveTraitStructure]("name", _.name).addHints(smithy4s.example.RecursiveTraitStructure(name = None)),
   )(make).withId(id).addHints(hints))
 }

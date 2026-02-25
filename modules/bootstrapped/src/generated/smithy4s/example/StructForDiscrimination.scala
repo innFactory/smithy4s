@@ -17,7 +17,7 @@ object StructForDiscrimination extends ShapeTag.Companion[StructForDiscriminatio
   // constructor using the original order from the spec
   private def make(str: String): StructForDiscrimination = StructForDiscrimination(str)
 
-  implicit val schema: Schema[StructForDiscrimination] = struct(
+  implicit val schema: Schema[StructForDiscrimination] = struct[StructForDiscrimination](
     string.required[StructForDiscrimination]("str", _.str),
   )(make).withId(id).addHints(hints)
 }

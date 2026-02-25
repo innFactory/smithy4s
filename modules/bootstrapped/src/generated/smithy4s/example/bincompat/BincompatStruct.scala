@@ -46,7 +46,7 @@ object BincompatStruct extends ShapeTag.Companion[BincompatStruct] {
   // Members available up to version 4.0 (inclusive)
   def apply(base1: String, base2: String, base3: Option[String], base4: String, added2_1: String, added2_2: Option[String], added3_1: String, added3_2: Option[String], added4_1: String, added4_2: Option[Nullable[String]]): BincompatStruct = new BincompatStruct(base1 = base1, base2 = base2, base3 = base3, base4 = base4, added2_1 = added2_1, added2_2 = added2_2, added3_1 = added3_1, added3_2 = added3_2, added4_1 = added4_1, added4_2 = added4_2)
 
-  implicit val schema: Schema[BincompatStruct] = struct(
+  implicit val schema: Schema[BincompatStruct] = struct[BincompatStruct](
     string.required[BincompatStruct]("base1", _.base1),
     string.required[BincompatStruct]("base2", _.base2),
     string.optional[BincompatStruct]("base3", _.base3),

@@ -19,7 +19,7 @@ object JsonUnknownExample extends ShapeTag.Companion[JsonUnknownExample] {
   // constructor using the original order from the spec
   private def make(s: Option[String], i: Option[Int], additionalProperties: Option[Map[String, Document]]): JsonUnknownExample = JsonUnknownExample(s, i, additionalProperties)
 
-  implicit val schema: Schema[JsonUnknownExample] = struct(
+  implicit val schema: Schema[JsonUnknownExample] = struct[JsonUnknownExample](
     string.optional[JsonUnknownExample]("s", _.s),
     int.optional[JsonUnknownExample]("i", _.i),
     AdditionalProperties.underlyingSchema.optional[JsonUnknownExample]("additionalProperties", _.additionalProperties).addHints(Hints.dynamic(ShapeId("alloy", "jsonUnknown"), smithy4s.Document.obj())),

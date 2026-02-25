@@ -17,7 +17,7 @@ object GetObjectOutput extends ShapeTag.Companion[GetObjectOutput] {
   // constructor using the original order from the spec
   private def make(size: ObjectSize, data: Option[String]): GetObjectOutput = GetObjectOutput(size, data)
 
-  implicit val schema: Schema[GetObjectOutput] = struct(
+  implicit val schema: Schema[GetObjectOutput] = struct[GetObjectOutput](
     ObjectSize.schema.required[GetObjectOutput]("size", _.size).addHints(Hints.dynamic(ShapeId("smithy.api", "httpHeader"), smithy4s.Document.fromString("X-Size"))),
     string.optional[GetObjectOutput]("data", _.data).addHints(Hints.dynamic(ShapeId("smithy.api", "httpPayload"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)

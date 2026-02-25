@@ -18,7 +18,7 @@ object AlgParameterOperationInput extends ShapeTag.Companion[AlgParameterOperati
   // constructor using the original order from the spec
   private def make(alg: String): AlgParameterOperationInput = AlgParameterOperationInput(alg)
 
-  implicit val schema: Schema[AlgParameterOperationInput] = struct(
+  implicit val schema: Schema[AlgParameterOperationInput] = struct[AlgParameterOperationInput](
     String.schema.required[AlgParameterOperationInput]("alg", _.alg),
   )(make).withId(id).addHints(hints)
 }

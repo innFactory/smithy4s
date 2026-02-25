@@ -19,7 +19,7 @@ object DefaultAcceptHeaderInput extends ShapeTag.Companion[DefaultAcceptHeaderIn
   // constructor using the original order from the spec
   private def make(data: Option[String]): DefaultAcceptHeaderInput = DefaultAcceptHeaderInput(data)
 
-  implicit val schema: Schema[DefaultAcceptHeaderInput] = struct(
+  implicit val schema: Schema[DefaultAcceptHeaderInput] = struct[DefaultAcceptHeaderInput](
     string.optional[DefaultAcceptHeaderInput]("data", _.data),
   )(make).withId(id).addHints(hints)
 }

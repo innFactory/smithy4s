@@ -19,7 +19,7 @@ object ReservedKeywordStructTrait extends ShapeTag.Companion[ReservedKeywordStru
   // constructor using the original order from the spec
   private def make(_implicit: String, _package: Option[Packagee]): ReservedKeywordStructTrait = ReservedKeywordStructTrait(_implicit, _package)
 
-  implicit val schema: Schema[ReservedKeywordStructTrait] = recursive(struct(
+  implicit val schema: Schema[ReservedKeywordStructTrait] = recursive(struct[ReservedKeywordStructTrait](
     String.schema.required[ReservedKeywordStructTrait]("implicit", _._implicit),
     Packagee.schema.optional[ReservedKeywordStructTrait]("package", _._package),
   )(make).withId(id).addHints(hints))

@@ -17,7 +17,7 @@ object Two extends ShapeTag.Companion[Two] {
   // constructor using the original order from the spec
   private def make(value: Option[Int]): Two = Two(value)
 
-  implicit val schema: Schema[Two] = struct(
+  implicit val schema: Schema[Two] = struct[Two](
     int.optional[Two]("value", _.value),
   )(make).withId(id).addHints(hints)
 }

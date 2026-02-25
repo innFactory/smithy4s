@@ -60,7 +60,7 @@ object UnionTraitWithUnitCase extends ShapeTag.Companion[UnionTraitWithUnitCase]
     }
   }
 
-  implicit val schema: Schema[UnionTraitWithUnitCase] = recursive(union(
+  implicit val schema: Schema[UnionTraitWithUnitCase] = recursive(union[UnionTraitWithUnitCase](
     UnionTraitWithUnitCase.UCase.alt,
     UnionTraitWithUnitCase.SCase.alt,
   ){

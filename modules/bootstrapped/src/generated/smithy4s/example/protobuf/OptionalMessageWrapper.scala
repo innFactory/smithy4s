@@ -18,7 +18,7 @@ object OptionalMessageWrapper extends ShapeTag.Companion[OptionalMessageWrapper]
   // constructor using the original order from the spec
   private def make(message: Option[Integers]): OptionalMessageWrapper = OptionalMessageWrapper(message)
 
-  implicit val schema: Schema[OptionalMessageWrapper] = struct(
+  implicit val schema: Schema[OptionalMessageWrapper] = struct[OptionalMessageWrapper](
     Integers.schema.optional[OptionalMessageWrapper]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

@@ -22,7 +22,7 @@ object StructureWithRefinedTypes extends ShapeTag.Companion[StructureWithRefined
   // constructor using the original order from the spec
   private def make(age: Option[smithy4s.example.Age], personAge: PersonAge, requiredAge: smithy4s.example.Age, fancyList: Option[smithy4s.example.FancyList], unwrappedFancyList: Option[smithy4s.refined.FancyList], name: Option[smithy4s.example.Name], dogName: Option[smithy4s.refined.Name], inlineFieldConstraint: smithy4s.refined.Age, uuidField: UUID, uuidField2: Option[UUID]): StructureWithRefinedTypes = StructureWithRefinedTypes(requiredAge, personAge, inlineFieldConstraint, uuidField, age, fancyList, unwrappedFancyList, name, dogName, uuidField2)
 
-  implicit val schema: Schema[StructureWithRefinedTypes] = struct(
+  implicit val schema: Schema[StructureWithRefinedTypes] = struct[StructureWithRefinedTypes](
     smithy4s.example.Age.schema.optional[StructureWithRefinedTypes]("age", _.age),
     PersonAge.schema.field[StructureWithRefinedTypes]("personAge", _.personAge).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.fromLong(1))),
     smithy4s.example.Age.schema.required[StructureWithRefinedTypes]("requiredAge", _.requiredAge),

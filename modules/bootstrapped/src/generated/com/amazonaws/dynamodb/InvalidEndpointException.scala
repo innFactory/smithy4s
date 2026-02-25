@@ -23,7 +23,7 @@ object InvalidEndpointException extends ShapeTag.Companion[InvalidEndpointExcept
   // constructor using the original order from the spec
   private def make(message: Option[String]): InvalidEndpointException = InvalidEndpointException(message)
 
-  implicit val schema: Schema[InvalidEndpointException] = struct(
+  implicit val schema: Schema[InvalidEndpointException] = struct[InvalidEndpointException](
     string.optional[InvalidEndpointException]("Message", _.message),
   )(make).withId(id).addHints(hints)
 }

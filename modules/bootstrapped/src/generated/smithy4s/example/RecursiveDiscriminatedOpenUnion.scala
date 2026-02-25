@@ -74,7 +74,7 @@ object RecursiveDiscriminatedOpenUnion extends ShapeTag.Companion[RecursiveDiscr
     }
   }
 
-  implicit val schema: Schema[RecursiveDiscriminatedOpenUnion] = recursive(union(
+  implicit val schema: Schema[RecursiveDiscriminatedOpenUnion] = recursive(union[RecursiveDiscriminatedOpenUnion](
     RecursiveDiscriminatedOpenUnion.RecCase.alt,
     RecursiveDiscriminatedOpenUnion.EndCase.alt,
     RecursiveDiscriminatedOpenUnion.UnknownCase.alt,

@@ -17,7 +17,7 @@ object QueriesWithDefaults extends ShapeTag.Companion[QueriesWithDefaults] {
   // constructor using the original order from the spec
   private def make(dflt: String): QueriesWithDefaults = QueriesWithDefaults(dflt)
 
-  implicit val schema: Schema[QueriesWithDefaults] = struct(
+  implicit val schema: Schema[QueriesWithDefaults] = struct[QueriesWithDefaults](
     string.field[QueriesWithDefaults]("dflt", _.dflt).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.fromString("test")), Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("dflt"))),
   )(make).withId(id).addHints(hints)
 }

@@ -19,7 +19,7 @@ object HelloInput extends ShapeTag.Companion[HelloInput] {
   // constructor using the original order from the spec
   private def make(name: String): HelloInput = HelloInput(name)
 
-  implicit val schema: Schema[HelloInput] = struct(
+  implicit val schema: Schema[HelloInput] = struct[HelloInput](
     string.required[HelloInput]("name", _.name).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)
 }

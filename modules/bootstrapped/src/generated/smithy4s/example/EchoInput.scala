@@ -17,7 +17,7 @@ object EchoInput extends ShapeTag.Companion[EchoInput] {
   // constructor using the original order from the spec
   private def make(pathParam: String, queryParam: Option[String], body: EchoBody): EchoInput = EchoInput(pathParam, body, queryParam)
 
-  implicit val schema: Schema[EchoInput] = struct(
+  implicit val schema: Schema[EchoInput] = struct[EchoInput](
     string.validated(smithy.api.Length(min = Some(10L), max = None)).required[EchoInput]("pathParam", _.pathParam).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),
     string.validated(smithy.api.Length(min = Some(10L), max = None)).optional[EchoInput]("queryParam", _.queryParam).addHints(Hints.dynamic(ShapeId("smithy.api", "httpQuery"), smithy4s.Document.fromString("queryParam"))),
     EchoBody.schema.required[EchoInput]("body", _.body).addHints(Hints.dynamic(ShapeId("smithy.api", "httpPayload"), smithy4s.Document.obj())),

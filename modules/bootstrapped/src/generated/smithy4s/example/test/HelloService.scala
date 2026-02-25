@@ -187,7 +187,7 @@ object HelloServiceOperation {
       }
     }
 
-    implicit val schema: Schema[SayHelloError] = union(
+    implicit val schema: Schema[SayHelloError] = union[SayHelloError](
       SayHelloError.ComplexErrorCase.alt,
       SayHelloError.SimpleErrorCase.alt,
     ){

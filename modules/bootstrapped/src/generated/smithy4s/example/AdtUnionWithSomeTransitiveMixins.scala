@@ -43,7 +43,7 @@ object AdtUnionWithSomeTransitiveMixins extends ShapeTag.Companion[AdtUnionWithS
     // constructor using the original order from the spec
     private def make(lng: Option[Long]): AdtMemberWithTransitiveMixin1 = AdtMemberWithTransitiveMixin1(lng)
 
-    val schema: Schema[AdtMemberWithTransitiveMixin1] = struct(
+    val schema: Schema[AdtMemberWithTransitiveMixin1] = struct[AdtMemberWithTransitiveMixin1](
       long.optional[AdtMemberWithTransitiveMixin1]("lng", _.lng),
     )(make).withId(id).addHints(hints)
 
@@ -61,7 +61,7 @@ object AdtUnionWithSomeTransitiveMixins extends ShapeTag.Companion[AdtUnionWithS
     // constructor using the original order from the spec
     private def make(lng: Option[Long]): AdtMemberWithDirectMixin = AdtMemberWithDirectMixin(lng)
 
-    val schema: Schema[AdtMemberWithDirectMixin] = struct(
+    val schema: Schema[AdtMemberWithDirectMixin] = struct[AdtMemberWithDirectMixin](
       long.optional[AdtMemberWithDirectMixin]("lng", _.lng),
     )(make).withId(id).addHints(hints)
 
@@ -82,7 +82,7 @@ object AdtUnionWithSomeTransitiveMixins extends ShapeTag.Companion[AdtUnionWithS
     }
   }
 
-  implicit val schema: Schema[AdtUnionWithSomeTransitiveMixins] = union(
+  implicit val schema: Schema[AdtUnionWithSomeTransitiveMixins] = union[AdtUnionWithSomeTransitiveMixins](
     AdtUnionWithSomeTransitiveMixins.AdtMemberWithTransitiveMixin1.alt,
     AdtUnionWithSomeTransitiveMixins.AdtMemberWithDirectMixin.alt,
   ){

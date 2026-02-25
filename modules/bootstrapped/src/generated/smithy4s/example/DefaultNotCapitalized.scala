@@ -16,7 +16,7 @@ object DefaultNotCapitalized extends ShapeTag.Companion[DefaultNotCapitalized] {
   // constructor using the original order from the spec
   private def make(name: Username): DefaultNotCapitalized = DefaultNotCapitalized(name)
 
-  implicit val schema: Schema[DefaultNotCapitalized] = struct(
+  implicit val schema: Schema[DefaultNotCapitalized] = struct[DefaultNotCapitalized](
     Username.schema.required[DefaultNotCapitalized]("name", _.name).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.fromString("hello"))),
   )(make).withId(id).addHints(hints)
 }

@@ -19,7 +19,7 @@ object HelloOutput extends ShapeTag.Companion[HelloOutput] {
   // constructor using the original order from the spec
   private def make(message: String): HelloOutput = HelloOutput(message)
 
-  implicit val schema: Schema[HelloOutput] = struct(
+  implicit val schema: Schema[HelloOutput] = struct[HelloOutput](
     string.required[HelloOutput]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

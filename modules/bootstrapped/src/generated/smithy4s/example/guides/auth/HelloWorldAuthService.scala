@@ -150,7 +150,7 @@ object HelloWorldAuthServiceOperation {
       }
     }
 
-    implicit val schema: Schema[SayWorldError] = union(
+    implicit val schema: Schema[SayWorldError] = union[SayWorldError](
       SayWorldError.NotAuthorizedErrorCase.alt,
     ){
       _.$ordinal
@@ -216,7 +216,7 @@ object HelloWorldAuthServiceOperation {
       }
     }
 
-    implicit val schema: Schema[HealthCheckError] = union(
+    implicit val schema: Schema[HealthCheckError] = union[HealthCheckError](
       HealthCheckError.NotAuthorizedErrorCase.alt,
     ){
       _.$ordinal

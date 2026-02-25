@@ -59,7 +59,7 @@ object UntaggedUnion extends ShapeTag.Companion[UntaggedUnion] {
     }
   }
 
-  implicit val schema: Schema[UntaggedUnion] = union(
+  implicit val schema: Schema[UntaggedUnion] = union[UntaggedUnion](
     UntaggedUnion.ThreeCase.alt,
     UntaggedUnion.FourCase.alt,
   ){

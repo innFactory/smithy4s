@@ -41,7 +41,7 @@ object BincompatFriendlyTraitStruct extends ShapeTag.Companion[BincompatFriendly
   // Members available up to version 3.0 (inclusive)
   def apply(base1: String, base2: String, base3: Option[String], added2_1: String, added3_1: String): BincompatFriendlyTraitStruct = new BincompatFriendlyTraitStruct(base1 = base1, base2 = base2, base3 = base3, added2_1 = added2_1, added3_1 = added3_1)
 
-  implicit val schema: Schema[BincompatFriendlyTraitStruct] = recursive(struct(
+  implicit val schema: Schema[BincompatFriendlyTraitStruct] = recursive(struct[BincompatFriendlyTraitStruct](
     string.required[BincompatFriendlyTraitStruct]("base1", _.base1),
     string.required[BincompatFriendlyTraitStruct]("base2", _.base2),
     string.optional[BincompatFriendlyTraitStruct]("base3", _.base3),

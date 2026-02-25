@@ -17,7 +17,7 @@ object MixinRequiredMemberDefaultAdded extends ShapeTag.Companion[MixinRequiredM
   // constructor using the original order from the spec
   private def make(description: String): MixinRequiredMemberDefaultAdded = MixinRequiredMemberDefaultAdded(description)
 
-  implicit val schema: Schema[MixinRequiredMemberDefaultAdded] = struct(
+  implicit val schema: Schema[MixinRequiredMemberDefaultAdded] = struct[MixinRequiredMemberDefaultAdded](
     string.required[MixinRequiredMemberDefaultAdded]("description", _.description).addHints(Hints.dynamic(ShapeId("smithy.api", "default"), smithy4s.Document.fromString("different description"))),
   )(make).withId(id).addHints(hints)
 }

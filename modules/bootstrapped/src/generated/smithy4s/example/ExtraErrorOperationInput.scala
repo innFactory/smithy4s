@@ -19,7 +19,7 @@ object ExtraErrorOperationInput extends ShapeTag.Companion[ExtraErrorOperationIn
   // constructor using the original order from the spec
   private def make(in: Option[String]): ExtraErrorOperationInput = ExtraErrorOperationInput(in)
 
-  implicit val schema: Schema[ExtraErrorOperationInput] = struct(
+  implicit val schema: Schema[ExtraErrorOperationInput] = struct[ExtraErrorOperationInput](
     string.optional[ExtraErrorOperationInput]("in", _.in),
   )(make).withId(id).addHints(hints)
 }

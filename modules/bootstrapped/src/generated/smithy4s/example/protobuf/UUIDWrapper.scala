@@ -20,7 +20,7 @@ object UUIDWrapper extends ShapeTag.Companion[UUIDWrapper] {
   // constructor using the original order from the spec
   private def make(uuid: Option[UUID], compactUUID: Option[CompactUUID]): UUIDWrapper = UUIDWrapper(uuid, compactUUID)
 
-  implicit val schema: Schema[UUIDWrapper] = struct(
+  implicit val schema: Schema[UUIDWrapper] = struct[UUIDWrapper](
     uuid.optional[UUIDWrapper]("uuid", _.uuid),
     CompactUUID.schema.optional[UUIDWrapper]("compactUUID", _.compactUUID),
   )(make).withId(id).addHints(hints)

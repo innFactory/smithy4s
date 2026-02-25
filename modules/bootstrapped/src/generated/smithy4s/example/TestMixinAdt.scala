@@ -41,7 +41,7 @@ object TestMixinAdt extends ShapeTag.Companion[TestMixinAdt] {
     // constructor using the original order from the spec
     private def make(a: Option[String], b: Option[Int]): TestAdtMemberWithMixin = TestAdtMemberWithMixin(a, b)
 
-    val schema: Schema[TestAdtMemberWithMixin] = struct(
+    val schema: Schema[TestAdtMemberWithMixin] = struct[TestAdtMemberWithMixin](
       string.optional[TestAdtMemberWithMixin]("a", _.a),
       int.optional[TestAdtMemberWithMixin]("b", _.b),
     )(make).withId(id).addHints(hints)
@@ -61,7 +61,7 @@ object TestMixinAdt extends ShapeTag.Companion[TestMixinAdt] {
     }
   }
 
-  implicit val schema: Schema[TestMixinAdt] = union(
+  implicit val schema: Schema[TestMixinAdt] = union[TestMixinAdt](
     TestMixinAdt.TestAdtMemberWithMixin.alt,
   ){
     _.$ordinal

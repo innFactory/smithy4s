@@ -18,7 +18,7 @@ object GetCurrentTimeOutput extends ShapeTag.Companion[GetCurrentTimeOutput] {
   // constructor using the original order from the spec
   private def make(time: Timestamp): GetCurrentTimeOutput = GetCurrentTimeOutput(time)
 
-  implicit val schema: Schema[GetCurrentTimeOutput] = struct(
+  implicit val schema: Schema[GetCurrentTimeOutput] = struct[GetCurrentTimeOutput](
     timestamp.required[GetCurrentTimeOutput]("time", _.time),
   )(make).withId(id).addHints(hints)
 }

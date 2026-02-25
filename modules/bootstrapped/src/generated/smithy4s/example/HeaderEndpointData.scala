@@ -17,7 +17,7 @@ object HeaderEndpointData extends ShapeTag.Companion[HeaderEndpointData] {
   // constructor using the original order from the spec
   private def make(uppercaseHeader: Option[String], capitalizedHeader: Option[String], lowercaseHeader: Option[String], mixedHeader: Option[String]): HeaderEndpointData = HeaderEndpointData(uppercaseHeader, capitalizedHeader, lowercaseHeader, mixedHeader)
 
-  implicit val schema: Schema[HeaderEndpointData] = struct(
+  implicit val schema: Schema[HeaderEndpointData] = struct[HeaderEndpointData](
     string.optional[HeaderEndpointData]("uppercaseHeader", _.uppercaseHeader).addHints(Hints.dynamic(ShapeId("smithy.api", "httpHeader"), smithy4s.Document.fromString("X-UPPERCASE-HEADER"))),
     string.optional[HeaderEndpointData]("capitalizedHeader", _.capitalizedHeader).addHints(Hints.dynamic(ShapeId("smithy.api", "httpHeader"), smithy4s.Document.fromString("X-Capitalized-Header"))),
     string.optional[HeaderEndpointData]("lowercaseHeader", _.lowercaseHeader).addHints(Hints.dynamic(ShapeId("smithy.api", "httpHeader"), smithy4s.Document.fromString("x-lowercase-header"))),

@@ -170,7 +170,7 @@ object ErrorHandlingServiceExtraErrorsOperation {
       }
     }
 
-    implicit val schema: Schema[ExtraErrorOperationError] = union(
+    implicit val schema: Schema[ExtraErrorOperationError] = union[ExtraErrorOperationError](
       ExtraErrorOperationError.RandomOtherClientErrorCase.alt,
       ExtraErrorOperationError.RandomOtherClientErrorWithCodeCase.alt,
       ExtraErrorOperationError.RandomOtherServerErrorCase.alt,

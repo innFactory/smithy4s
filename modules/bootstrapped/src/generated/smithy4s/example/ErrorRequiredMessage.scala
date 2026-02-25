@@ -22,7 +22,7 @@ object ErrorRequiredMessage extends ShapeTag.Companion[ErrorRequiredMessage] {
   // constructor using the original order from the spec
   private def make(message: String): ErrorRequiredMessage = ErrorRequiredMessage(message)
 
-  implicit val schema: Schema[ErrorRequiredMessage] = struct(
+  implicit val schema: Schema[ErrorRequiredMessage] = struct[ErrorRequiredMessage](
     string.required[ErrorRequiredMessage]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

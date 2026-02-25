@@ -18,7 +18,7 @@ object Set extends ShapeTag.Companion[Set] {
   // constructor using the original order from the spec
   private def make(someField: String, otherField: Int): Set = Set(someField, otherField)
 
-  implicit val schema: Schema[Set] = struct(
+  implicit val schema: Schema[Set] = struct[Set](
     string.required[Set]("someField", _.someField),
     int.required[Set]("otherField", _.otherField),
   )(make).withId(id).addHints(hints)

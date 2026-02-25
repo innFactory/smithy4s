@@ -22,7 +22,7 @@ object RandomOtherClientError extends ShapeTag.Companion[RandomOtherClientError]
   // constructor using the original order from the spec
   private def make(message: Option[String]): RandomOtherClientError = RandomOtherClientError(message)
 
-  implicit val schema: Schema[RandomOtherClientError] = struct(
+  implicit val schema: Schema[RandomOtherClientError] = struct[RandomOtherClientError](
     string.optional[RandomOtherClientError]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

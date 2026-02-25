@@ -17,7 +17,7 @@ object SendStringInput extends ShapeTag.Companion[SendStringInput] {
   // constructor using the original order from the spec
   private def make(key: String, bucketName: String, body: String): SendStringInput = SendStringInput(key, bucketName, body)
 
-  implicit val schema: Schema[SendStringInput] = struct(
+  implicit val schema: Schema[SendStringInput] = struct[SendStringInput](
     string.required[SendStringInput]("key", _.key).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),
     string.required[SendStringInput]("bucketName", _.bucketName).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),
     string.required[SendStringInput]("body", _.body).addHints(Hints.dynamic(ShapeId("smithy.api", "httpPayload"), smithy4s.Document.obj())),

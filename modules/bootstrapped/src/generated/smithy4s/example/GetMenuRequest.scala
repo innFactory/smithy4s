@@ -17,7 +17,7 @@ object GetMenuRequest extends ShapeTag.Companion[GetMenuRequest] {
   // constructor using the original order from the spec
   private def make(restaurant: String): GetMenuRequest = GetMenuRequest(restaurant)
 
-  implicit val schema: Schema[GetMenuRequest] = struct(
+  implicit val schema: Schema[GetMenuRequest] = struct[GetMenuRequest](
     string.required[GetMenuRequest]("restaurant", _.restaurant).addHints(Hints.dynamic(ShapeId("smithy.api", "httpLabel"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)
 }

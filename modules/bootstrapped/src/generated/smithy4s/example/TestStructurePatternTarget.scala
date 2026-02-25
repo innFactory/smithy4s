@@ -18,7 +18,7 @@ object TestStructurePatternTarget extends ShapeTag.Companion[TestStructurePatter
   // constructor using the original order from the spec
   private def make(one: String, two: Int): TestStructurePatternTarget = TestStructurePatternTarget(one, two)
 
-  implicit val schema: Schema[TestStructurePatternTarget] = struct(
+  implicit val schema: Schema[TestStructurePatternTarget] = struct[TestStructurePatternTarget](
     string.required[TestStructurePatternTarget]("one", _.one),
     int.required[TestStructurePatternTarget]("two", _.two),
   )(make).withId(id).addHints(hints)

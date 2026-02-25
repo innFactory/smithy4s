@@ -18,7 +18,7 @@ object IntListWrapper extends ShapeTag.Companion[IntListWrapper] {
   // constructor using the original order from the spec
   private def make(ints: List[Int]): IntListWrapper = IntListWrapper(ints)
 
-  implicit val schema: Schema[IntListWrapper] = struct(
+  implicit val schema: Schema[IntListWrapper] = struct[IntListWrapper](
     IntList.underlyingSchema.required[IntListWrapper]("ints", _.ints),
   )(make).withId(id).addHints(hints)
 }

@@ -20,7 +20,7 @@ object WrappedScalars extends ShapeTag.Companion[WrappedScalars] {
   // constructor using the original order from the spec
   private def make(int: Option[Int], bool: Option[Boolean]): WrappedScalars = WrappedScalars(int, bool)
 
-  implicit val schema: Schema[WrappedScalars] = struct(
+  implicit val schema: Schema[WrappedScalars] = struct[WrappedScalars](
     int.optional[WrappedScalars]("int", _.int).addHints(Hints.dynamic(ShapeId("alloy.proto", "protoWrapped"), smithy4s.Document.obj())),
     boolean.optional[WrappedScalars]("bool", _.bool).addHints(Hints.dynamic(ShapeId("alloy.proto", "protoWrapped"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)

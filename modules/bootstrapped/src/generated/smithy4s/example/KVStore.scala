@@ -149,7 +149,7 @@ object KVStoreOperation {
       }
     }
 
-    implicit val schema: Schema[PutError] = union(
+    implicit val schema: Schema[PutError] = union[PutError](
       PutError.UnauthorizedErrorCase.alt,
     ){
       _.$ordinal
@@ -224,7 +224,7 @@ object KVStoreOperation {
       }
     }
 
-    implicit val schema: Schema[GetError] = union(
+    implicit val schema: Schema[GetError] = union[GetError](
       GetError.UnauthorizedErrorCase.alt,
       GetError.KeyNotFoundErrorCase.alt,
     ){
@@ -302,7 +302,7 @@ object KVStoreOperation {
       }
     }
 
-    implicit val schema: Schema[DeleteError] = union(
+    implicit val schema: Schema[DeleteError] = union[DeleteError](
       DeleteError.UnauthorizedErrorCase.alt,
       DeleteError.KeyNotFoundErrorCase.alt,
     ){

@@ -16,7 +16,7 @@ object HasConstrainedNewtypes extends ShapeTag.Companion[HasConstrainedNewtypes]
   // constructor using the original order from the spec
   private def make(a: BucketName, b: CityId, c: Option[ObjectSize], d: Option[IndexedSeq[String]], e: Option[PNG]): HasConstrainedNewtypes = HasConstrainedNewtypes(a, b, c, d, e)
 
-  implicit val schema: Schema[HasConstrainedNewtypes] = struct(
+  implicit val schema: Schema[HasConstrainedNewtypes] = struct[HasConstrainedNewtypes](
     BucketName.schema.validated(smithy.api.Length(min = Some(1L), max = None)).required[HasConstrainedNewtypes]("a", _.a),
     CityId.schema.validated(smithy.api.Length(min = Some(1L), max = None)).required[HasConstrainedNewtypes]("b", _.b),
     ObjectSize.schema.validated(smithy.api.Range(min = Some(scala.math.BigDecimal(1.0)), max = None)).optional[HasConstrainedNewtypes]("c", _.c),

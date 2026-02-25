@@ -21,7 +21,7 @@ object GetCityInput extends ShapeTag.Companion[GetCityInput] {
   // constructor using the original order from the spec
   private def make(cityId: CityId): GetCityInput = GetCityInput(cityId)
 
-  implicit val schema: Schema[GetCityInput] = struct(
+  implicit val schema: Schema[GetCityInput] = struct[GetCityInput](
     CityId.schema.required[GetCityInput]("cityId", _.cityId),
   )(make).withId(id).addHints(hints)
 }
