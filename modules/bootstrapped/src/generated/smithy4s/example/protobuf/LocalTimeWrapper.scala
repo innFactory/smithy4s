@@ -20,7 +20,7 @@ object LocalTimeWrapper extends ShapeTag.Companion[LocalTimeWrapper] {
   // constructor using the original order from the spec
   private def make(localTime: Option[LocalTime], compactLocalTime: Option[LocalTime]): LocalTimeWrapper = LocalTimeWrapper(localTime, compactLocalTime)
 
-  implicit val schema: Schema[LocalTimeWrapper] = struct(
+  implicit val schema: Schema[LocalTimeWrapper] = struct[LocalTimeWrapper](
     localtime.optional[LocalTimeWrapper]("localTime", _.localTime),
     localtime.optional[LocalTimeWrapper]("compactLocalTime", _.compactLocalTime).addHints(Hints.dynamic(ShapeId("alloy.proto", "protoCompactLocalTime"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)

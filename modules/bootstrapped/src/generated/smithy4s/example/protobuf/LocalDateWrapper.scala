@@ -20,7 +20,7 @@ object LocalDateWrapper extends ShapeTag.Companion[LocalDateWrapper] {
   // constructor using the original order from the spec
   private def make(localDate: Option[LocalDate], compactLocalDate: Option[LocalDate]): LocalDateWrapper = LocalDateWrapper(localDate, compactLocalDate)
 
-  implicit val schema: Schema[LocalDateWrapper] = struct(
+  implicit val schema: Schema[LocalDateWrapper] = struct[LocalDateWrapper](
     localdate.optional[LocalDateWrapper]("localDate", _.localDate),
     localdate.optional[LocalDateWrapper]("compactLocalDate", _.compactLocalDate).addHints(Hints.dynamic(ShapeId("alloy.proto", "protoCompactLocalDate"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)

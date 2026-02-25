@@ -20,7 +20,7 @@ object OffsetDateTimeWrapper extends ShapeTag.Companion[OffsetDateTimeWrapper] {
   // constructor using the original order from the spec
   private def make(string: Option[OffsetDateTime], compact: Option[OffsetDateTime]): OffsetDateTimeWrapper = OffsetDateTimeWrapper(string, compact)
 
-  implicit val schema: Schema[OffsetDateTimeWrapper] = struct(
+  implicit val schema: Schema[OffsetDateTimeWrapper] = struct[OffsetDateTimeWrapper](
     offsetdatetime.optional[OffsetDateTimeWrapper]("string", _.string).addHints(Hints.dynamic(ShapeId("alloy.proto", "protoOffsetDateTimeFormat"), smithy4s.Document.fromString("RFC3339_STRING"))),
     offsetdatetime.optional[OffsetDateTimeWrapper]("compact", _.compact).addHints(Hints.dynamic(ShapeId("alloy.proto", "protoOffsetDateTimeFormat"), smithy4s.Document.fromString("PROTOBUF"))),
   )(make).withId(id).addHints(hints)

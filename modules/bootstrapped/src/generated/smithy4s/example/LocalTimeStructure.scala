@@ -18,7 +18,7 @@ object LocalTimeStructure extends ShapeTag.Companion[LocalTimeStructure] {
   // constructor using the original order from the spec
   private def make(localTime: LocalTime, localTime2: MyLocalTime): LocalTimeStructure = LocalTimeStructure(localTime, localTime2)
 
-  implicit val schema: Schema[LocalTimeStructure] = struct(
+  implicit val schema: Schema[LocalTimeStructure] = struct[LocalTimeStructure](
     localtime.required[LocalTimeStructure]("localTime", _.localTime),
     MyLocalTime.schema.required[LocalTimeStructure]("localTime2", _.localTime2),
   )(make).withId(id).addHints(hints)

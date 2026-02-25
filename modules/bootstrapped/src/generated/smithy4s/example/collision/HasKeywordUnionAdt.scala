@@ -54,7 +54,7 @@ object HasKeywordUnionAdt extends ShapeTag.Companion[HasKeywordUnionAdt] {
     }
   }
 
-  implicit val schema: Schema[HasKeywordUnionAdt] = union(
+  implicit val schema: Schema[HasKeywordUnionAdt] = union[HasKeywordUnionAdt](
     HasKeywordUnionAdt.Implicit.alt,
   ){
     _.$ordinal

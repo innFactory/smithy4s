@@ -18,7 +18,7 @@ object DurationStructure extends ShapeTag.Companion[DurationStructure] {
   // constructor using the original order from the spec
   private def make(duration: Duration, duration2: MyDuration): DurationStructure = DurationStructure(duration, duration2)
 
-  implicit val schema: Schema[DurationStructure] = struct(
+  implicit val schema: Schema[DurationStructure] = struct[DurationStructure](
     duration.required[DurationStructure]("duration", _.duration),
     MyDuration.schema.required[DurationStructure]("duration2", _.duration2),
   )(make).withId(id).addHints(hints)
