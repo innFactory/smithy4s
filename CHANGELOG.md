@@ -5,6 +5,10 @@ When adding entries, please treat them as if they could end up in a release any 
 
 Thank you!
 
+# 0.18.49
+
+* codegen: Fix `Long` literal rendering to add `L` suffix, preventing `integer number too large` compilation errors for values exceeding `Int.MaxValue` in [#1898](https://github.com/disneystreaming/smithy4s/pull/1898)
+
 # 0.18.47
 
 * core: Add `asSurjection` method to `ValidatedNewtype` class (see [#1873](https://github.com/disneystreaming/smithy4s/pull/1873))
