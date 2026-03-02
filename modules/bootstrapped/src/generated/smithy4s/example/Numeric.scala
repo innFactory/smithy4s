@@ -13,7 +13,7 @@ import smithy4s.schema.Schema.long
 import smithy4s.schema.Schema.short
 import smithy4s.schema.Schema.struct
 
-final case class Numeric(i: Int = 1, f: Float = 1.0f, d: Double = 1.0d, s: Short = 1, l: Long = 1L, bi: BigInt = scala.math.BigInt(1), bd: BigDecimal = scala.math.BigDecimal(1.0))
+final case class Numeric(i: Int = 1, f: Float = 1.0f, d: Double = 1.0d, s: Short = 1, l: Long = 9999999999L, bi: BigInt = scala.math.BigInt(1), bd: BigDecimal = scala.math.BigDecimal(1.0))
 
 object Numeric extends ShapeTag.Companion[Numeric] {
   val id: ShapeId = ShapeId("smithy4s.example", "Numeric")
@@ -28,7 +28,7 @@ object Numeric extends ShapeTag.Companion[Numeric] {
     float.field[Numeric]("f", _.f).addHints(smithy.api.Default(smithy4s.Document.fromDouble(1.0d))),
     double.field[Numeric]("d", _.d).addHints(smithy.api.Default(smithy4s.Document.fromDouble(1.0d))),
     short.field[Numeric]("s", _.s).addHints(smithy.api.Default(smithy4s.Document.fromLong(1L))),
-    long.field[Numeric]("l", _.l).addHints(smithy.api.Default(smithy4s.Document.fromLong(1L))),
+    long.field[Numeric]("l", _.l).addHints(smithy.api.Default(smithy4s.Document.fromLong(9999999999L))),
     bigint.field[Numeric]("bi", _.bi).addHints(smithy.api.Default(smithy4s.Document.fromLong(1L))),
     bigdecimal.field[Numeric]("bd", _.bd).addHints(smithy.api.Default(smithy4s.Document.fromLong(1L))),
   )(make).withId(id).addHints(hints)
