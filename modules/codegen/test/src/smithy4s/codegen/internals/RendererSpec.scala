@@ -727,4 +727,70 @@ final class RendererSpec extends munit.ScalaCheckSuite {
     )
 
   }
+
+  test("nullable fields should be rendered as smithy4s.Nullable") {
+    val smithy =
+      """
+        |$version: "2.0"
+        |
+        |namespace smithy4s
+        |
+        |use alloy#nullable
+        |
+        |structure NullableExample {
+        |  @nullable
+        |  @required
+        |  nullableString: String
+        |}
+        |""".stripMargin
+
+    val contents = generateScalaCode(smithy).values
+    val definition =
+      contents.find(_.contains("final case class NullableExample")).get
+
+    assert(
+      definition.contains("nullableString: Nullable[String]"),
+      s"$definition does not contain Nullable[String]"
+    )
+  }
+
+  test("sparse collection types should be rendered as Nullable") {
+    val smithy =
+      """
+        |$version: "2.0"
+        |
+        |namespace smithy4s
+        |
+        |@sparse
+        |list SparseStringList {
+        |  member: String
+        |}
+        |
+        |@sparse
+        |map SparseStringMap {
+        |  key: String
+        |  value: String
+        |}
+        |""".stripMargin
+
+    val contents = generateScalaCode(smithy).values
+
+    val listDefinition =
+      contents.find(_.contains("object SparseStringList")).getOrElse {
+        fail("No SparseStringList definition")
+      }
+
+    val mapDefinition =
+      contents.find(_.contains("object SparseStringMap")).getOrElse {
+        fail("No SparseStringMap definition")
+      }
+
+    val sparseListSchema =
+      "val underlyingSchema: Schema[List[Nullable[String]]] = list(string.nullable)"
+    assert(listDefinition.contains(sparseListSchema))
+
+    val sparseMapSchema =
+      "val underlyingSchema: Schema[Map[String, Nullable[String]]] = map(string, string.nullable)"
+    assert(mapDefinition.contains(sparseMapSchema))
+  }
 }
