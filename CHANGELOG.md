@@ -9,6 +9,11 @@ Thank you!
 
 * codegen: Fix `Long` literal rendering to add `L` suffix, preventing `integer number too large` compilation errors for values exceeding `Int.MaxValue` in [#1898](https://github.com/disneystreaming/smithy4s/pull/1898)
 
+# 0.18.48
+
+* codegen: Update codegen of numbers when using dynamic bindings in [#1886](https://github.com/disneystreaming/smithy4s/pull/1886)
+* codegen: Add type params to `struct` and `union` in codegen schemas in [#1893](https://github.com/disneystreaming/smithy4s/pull/1893)
+
 # 0.18.47
 
 * core: Add `asSurjection` method to `ValidatedNewtype` class (see [#1873](https://github.com/disneystreaming/smithy4s/pull/1873))
