@@ -72,7 +72,7 @@ class TimestampSpec() extends munit.FunSuite with munit.ScalaCheckSuite {
       val epochSecond = (i.valueOf() / 1000).toLong
       val nano = (i.valueOf() % 1000).toInt * 1000000
       val ts = Timestamp(epochSecond, nano)
-      val formatted = ts.format(TimestampFormat.DATE_TIME)
+      val formatted = ts.formatDateTime
       val parsed = Timestamp.parse(formatted, TimestampFormat.DATE_TIME)
       expect.same(formatted, i.toISOString().replace(".000", ""))
       expect.same(parsed, Some(ts))
@@ -87,8 +87,7 @@ class TimestampSpec() extends munit.FunSuite with munit.ScalaCheckSuite {
       val offsetSeconds = totalOffset % 60
       val epochSecond = (i.valueOf() / 1000).toLong
       val nano = (i.valueOf() % 1000).toInt * 1000000
-      val formatted = Timestamp(epochSecond, nano)
-        .format(TimestampFormat.DATE_TIME)
+      val formatted = Timestamp(epochSecond, nano).formatDateTime
         .dropRight(1) + {
         if (offsetSeconds == 0)
           f"${if (o >= 0) "+" else "-"}$offsetHours%02d:$offsetMinutes%02d"
@@ -112,7 +111,7 @@ class TimestampSpec() extends munit.FunSuite with munit.ScalaCheckSuite {
       val epochSecond = (i.valueOf() / 1000).toLong
       val nano = (i.valueOf() % 1000).toInt * 1000000
       val ts = Timestamp(epochSecond, nano)
-      val formatted = ts.format(TimestampFormat.HTTP_DATE)
+      val formatted = ts.formatHttpDate
       val parsed = Timestamp.parse(formatted, TimestampFormat.HTTP_DATE)
       expect.same(formatted, i.toUTCString())
       expect.same(parsed, Some(ts))
@@ -124,7 +123,7 @@ class TimestampSpec() extends munit.FunSuite with munit.ScalaCheckSuite {
       val epochSecond = (i.valueOf() / 1000).toLong
       val nano = (i.valueOf() % 1000).toInt * 1000000
       val ts = Timestamp(epochSecond, nano)
-      val formatted = ts.format(TimestampFormat.EPOCH_SECONDS)
+      val formatted = ts.formatEpochSeconds
       val parsed = Timestamp.parse(formatted, TimestampFormat.EPOCH_SECONDS)
       val expected =
         if (nano != 0) {
