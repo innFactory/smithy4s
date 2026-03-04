@@ -69,6 +69,9 @@ private[http] class ErrorCodeSchemaVisitor(
       .orElse(hints.get(smithy.api.Error).map {
         case smithy.api.Error.CLIENT => 400
         case smithy.api.Error.SERVER => 500
+        // In the event that an enum value is added to smithy.api.Error
+        // we will fallback to server error code
+        case _ => 500
       })
   }
 

@@ -101,8 +101,8 @@ class DocumentEncoderSchemaVisitor(
       hints
         .get(TimestampFormat)
         .getOrElse(TimestampFormat.EPOCH_SECONDS) match {
-        case DATE_TIME => ts => DString(ts.format(DATE_TIME))
-        case HTTP_DATE => ts => DString(ts.format(HTTP_DATE))
+        case DATE_TIME => ts => DString(ts.formatDateTime)
+        case HTTP_DATE => ts => DString(ts.formatHttpDate)
         case EPOCH_SECONDS =>
           ts =>
             DNumber(
@@ -117,6 +117,13 @@ class DocumentEncoderSchemaVisitor(
                   )
               })
             )
+        case fmt =>
+          // At least this case will be encountered during compilation rather than actual encoding
+          // We just don't know if a new timestampFormat will be added, but if it is then
+          // a new version of smithy4s needs to be released with support for it.
+          throw new IllegalArgumentException(
+            s"Found unsupported timestamp format: '$fmt'"
+          )
       }
     case PDocument  => from(identity)
     case PFloat     => from(float => DNumber(BigDecimal(float.toDouble)))

@@ -71,9 +71,22 @@ class SchemaVisitorPathEncoder(urlEncodeHttpLabelValues: Boolean)
       case Primitive.PTimestamp =>
         val fmt =
           hints.get(TimestampFormat).getOrElse(TimestampFormat.DATE_TIME)
+        val format: smithy4s.time.Timestamp => String =
+          fmt match {
+            case TimestampFormat.DATE_TIME =>
+              _.formatDateTime
+            case TimestampFormat.EPOCH_SECONDS =>
+              _.formatEpochSeconds
+            case TimestampFormat.HTTP_DATE =>
+              _.formatHttpDate
+            case fmt =>
+              throw new IllegalArgumentException(
+                s"Found unsupported timestamp format: '$fmt'"
+              )
+          }
         Some(
           PathEncode.raw(
-            _.format(fmt),
+            format(_),
             urlEncode = this.urlEncodeHttpLabelValues
           )
         )

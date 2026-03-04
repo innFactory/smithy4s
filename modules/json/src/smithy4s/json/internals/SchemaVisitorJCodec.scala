@@ -352,7 +352,7 @@ private[smithy4s] class SchemaVisitorJCodec(
         }
 
       def encodeValue(x: Timestamp, out: JsonWriter): Unit =
-        out.writeNonEscapedAsciiVal(x.format(TimestampFormat.DATE_TIME))
+        out.writeNonEscapedAsciiVal(x.formatDateTime)
 
       def decodeKey(in: JsonReader): Timestamp =
         Timestamp.parse(in.readKeyAsString(), TimestampFormat.DATE_TIME) match {
@@ -361,7 +361,7 @@ private[smithy4s] class SchemaVisitorJCodec(
         }
 
       def encodeKey(x: Timestamp, out: JsonWriter): Unit =
-        out.writeNonEscapedAsciiKey(x.format(TimestampFormat.DATE_TIME))
+        out.writeNonEscapedAsciiKey(x.formatDateTime)
     }
 
     val timestampHttpDate: JCodec[Timestamp] = new JCodec[Timestamp] {
@@ -374,7 +374,7 @@ private[smithy4s] class SchemaVisitorJCodec(
         }
 
       def encodeValue(x: Timestamp, out: JsonWriter): Unit =
-        out.writeNonEscapedAsciiVal(x.format(TimestampFormat.HTTP_DATE))
+        out.writeNonEscapedAsciiVal(x.formatHttpDate)
 
       def decodeKey(in: JsonReader): Timestamp =
         Timestamp.parse(in.readKeyAsString(), TimestampFormat.HTTP_DATE) match {
@@ -383,7 +383,7 @@ private[smithy4s] class SchemaVisitorJCodec(
         }
 
       def encodeKey(x: Timestamp, out: JsonWriter): Unit =
-        out.writeNonEscapedAsciiKey(x.format(TimestampFormat.HTTP_DATE))
+        out.writeNonEscapedAsciiKey(x.formatHttpDate)
     }
 
     val timestampEpochSeconds: JCodec[Timestamp] = new JCodec[Timestamp] {
@@ -655,6 +655,13 @@ private[smithy4s] class SchemaVisitorJCodec(
       case TimestampFormat.EPOCH_SECONDS =>
         PrimitiveJCodecs.timestampEpochSeconds
       case TimestampFormat.HTTP_DATE => PrimitiveJCodecs.timestampHttpDate
+      case fmt                       =>
+        // At least this case will be encountered during compilation rather than actual encoding/decoding
+        // We just don't know if a new timestampFormat will be added, but if it is then
+        // a new version of smithy4s needs to be released with support for it.
+        throw new IllegalArgumentException(
+          s"Found unsupported timestamp format: '$fmt'"
+        )
     }
   }
 

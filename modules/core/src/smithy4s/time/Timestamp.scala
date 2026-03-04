@@ -31,11 +31,22 @@ case class Timestamp private (epochSecond: Long, nano: Int)
     diff > 0 || diff == 0 && nano > other.nano
   }
 
-  def format(format: TimestampFormat): String = format match {
-    case TimestampFormat.DATE_TIME     => formatToString(0)
-    case TimestampFormat.EPOCH_SECONDS => formatEpochSeconds
-    case TimestampFormat.HTTP_DATE     => formatToString(1)
+  /**
+   * Formats the Timestamp as a String using the given TimestampFormat
+   * 
+   * Returns an Option value since an unsupported TimestampFormat could be provided.
+   * 
+   * Supported formats are `DATE_TIME`, `EPOCH_SECONDS`, and `HTTP_DATE`
+   */
+  def format(format: TimestampFormat): Option[String] = format match {
+    case TimestampFormat.DATE_TIME     => Some(formatToString(0))
+    case TimestampFormat.EPOCH_SECONDS => Some(formatEpochSeconds)
+    case TimestampFormat.HTTP_DATE     => Some(formatToString(1))
+    case _                             => None
   }
+
+  def formatDateTime: String = formatToString(0)
+  def formatHttpDate: String = formatToString(1)
 
   def conciseDateTime: String = formatToString(3)
 
@@ -51,7 +62,9 @@ case class Timestamp private (epochSecond: Long, nano: Int)
     */
   def truncateToSeconds: Timestamp = copy(nano = 0)
 
-  override def toString: String = format(TimestampFormat.DATE_TIME)
+  override def toString: String = format(
+    TimestampFormat.DATE_TIME
+  ).get // we know `DATE_TIME` is a supported format
 
   private[this] def formatToString(internalFormat: Int): String = {
     val s = new java.lang.StringBuilder(32)
@@ -112,7 +125,7 @@ case class Timestamp private (epochSecond: Long, nano: Int)
     }
   }
 
-  private[this] def formatEpochSeconds: String = {
+  def formatEpochSeconds: String = {
     val s = new java.lang.StringBuilder(32)
     s.append(epochSecond)
     TimeUtil.appendNano(nano, s)
@@ -194,11 +207,12 @@ object Timestamp extends TimestampCompanionPlatform {
   def fromEpochSecond(epochSecond: Long): Timestamp = Timestamp(epochSecond, 0)
 
   def parse(string: String, format: TimestampFormat): Option[Timestamp] = try {
-    new Some(format match {
-      case TimestampFormat.DATE_TIME     => parseDateTime(string)
-      case TimestampFormat.EPOCH_SECONDS => parseEpochSeconds(string)
-      case TimestampFormat.HTTP_DATE     => parseHTTPDate(string)
-    })
+    format match {
+      case TimestampFormat.DATE_TIME     => new Some(parseDateTime(string))
+      case TimestampFormat.EPOCH_SECONDS => new Some(parseEpochSeconds(string))
+      case TimestampFormat.HTTP_DATE     => new Some(parseHTTPDate(string))
+      case _                             => None
+    }
   } catch {
     case NonFatal(_) => None
   }
@@ -209,6 +223,7 @@ object Timestamp extends TimestampCompanionPlatform {
     case TimestampFormat.EPOCH_SECONDS => "epoch-second timestamp"
     case TimestampFormat.HTTP_DATE =>
       "http-date timestamp (EEE, dd MMM yyyy hh:mm:ss.sss z)"
+    case other => s"unknown format: '${other.name}'"
   }
 
   private[this] def parseDateTime(s: String): Timestamp = {

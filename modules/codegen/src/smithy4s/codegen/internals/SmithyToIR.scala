@@ -146,6 +146,29 @@ private[codegen] class SmithyToIR(
           )
         )
 
+  private val smithy4sDefaultBinCompatHintNamespacePatterns
+      : Set[NamespacePattern] = Set(
+    NamespacePattern.fromString("smithy"),
+    NamespacePattern.fromString("smithy.*"),
+    NamespacePattern.fromString("alloy"),
+    NamespacePattern.fromString("alloy.*")
+  )
+
+  private val smithy4sBinCompatHintNamespacePatterns: Set[NamespacePattern] =
+    smithy4sDefaultBinCompatHintNamespacePatterns ++
+      model
+        .getMetadata()
+        .asScala
+        .get("smithy4sBinCompatNamespacePatterns")
+        .toSet
+        .flatMap((n: Node) => n.asArrayNode().asScala)
+        .flatMap(_.getElements().asScala)
+        .flatMap(
+          _.asStringNode().asScala.map(n =>
+            NamespacePattern.fromString(n.getValue)
+          )
+        )
+
   private def fieldModifier(member: MemberShape): Field.Modifier = {
     val hasRequired = member.hasTrait(classOf[RequiredTrait])
     val hasNullable = member.hasTrait(classOf[alloy.NullableTrait])
@@ -1165,7 +1188,19 @@ private[codegen] class SmithyToIR(
     val nonConstraintNonMetaTraits = nonMetaTraits.collect {
       case t if ConstraintTrait.unapply(t).isEmpty => t
     }
+
+    val stdlibBincompatFriendlyTrait = {
+      if (
+        smithy4sBinCompatHintNamespacePatterns.exists(
+          _.matches(shape.namespace)
+        )
+      ) {
+        Some(Hint.BincompatFriendly)
+      } else None
+    }
+
     allTraits.collect(traitToHint(shape)) ++
+      stdlibBincompatFriendlyTrait ++
       documentationHint(shape) ++
       nonConstraintNonMetaTraits
         .filter(tr =>

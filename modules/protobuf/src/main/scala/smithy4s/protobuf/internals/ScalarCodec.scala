@@ -57,6 +57,11 @@ private[protobuf] object ScalarCodec {
     case Some(FIXED_SIGNED) => SignedFixedIntCodec
     case Some(SIGNED)       => SignedIntCodec
     case Some(UNSIGNED)     => UnsignedIntCodec
+    case Some(fmt)          =>
+      // At least this case will be encountered during compilation rather than actual encoding/decoding
+      // We just don't know if a new timestampFormat will be added, but if it is then
+      // a new version of smithy4s needs to be released with support for it.
+      throw new IllegalArgumentException(s"Found unsupported timestamp format: '$fmt'")
   }
 
   object IntCodec extends ScalarCodec[Int] {
@@ -118,6 +123,11 @@ private[protobuf] object ScalarCodec {
     case Some(FIXED_SIGNED) => SignedFixedLongCodec
     case Some(SIGNED)       => SignedLongCodec
     case Some(UNSIGNED)     => UnsignedLongCodec
+    case Some(fmt)          =>
+      // At least this case will be encountered during compilation rather than actual encoding/decoding
+      // We just don't know if a new timestampFormat will be added, but if it is then
+      // a new version of smithy4s needs to be released with support for it.
+      throw new IllegalArgumentException(s"Found unsupported timestamp format: '$fmt'")
   }
 
   object LongCodec extends ScalarCodec[Long] {

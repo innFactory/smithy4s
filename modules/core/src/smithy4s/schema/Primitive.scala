@@ -193,7 +193,15 @@ object Primitive extends smithy4s.ScalaCompat {
 
   private def timestampWriter(hints: Hints): Timestamp => String = {
     val finalFormat = timestampFormat(hints)
-    _.format(finalFormat)
+    finalFormat match {
+      case TimestampFormat.DATE_TIME     => _.formatDateTime
+      case TimestampFormat.EPOCH_SECONDS => _.formatEpochSeconds
+      case TimestampFormat.HTTP_DATE     => _.formatHttpDate
+      case fmt =>
+        throw new IllegalArgumentException(
+          s"Found unexpected timestamp format: '$fmt'"
+        )
+    }
   }
 
   private def unsafeStringParser[A](f: String => A): String => Option[A] = s =>

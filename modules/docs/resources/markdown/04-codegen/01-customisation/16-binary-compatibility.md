@@ -88,6 +88,14 @@ structure Hello {
 
 This will change the structure of generated code so that it's possible to evolve in a bincompat safe way.
 
+An alternative way of configuring `bincompatFriendly` codegen is to configure the `smithy4sBinCompatNamespacePatterns` metadata key in your Smithy files.
+
+```smithy
+metadata smithy4sBinCompatNamespacePatterns = ["foo", "foo.*"]
+```
+
+The above metadata configuration will configure Smithy4s to generate `bincompatFriendly` for all shapes with ShapeIds starting with `foo#` or `foo.`.
+
 ## Support
 
 At the time of writing, the following shapes can be made bincompat-friendly:
