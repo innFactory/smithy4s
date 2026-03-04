@@ -5,8 +5,11 @@ When adding entries, please treat them as if they could end up in a release any 
 
 Thank you!
 
+
 # 0.18.49
 
+* mill codegen plugin: now supports Mill 1.x (tested with 1.1.1), in addition to the existing Mill 0.11.x and 0.12.x support
+* codegen: Cross comple codegen module against Scala 3
 * codegen: Fix `Long` literal rendering to add `L` suffix, preventing `integer number too large` compilation errors for values exceeding `Int.MaxValue` in [#1898](https://github.com/disneystreaming/smithy4s/pull/1898)
 
 # 0.18.48
