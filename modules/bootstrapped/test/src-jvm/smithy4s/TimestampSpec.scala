@@ -81,7 +81,7 @@ class TimestampSpec() extends munit.FunSuite with munit.ScalaCheckSuite {
   property("Converts to/from DATE_TIME format") {
     forAll { (i: Instant) =>
       val ts = Timestamp(i.getEpochSecond, i.getNano)
-      val formatted = ts.format(TimestampFormat.DATE_TIME)
+      val formatted = ts.formatDateTime
       val parsed = Timestamp.parse(formatted, TimestampFormat.DATE_TIME)
       expect.same(formatted, i.toString)
       expect.same(parsed, Some(ts))
@@ -94,8 +94,7 @@ class TimestampSpec() extends munit.FunSuite with munit.ScalaCheckSuite {
       val offsetHours = totalOffset / 3600
       val offsetMinutes = (totalOffset % 3600) / 60
       val offsetSeconds = totalOffset % 60
-      val formatted = Timestamp(i.getEpochSecond, i.getNano)
-        .format(TimestampFormat.DATE_TIME)
+      val formatted = Timestamp(i.getEpochSecond, i.getNano).formatDateTime
         .dropRight(1) + {
         if (offsetSeconds == 0)
           f"${if (o >= 0) "+" else "-"}$offsetHours%02d:$offsetMinutes%02d"
@@ -117,7 +116,7 @@ class TimestampSpec() extends munit.FunSuite with munit.ScalaCheckSuite {
   property("Converts to/from HTTP_DATE format") {
     forAll { (i: Instant) =>
       val ts = Timestamp(i.getEpochSecond, i.getNano)
-      val formatted = ts.format(TimestampFormat.HTTP_DATE)
+      val formatted = ts.formatHttpDate
       val parsed = Timestamp.parse(formatted, TimestampFormat.HTTP_DATE)
       val expected = imfDateFormatter
         .format(i)
@@ -132,7 +131,7 @@ class TimestampSpec() extends munit.FunSuite with munit.ScalaCheckSuite {
   property("Converts to/from EPOCH_SECONDS format") {
     forAll { (i: Instant) =>
       val ts = Timestamp(i.getEpochSecond, i.getNano)
-      val formatted = ts.format(TimestampFormat.EPOCH_SECONDS)
+      val formatted = ts.formatEpochSeconds
       val parsed = Timestamp.parse(formatted, TimestampFormat.EPOCH_SECONDS)
       val expected =
         if (i.getNano != 0) {
