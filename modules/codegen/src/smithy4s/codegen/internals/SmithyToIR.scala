@@ -154,20 +154,11 @@ private[codegen] class SmithyToIR(
     NamespacePattern.fromString("alloy.*")
   )
 
+  // for now if you want to add more namespaces, you'll need to use a ModelTransformer
+  // we don't allow metadata configuration since that would bypass model validation
+  // such as not allowing bincompat trait in conjunction with ADT trait.
   private val smithy4sBinCompatHintNamespacePatterns: Set[NamespacePattern] =
-    smithy4sDefaultBinCompatHintNamespacePatterns ++
-      model
-        .getMetadata()
-        .asScala
-        .get("smithy4sBinCompatNamespacePatterns")
-        .toSet
-        .flatMap((n: Node) => n.asArrayNode().asScala)
-        .flatMap(_.getElements().asScala)
-        .flatMap(
-          _.asStringNode().asScala.map(n =>
-            NamespacePattern.fromString(n.getValue)
-          )
-        )
+    smithy4sDefaultBinCompatHintNamespacePatterns
 
   private def fieldModifier(member: MemberShape): Field.Modifier = {
     val hasRequired = member.hasTrait(classOf[RequiredTrait])
