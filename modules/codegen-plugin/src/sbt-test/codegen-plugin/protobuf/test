@@ -1,4 +1,1 @@
 > compile
-
-# Protobuf source created
--$ exists target/scala-2.13/resources_managed/foo/foo.proto
