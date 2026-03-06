@@ -7,6 +7,10 @@ Thank you!
 
 # 0.19.0
 
+## Binary-Compatible-Friendly Codegen Enabled in Core Module in [#1900](https://github.com/disneystreaming/smithy4s/pull/1900)
+
+Now `alloy` and `smithy` namespaces and sub-namespaces are generated in core with binary-compatible-friendly mode enabled.
+
 ## Add Mill 1.x support
 
 The Mill codegen plugin now supports Mill 1.x (tested with 1.1.2), in addition to the existing Mill 0.11.x and 0.12.x support.

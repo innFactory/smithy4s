@@ -206,6 +206,13 @@ class DocumentDecoderSchemaVisitor(
               value.setScale(0, BigDecimal.RoundingMode.FLOOR).toLong
             Timestamp(epochSeconds, ((value - epochSeconds) * 1000000000).toInt)
         }
+      case fmt =>
+        // At least this case will be encountered during compilation rather than actual decoding
+        // We just don't know if a new timestampFormat will be added, but if it is then
+        // a new version of smithy4s needs to be released with support for it.
+        throw new IllegalArgumentException(
+          s"Found unsupported timestamp format '$fmt'"
+        )
     }
   }
 

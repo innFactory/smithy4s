@@ -79,11 +79,18 @@ object DocumentKeyEncoder {
               .get(TimestampFormat)
               .getOrElse(DATE_TIME) match {
               case DATE_TIME =>
-                instance { ts => ts.format(DATE_TIME) }
+                instance { ts => ts.formatDateTime }
               case HTTP_DATE =>
-                instance { ts => ts.format(HTTP_DATE) }
+                instance { ts => ts.formatHttpDate }
               case EPOCH_SECONDS =>
                 forBigDecimal { ts => BigDecimal(ts.epochSecond) }
+              case fmt =>
+                // At least this case will be encountered during compilation rather than actual encoding
+                // We just don't know if a new timestampFormat will be added, but if it is then
+                // a new version of smithy4s needs to be released with support for it.
+                throw new IllegalArgumentException(
+                  s"Found unsupported timestamp format: '$fmt'"
+                )
             }
           case PDocument       => None
           case PLocalDate      => asString

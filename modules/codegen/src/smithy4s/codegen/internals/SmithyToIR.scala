@@ -146,6 +146,20 @@ private[codegen] class SmithyToIR(
           )
         )
 
+  private val smithy4sDefaultBinCompatHintNamespacePatterns
+      : Set[NamespacePattern] = Set(
+    NamespacePattern.fromString("smithy"),
+    NamespacePattern.fromString("smithy.*"),
+    NamespacePattern.fromString("alloy"),
+    NamespacePattern.fromString("alloy.*")
+  )
+
+  // for now if you want to add more namespaces, you'll need to use a ModelTransformer
+  // we don't allow metadata configuration since that would bypass model validation
+  // such as not allowing bincompat trait in conjunction with ADT trait.
+  private val smithy4sBinCompatHintNamespacePatterns: Set[NamespacePattern] =
+    smithy4sDefaultBinCompatHintNamespacePatterns
+
   private def fieldModifier(member: MemberShape): Field.Modifier = {
     val hasRequired = member.hasTrait(classOf[RequiredTrait])
     val hasNullable = member.hasTrait(classOf[alloy.NullableTrait])
@@ -1165,7 +1179,19 @@ private[codegen] class SmithyToIR(
     val nonConstraintNonMetaTraits = nonMetaTraits.collect {
       case t if ConstraintTrait.unapply(t).isEmpty => t
     }
+
+    val stdlibBincompatFriendlyTrait = {
+      if (
+        smithy4sBinCompatHintNamespacePatterns.exists(
+          _.matches(shape.namespace)
+        )
+      ) {
+        Some(Hint.BincompatFriendly)
+      } else None
+    }
+
     allTraits.collect(traitToHint(shape)) ++
+      stdlibBincompatFriendlyTrait ++
       documentationHint(shape) ++
       nonConstraintNonMetaTraits
         .filter(tr =>
