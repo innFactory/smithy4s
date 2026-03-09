@@ -20,11 +20,11 @@ import sbt.Keys._
 import sbt.util.CacheImplicits._
 import sbt.{fileJsonFormatter => _, _}
 import sbtcompat.{PluginCompat => SbtCompat}
-import SbtCompat.{toFiles, parseModuleIDStrAttribute}
 
 import scala.util.Success
 import scala.util.Try
 
+import SbtCompat.{toFiles, parseModuleIDStrAttribute}
 import Compat._
 import JsonConverters._
 
