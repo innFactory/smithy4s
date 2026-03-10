@@ -1,10 +1,6 @@
 # check if smithy4sCodegen works in multimodule contexts
 > compile
-$ exists bar/target/**/smithy4s/bar/Bar.scala
-$ absent bar/target/**/smithy4s/foo/Foo.scala
-$ absent bar/target/**/smithy4s/foodir/FooDir.scala
-$ exists foo/target/**/smithy4s/foo/Foo.scala
-$ exists foo/target/**/smithy4s/foodir/FooDir.scala
+> bar/checkNoLeakedSources
 # check if code can run, this can reveal runtime issues
 # such as initialization errors
 > bar/run
