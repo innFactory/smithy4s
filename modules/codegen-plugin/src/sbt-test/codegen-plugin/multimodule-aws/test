@@ -1,4 +1,5 @@
 # check if smithy4sCodegen works with libraries that were built with Smithy4s
 > show bar/smithy4sAllExternalDependencies
 > compile
-> bar/checkNoLeakedSources
+$ exists foo/target/scala-*/src_managed/main/smithy4s/foo/Lambda.scala
+$ absent bar/target/scala-*/src_managed/main/smithy4s/foo/Lambda.scala

@@ -517,7 +517,19 @@ lazy val codegenPlugin = (projectMatrix in file("modules/codegen-plugin"))
   .jvmPlatform(
     List(Scala38),
     Seq.empty[VirtualAxis],
-    (p: Project) => p.settings(jvmDimSettings).dependsOn(codegen.jvm(Scala3))
+    (p: Project) =>
+      p.settings(
+        jvmDimSettings,
+        // When cross-building for Scala 3 / sbt 2, the codegen dependency brings in
+        // coursier with Scala 2.13 variants that conflict with Scala 3 variants.
+        excludeDependencies ++= Seq(
+          ExclusionRule(
+            "org.scala-lang.modules",
+            "scala-collection-compat_2.13"
+          ),
+          ExclusionRule("org.scala-lang.modules", "scala-xml_2.13")
+        )
+      ).dependsOn(codegen.jvm(Scala3))
   )
   .settings(
     name := "sbt-codegen",
@@ -533,19 +545,6 @@ lazy val codegenPlugin = (projectMatrix in file("modules/codegen-plugin"))
         case "2.12" => "com.github.sbt" % "sbt2-compat_2.12_1.0" % "0.1.0"
         case _      => "com.github.sbt" % "sbt2-compat_sbt2_3" % "0.1.0"
       }
-    },
-    // When cross-building for Scala 3 / sbt 2, the codegen dependency brings in
-    // coursier with Scala 2.13 variants that conflict with Scala 3 variants.
-    excludeDependencies ++= {
-      if (scalaBinaryVersion.value == "3")
-        Seq(
-          ExclusionRule(
-            "org.scala-lang.modules",
-            "scala-collection-compat_2.13"
-          ),
-          ExclusionRule("org.scala-lang.modules", "scala-xml_2.13")
-        )
-      else Seq.empty
     },
     conflictWarning := {
       if (scalaBinaryVersion.value == "3") ConflictWarning.disable

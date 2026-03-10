@@ -2,7 +2,9 @@
 > foo/publishLocal
 > upstream/publishLocal
 > bar/compile
-> bar/checkNoLeakedSources
+$ exists bar/target/scala-*/src_managed/main/smithy4s/bar/Bar.scala
+$ absent bar/target/scala-*/src_managed/main/smithy4s/foo/Foo.scala
 
 # check if code can run, this can reveal runtime issues
+# such as initialization errors
 > bar/run

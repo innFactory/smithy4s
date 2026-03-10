@@ -13,9 +13,3 @@ lazy val foo = (project in file("foo"))
 lazy val bar = (project in file("bar"))
   .enablePlugins(Smithy4sCodegenPlugin)
   .dependsOn(foo)
-  .settings(
-    TaskKey[Unit]("checkNoLeakedSources") := {
-      val srcDir = (Compile / sourceManaged).value / "smithy4s"
-      assert(!(srcDir / "foo" / "Lambda.scala").exists, "foo/Lambda.scala should not be in bar")
-    }
-  )
