@@ -59,7 +59,7 @@ object MillPlatformConfig {
   }
 
   case object Mill1x extends MillPlatformConfig {
-    def scalaVersion = Smithy4sBuildPlugin.MillScala3
+    def scalaVersion = Smithy4sBuildPlugin.Scala38
     def depScalaVersion = Smithy4sBuildPlugin.Scala3
     def millDeps(mv: String) = Seq(
       Dependencies.Mill.libs(mv),
@@ -127,7 +127,7 @@ object Smithy4sBuildPlugin extends AutoPlugin {
   val Scala212 = "2.12.21"
   val Scala213 = "2.13.18"
   val Scala3 = "3.3.6"
-  val MillScala3 = "3.8.1"
+  val Scala38 = "3.8.2"
 
   object autoImport {
     // format: off
