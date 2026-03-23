@@ -215,7 +215,7 @@ object Schema {
   private final class TransitiveCompiler(
       underlying: Schema ~> Schema
   ) extends (Schema ~> Schema) {
-    val lazyCompileCache: MMap[Any, Any] = MMap.empty
+    private val lazyCache: MMap[Any, Any] = MMap.empty
 
     def apply[A](
         fa: Schema[A]
@@ -227,9 +227,13 @@ object Schema {
       case BijectionSchema(s, bijection) =>
         underlying(BijectionSchema(this(s), bijection))
       case LazySchema(suspend) =>
-        underlying(LazySchema(suspend.map(this.apply)))
-        // LazySchema(Lazy(underlying(suspend.value)))
-        // LazySchema(suspend.map(this.apply))
+        lazyCache
+          .getOrElseUpdate(
+            suspend, {
+              LazySchema(suspend.map(this.apply))
+            }
+          )
+          .asInstanceOf[Schema[A]]
       case RefinementSchema(s, refinement) =>
         underlying(RefinementSchema(this(s), refinement))
       case c: CollectionSchema[c, a] =>

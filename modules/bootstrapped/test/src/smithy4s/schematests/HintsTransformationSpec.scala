@@ -132,9 +132,9 @@ class HintsTransformationSpec() extends FunSuite {
       (1 until size).foldLeft(Foo(None))((foo, _) => Foo(Some(foo)))
 
     checkSchema(Foo(None), 1)
-    checkSchema(Foo(Some(Foo(None))), 1)
-    checkSchema(Foo(Some(Foo(Some(Foo(None))))), 1)
-    checkSchema(buildFoo(256), 1)
+    checkSchema(Foo(Some(Foo(None))), 2)
+    checkSchema(Foo(Some(Foo(Some(Foo(None))))), 3)
+    checkSchema(buildFoo(256), 256)
   }
 
   test(header("nullable")) {
