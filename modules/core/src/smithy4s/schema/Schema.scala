@@ -226,14 +226,10 @@ object Schema {
         underlying(u.copy(alternatives = u.alternatives.map(handleAlt(_))))
       case BijectionSchema(s, bijection) =>
         underlying(BijectionSchema(this(s), bijection))
-      case l @ LazySchema(suspend) => {
-        lazyCompileCache
-          .getOrElseUpdate(
-            l,
-            LazySchema(suspend.map(this.apply))
-          )
-          .asInstanceOf[Schema[A]]
-      }
+      case LazySchema(suspend) =>
+        underlying(LazySchema(suspend.map(this.apply)))
+        // LazySchema(Lazy(underlying(suspend.value)))
+        // LazySchema(suspend.map(this.apply))
       case RefinementSchema(s, refinement) =>
         underlying(RefinementSchema(this(s), refinement))
       case c: CollectionSchema[c, a] =>

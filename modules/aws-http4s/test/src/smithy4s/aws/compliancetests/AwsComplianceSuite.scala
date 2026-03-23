@@ -70,6 +70,7 @@ object AwsComplianceSuite extends ProtocolComplianceSuite {
       "RestJsonHttpPrefixEmptyHeaders",
       "RestJsonHttpEmptyPrefixHeadersRequestClient",
       "AwsJson10ClientErrorCorrectsWithDefaultValuesWhenServerFailsToSerializeRequiredValues"
+      // "serializes_structure_members_with_locationname_traits"
     )
     (complianceTest: ComplianceTest[IO]) =>
       if (disallowed.exists(complianceTest.show.contains(_))) ShouldRun.No
