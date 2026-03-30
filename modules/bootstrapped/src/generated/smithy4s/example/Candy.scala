@@ -17,7 +17,7 @@ object Candy extends ShapeTag.Companion[Candy] {
   // constructor using the original order from the spec
   private def make(name: Option[String]): Candy = Candy(name)
 
-  implicit val schema: Schema[Candy] = struct(
+  implicit val schema: Schema[Candy] = struct[Candy](
     string.optional[Candy]("name", _.name),
   )(make).withId(id).addHints(hints)
 }

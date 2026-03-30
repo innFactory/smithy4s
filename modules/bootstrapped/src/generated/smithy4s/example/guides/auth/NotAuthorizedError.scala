@@ -23,7 +23,7 @@ object NotAuthorizedError extends ShapeTag.Companion[NotAuthorizedError] {
   // constructor using the original order from the spec
   private def make(message: String): NotAuthorizedError = NotAuthorizedError(message)
 
-  implicit val schema: Schema[NotAuthorizedError] = struct(
+  implicit val schema: Schema[NotAuthorizedError] = struct[NotAuthorizedError](
     string.required[NotAuthorizedError]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

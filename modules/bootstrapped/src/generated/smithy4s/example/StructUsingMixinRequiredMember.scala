@@ -17,7 +17,7 @@ object StructUsingMixinRequiredMember extends ShapeTag.Companion[StructUsingMixi
   // constructor using the original order from the spec
   private def make(description: String, extraField: String): StructUsingMixinRequiredMember = StructUsingMixinRequiredMember(description, extraField)
 
-  implicit val schema: Schema[StructUsingMixinRequiredMember] = struct(
+  implicit val schema: Schema[StructUsingMixinRequiredMember] = struct[StructUsingMixinRequiredMember](
     string.required[StructUsingMixinRequiredMember]("description", _.description),
     string.required[StructUsingMixinRequiredMember]("extraField", _.extraField),
   )(make).withId(id).addHints(hints)

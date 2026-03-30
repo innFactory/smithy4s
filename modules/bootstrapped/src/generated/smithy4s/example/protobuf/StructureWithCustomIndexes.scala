@@ -19,9 +19,9 @@ object StructureWithCustomIndexes extends ShapeTag.Companion[StructureWithCustom
   // constructor using the original order from the spec
   private def make(a: Option[Int], b: Int, c: Int, d: Option[UnionWithCustomIndexes]): StructureWithCustomIndexes = StructureWithCustomIndexes(c, b, a, d)
 
-  implicit val schema: Schema[StructureWithCustomIndexes] = struct(
+  implicit val schema: Schema[StructureWithCustomIndexes] = struct[StructureWithCustomIndexes](
     int.optional[StructureWithCustomIndexes]("a", _.a).addHints(alloy.proto.ProtoIndex(4)),
-    int.field[StructureWithCustomIndexes]("b", _.b).addHints(alloy.proto.ProtoIndex(3), smithy.api.Default(smithy4s.Document.fromLong(0))),
+    int.field[StructureWithCustomIndexes]("b", _.b).addHints(alloy.proto.ProtoIndex(3), smithy.api.Default(smithy4s.Document.fromLong(0L))),
     int.required[StructureWithCustomIndexes]("c", _.c).addHints(alloy.proto.ProtoIndex(2)),
     UnionWithCustomIndexes.schema.optional[StructureWithCustomIndexes]("d", _.d).addHints(alloy.proto.ProtoIndex(1)),
   )(make).withId(id).addHints(hints)

@@ -84,7 +84,7 @@ object MyUnion extends ShapeTag.Companion[MyUnion] {
     }
   }
 
-  implicit val schema: Schema[MyUnion] = union(
+  implicit val schema: Schema[MyUnion] = union[MyUnion](
     MyUnion.IntCase.alt,
     MyUnion.BoolCase.alt,
     MyUnion.ListCase.alt,

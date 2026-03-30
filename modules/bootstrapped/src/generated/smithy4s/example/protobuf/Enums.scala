@@ -18,7 +18,7 @@ object Enums extends ShapeTag.Companion[Enums] {
   // constructor using the original order from the spec
   private def make(closedString: ClosedString, openString: OpenString, closedInt: ClosedInt, openInt: OpenInt): Enums = Enums(closedString, openString, closedInt, openInt)
 
-  implicit val schema: Schema[Enums] = struct(
+  implicit val schema: Schema[Enums] = struct[Enums](
     ClosedString.schema.required[Enums]("closedString", _.closedString),
     OpenString.schema.required[Enums]("openString", _.openString),
     ClosedInt.schema.required[Enums]("closedInt", _.closedInt),

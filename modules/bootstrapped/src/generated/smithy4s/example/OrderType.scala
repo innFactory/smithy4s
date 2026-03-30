@@ -38,7 +38,7 @@ object OrderType extends ShapeTag.Companion[OrderType] {
   val id: ShapeId = ShapeId("smithy4s.example", "OrderType")
 
   val hints: Hints = Hints(
-    smithy.api.Documentation("Our order types have different ways to identify a product\nExcept for preview orders, these don\'t have an ID"),
+    smithy.api.Documentation("Our order types have different ways to identify a product\nExcept for preview orders, these don't have an ID"),
   ).lazily
 
   final case class OnlineCase(online: OrderNumber) extends OrderType { final def $ordinal: Int = 0 }
@@ -51,13 +51,13 @@ object OrderType extends ShapeTag.Companion[OrderType] {
     val id: ShapeId = ShapeId("smithy4s.example", "InStoreOrder")
 
     val hints: Hints = Hints(
-      smithy.api.Documentation("For an InStoreOrder a location ID isn\'t needed"),
+      smithy.api.Documentation("For an InStoreOrder a location ID isn't needed"),
     ).lazily
 
     // constructor using the original order from the spec
     private def make(id: OrderNumber, locationId: Option[String]): InStoreOrder = InStoreOrder(id, locationId)
 
-    val schema: Schema[InStoreOrder] = struct(
+    val schema: Schema[InStoreOrder] = struct[InStoreOrder](
       OrderNumber.schema.required[InStoreOrder]("id", _.id),
       string.optional[InStoreOrder]("locationId", _.locationId),
     )(make).withId(id).addHints(hints)
@@ -93,7 +93,7 @@ object OrderType extends ShapeTag.Companion[OrderType] {
     }
   }
 
-  implicit val schema: Schema[OrderType] = union(
+  implicit val schema: Schema[OrderType] = union[OrderType](
     OrderType.OnlineCase.alt,
     OrderType.InStoreOrder.alt,
     OrderType.PreviewCase.alt,

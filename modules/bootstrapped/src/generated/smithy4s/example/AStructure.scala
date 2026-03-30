@@ -19,7 +19,7 @@ object AStructure extends ShapeTag.Companion[AStructure] {
   // constructor using the original order from the spec
   private def make(astring: AString): AStructure = AStructure(astring)
 
-  implicit val schema: Schema[AStructure] = struct(
+  implicit val schema: Schema[AStructure] = struct[AStructure](
     AString.schema.field[AStructure]("astring", _.astring).addHints(smithy.api.Default(smithy4s.Document.fromString("\"Hello World\" with \"quotes\""))),
   )(make).withId(id).addHints(hints)
 }

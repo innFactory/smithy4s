@@ -19,7 +19,7 @@ object DescribeEndpointsResponse extends ShapeTag.Companion[DescribeEndpointsRes
   // constructor using the original order from the spec
   private def make(endpoints: List[Endpoint]): DescribeEndpointsResponse = DescribeEndpointsResponse(endpoints)
 
-  implicit val schema: Schema[DescribeEndpointsResponse] = struct(
+  implicit val schema: Schema[DescribeEndpointsResponse] = struct[DescribeEndpointsResponse](
     Endpoints.underlyingSchema.required[DescribeEndpointsResponse]("Endpoints", _.endpoints).addHints(smithy.api.Documentation("<p>List of endpoints.</p>")),
   )(make).withId(id).addHints(hints)
 }

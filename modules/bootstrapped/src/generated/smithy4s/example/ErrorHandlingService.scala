@@ -156,7 +156,7 @@ object ErrorHandlingServiceOperation {
       }
     }
 
-    implicit val schema: Schema[ErrorHandlingOperationError] = union(
+    implicit val schema: Schema[ErrorHandlingOperationError] = union[ErrorHandlingOperationError](
       ErrorHandlingOperationError.EHFallbackClientErrorCase.alt,
       ErrorHandlingOperationError.EHServiceUnavailableCase.alt,
       ErrorHandlingOperationError.EHFallbackServerErrorCase.alt,

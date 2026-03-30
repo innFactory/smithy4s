@@ -17,7 +17,7 @@ object Value extends ShapeTag.Companion[Value] {
   // constructor using the original order from the spec
   private def make(value: String): Value = Value(value)
 
-  implicit val schema: Schema[Value] = struct(
+  implicit val schema: Schema[Value] = struct[Value](
     string.required[Value]("value", _.value),
   )(make).withId(id).addHints(hints)
 }

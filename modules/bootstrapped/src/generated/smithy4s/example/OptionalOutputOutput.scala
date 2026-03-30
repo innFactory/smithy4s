@@ -19,7 +19,7 @@ object OptionalOutputOutput extends ShapeTag.Companion[OptionalOutputOutput] {
   // constructor using the original order from the spec
   private def make(body: Option[String]): OptionalOutputOutput = OptionalOutputOutput(body)
 
-  implicit val schema: Schema[OptionalOutputOutput] = struct(
+  implicit val schema: Schema[OptionalOutputOutput] = struct[OptionalOutputOutput](
     string.optional[OptionalOutputOutput]("body", _.body).addHints(smithy.api.HttpPayload()),
   )(make).withId(id).addHints(hints)
 }

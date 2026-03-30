@@ -17,7 +17,7 @@ object HealthRequest extends ShapeTag.Companion[HealthRequest] {
   // constructor using the original order from the spec
   private def make(query: Option[String]): HealthRequest = HealthRequest(query)
 
-  implicit val schema: Schema[HealthRequest] = struct(
+  implicit val schema: Schema[HealthRequest] = struct[HealthRequest](
     string.validated(smithy.api.Length(min = Some(0L), max = Some(5L))).optional[HealthRequest]("query", _.query).addHints(smithy.api.HttpQuery("query")),
   )(make).withId(id).addHints(hints)
 }

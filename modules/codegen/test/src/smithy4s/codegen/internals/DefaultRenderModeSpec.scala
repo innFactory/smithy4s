@@ -67,7 +67,7 @@ final class DefaultRenderModeSpec extends munit.FunSuite {
          |  // constructor using the original order from the spec
          |  private def make(one: Option[String], two: String, three: String, four: String, five: Option[Nullable[String]], six: Nullable[String], seven: Nullable[String], eight: Nullable[String]): Test = Test(one, two, three, four, five, six, seven, eight)
          |
-         |  implicit val schema: Schema[Test] = struct(
+         |  implicit val schema: Schema[Test] = struct[Test](
          |    string.optional[Test]("one", _.one),
          |    string.field[Test]("two", _.two).addHints(smithy.api.Default(smithy4s.Document.fromString("test"))),
          |    string.required[Test]("three", _.three),
@@ -131,7 +131,7 @@ final class DefaultRenderModeSpec extends munit.FunSuite {
          |  // constructor using the original order from the spec
          |  private def make(one: Option[String], two: String, three: String, four: String, five: Option[Nullable[String]], six: Nullable[String], seven: Nullable[String], eight: Nullable[String]): Test = Test(two, three, four, six, seven, eight, one, five)
          |
-         |  implicit val schema: Schema[Test] = struct(
+         |  implicit val schema: Schema[Test] = struct[Test](
          |    string.optional[Test]("one", _.one),
          |    string.field[Test]("two", _.two).addHints(smithy.api.Default(smithy4s.Document.fromString("test"))),
          |    string.required[Test]("three", _.three),
@@ -197,7 +197,7 @@ final class DefaultRenderModeSpec extends munit.FunSuite {
          |  // constructor using the original order from the spec
          |  private def make(one: Option[String], two: String, three: String, four: String, five: Option[Nullable[String]], six: Nullable[String], seven: Nullable[String], eight: Nullable[String]): Test = Test(three, eight, two, four, six, seven, one, five)
          |
-         |  implicit val schema: Schema[Test] = struct(
+         |  implicit val schema: Schema[Test] = struct[Test](
          |    string.optional[Test]("one", _.one),
          |    string.field[Test]("two", _.two).addHints(smithy.api.Default(smithy4s.Document.fromString("test"))),
          |    string.required[Test]("three", _.three),

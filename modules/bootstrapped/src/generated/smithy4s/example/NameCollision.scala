@@ -128,7 +128,7 @@ object NameCollisionOperation {
       }
     }
 
-    implicit val schema: Schema[MyOpError] = union(
+    implicit val schema: Schema[MyOpError] = union[MyOpError](
       MyOpError.MyOpErrorCase.alt,
     ){
       _.$ordinal

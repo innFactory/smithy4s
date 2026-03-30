@@ -32,7 +32,7 @@ object Dependencies {
 
   val Alloy = new {
     val org = "com.disneystreaming.alloy"
-    val alloyVersion = "0.3.36"
+    val alloyVersion = "0.3.37"
     val core = org % "alloy-core" % alloyVersion
     val openapi = org %% "alloy-openapi" % alloyVersion
     val protobuf = org % "alloy-protobuf" % alloyVersion
@@ -88,6 +88,10 @@ object Dependencies {
   }
 
   object Mill {
+    def libs(v: String) = ("com.lihaoyi" %% "mill-libs" % v % Provided)
+      .exclude("org.scala-lang", "scala-reflect")
+      .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
+      .exclude("org.scala-lang.modules", "scala-xml_2.13")
     def scalalib(v: String) = "com.lihaoyi" %% "mill-scalalib" % v % Provided
     def main(v: String) = "com.lihaoyi" %% "mill-main" % v % Provided
     def mainApi(v: String) = "com.lihaoyi" %% "mill-main-api" % v % Provided
@@ -172,7 +176,7 @@ object Dependencies {
   }
 
   object Mima {
-    val core = "com.typesafe" %% "mima-core" % "1.1.4"
+    val core = "com.typesafe" %% "mima-core" % "1.1.5"
   }
 
 }

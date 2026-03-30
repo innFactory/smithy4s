@@ -17,7 +17,7 @@ object TestIdRef extends ShapeTag.Companion[TestIdRef] {
   // constructor using the original order from the spec
   private def make(test: Option[ShapeId], test2: Option[TestIdRefTwo]): TestIdRef = TestIdRef(test, test2)
 
-  implicit val schema: Schema[TestIdRef] = struct(
+  implicit val schema: Schema[TestIdRef] = struct[TestIdRef](
     string.refined[ShapeId](smithy.api.IdRef(selector = "*", failWhenMissing = None, errorMessage = None)).optional[TestIdRef]("test", _.test),
     TestIdRefTwo.schema.optional[TestIdRef]("test2", _.test2),
   )(make).withId(id).addHints(hints)

@@ -20,7 +20,7 @@ object PutObjectInput extends ShapeTag.Companion[PutObjectInput] {
   // constructor using the original order from the spec
   private def make(key: ObjectKey, bucketName: BucketName, foo: Option[LowHigh], someValue: Option[SomeValue], data: String): PutObjectInput = PutObjectInput(key, bucketName, data, foo, someValue)
 
-  implicit val schema: Schema[PutObjectInput] = struct(
+  implicit val schema: Schema[PutObjectInput] = struct[PutObjectInput](
     ObjectKey.schema.required[PutObjectInput]("key", _.key).addHints(smithy.api.HttpLabel()),
     BucketName.schema.required[PutObjectInput]("bucketName", _.bucketName).addHints(smithy.api.HttpLabel()),
     LowHigh.schema.optional[PutObjectInput]("foo", _.foo).addHints(smithy.api.HttpHeader("X-Foo")),

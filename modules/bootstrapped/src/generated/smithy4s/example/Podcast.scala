@@ -57,7 +57,7 @@ object Podcast extends ShapeTag.Companion[Podcast] {
     // constructor using the original order from the spec
     private def make(title: Option[String], url: Option[String], durationMillis: Option[Long]): Video = Video(title, url, durationMillis)
 
-    val schema: Schema[Video] = struct(
+    val schema: Schema[Video] = struct[Video](
       string.optional[Video]("title", _.title),
       string.optional[Video]("url", _.url),
       long.optional[Video]("durationMillis", _.durationMillis),
@@ -83,7 +83,7 @@ object Podcast extends ShapeTag.Companion[Podcast] {
     // constructor using the original order from the spec
     private def make(title: Option[String], url: Option[String], durationMillis: Option[Long]): Audio = Audio(title, url, durationMillis)
 
-    val schema: Schema[Audio] = struct(
+    val schema: Schema[Audio] = struct[Audio](
       string.optional[Audio]("title", _.title),
       string.optional[Audio]("url", _.url),
       long.optional[Audio]("durationMillis", _.durationMillis),
@@ -106,7 +106,7 @@ object Podcast extends ShapeTag.Companion[Podcast] {
     }
   }
 
-  implicit val schema: Schema[Podcast] = union(
+  implicit val schema: Schema[Podcast] = union[Podcast](
     Podcast.Video.alt,
     Podcast.Audio.alt,
   ){

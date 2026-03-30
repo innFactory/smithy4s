@@ -131,7 +131,7 @@ object ImportServiceOperation {
       }
     }
 
-    implicit val schema: Schema[ImportOperationError] = union(
+    implicit val schema: Schema[ImportOperationError] = union[ImportOperationError](
       ImportOperationError.NotFoundErrorCase.alt,
     ){
       _.$ordinal

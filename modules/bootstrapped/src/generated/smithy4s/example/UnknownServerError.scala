@@ -21,7 +21,7 @@ object UnknownServerError extends ShapeTag.Companion[UnknownServerError] {
   // constructor using the original order from the spec
   private def make(errorCode: UnknownServerErrorCode, description: Option[String], stateHash: Option[String]): UnknownServerError = UnknownServerError(errorCode, description, stateHash)
 
-  implicit val schema: Schema[UnknownServerError] = struct(
+  implicit val schema: Schema[UnknownServerError] = struct[UnknownServerError](
     UnknownServerErrorCode.schema.required[UnknownServerError]("errorCode", _.errorCode),
     string.optional[UnknownServerError]("description", _.description),
     string.optional[UnknownServerError]("stateHash", _.stateHash),

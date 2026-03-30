@@ -16,7 +16,7 @@ object CheckQueryInput extends ShapeTag.Companion[CheckQueryInput] {
   // constructor using the original order from the spec
   private def make(inp: Map[String, List[String]]): CheckQueryInput = CheckQueryInput(inp)
 
-  implicit val schema: Schema[CheckQueryInput] = struct(
+  implicit val schema: Schema[CheckQueryInput] = struct[CheckQueryInput](
     QParams.underlyingSchema.field[CheckQueryInput]("inp", _.inp).addHints(smithy.api.Default(smithy4s.Document.obj()), smithy.api.HttpQueryParams()),
   )(make).withId(id).addHints(hints)
 }

@@ -20,7 +20,7 @@ object MovieTheater extends ShapeTag.Companion[MovieTheater] {
   // constructor using the original order from the spec
   private def make(name: Option[String]): MovieTheater = MovieTheater(name)
 
-  implicit val schema: Schema[MovieTheater] = struct(
+  implicit val schema: Schema[MovieTheater] = struct[MovieTheater](
     string.optional[MovieTheater]("name", _.name),
   )(make).withId(id).addHints(hints)
 

@@ -111,7 +111,7 @@ object DeprecatedUnion extends ShapeTag.Companion[DeprecatedUnion] {
     }
   }
 
-  implicit val schema: Schema[DeprecatedUnion] = union(
+  implicit val schema: Schema[DeprecatedUnion] = union[DeprecatedUnion](
     DeprecatedUnion.SCase.alt,
     DeprecatedUnion.S_V2Case.alt,
     DeprecatedUnion.DeprecatedUnionProductCase.alt,

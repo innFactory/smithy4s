@@ -17,7 +17,7 @@ object SayHelloPayload extends ShapeTag.Companion[SayHelloPayload] {
   // constructor using the original order from the spec
   private def make(result: String): SayHelloPayload = SayHelloPayload(result)
 
-  implicit val schema: Schema[SayHelloPayload] = struct(
+  implicit val schema: Schema[SayHelloPayload] = struct[SayHelloPayload](
     string.required[SayHelloPayload]("result", _.result),
   )(make).withId(id).addHints(hints)
 }

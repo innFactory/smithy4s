@@ -49,7 +49,7 @@ object ReservedKeywordUnionTrait extends ShapeTag.Companion[ReservedKeywordUnion
     }
   }
 
-  implicit val schema: Schema[ReservedKeywordUnionTrait] = recursive(union(
+  implicit val schema: Schema[ReservedKeywordUnionTrait] = recursive(union[ReservedKeywordUnionTrait](
     ReservedKeywordUnionTrait.PackageCase.alt,
   ){
     _.$ordinal

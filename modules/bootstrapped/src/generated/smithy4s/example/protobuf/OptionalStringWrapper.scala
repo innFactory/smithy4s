@@ -19,7 +19,7 @@ object OptionalStringWrapper extends ShapeTag.Companion[OptionalStringWrapper] {
   // constructor using the original order from the spec
   private def make(string: Option[String]): OptionalStringWrapper = OptionalStringWrapper(string)
 
-  implicit val schema: Schema[OptionalStringWrapper] = struct(
+  implicit val schema: Schema[OptionalStringWrapper] = struct[OptionalStringWrapper](
     string.optional[OptionalStringWrapper]("string", _.string),
   )(make).withId(id).addHints(hints)
 }

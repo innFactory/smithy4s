@@ -72,7 +72,7 @@ object SampleOpenUnion extends ShapeTag.Companion[SampleOpenUnion] {
     }
   }
 
-  implicit val schema: Schema[SampleOpenUnion] = union(
+  implicit val schema: Schema[SampleOpenUnion] = union[SampleOpenUnion](
     SampleOpenUnion.StrCase.alt,
     SampleOpenUnion.UCase.alt,
     SampleOpenUnion.UnknownCase.alt,

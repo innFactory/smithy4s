@@ -19,7 +19,7 @@ object BlobOutputNoMediaTypeInput extends ShapeTag.Companion[BlobOutputNoMediaTy
   // constructor using the original order from the spec
   private def make(data: Option[String]): BlobOutputNoMediaTypeInput = BlobOutputNoMediaTypeInput(data)
 
-  implicit val schema: Schema[BlobOutputNoMediaTypeInput] = struct(
+  implicit val schema: Schema[BlobOutputNoMediaTypeInput] = struct[BlobOutputNoMediaTypeInput](
     string.optional[BlobOutputNoMediaTypeInput]("data", _.data).addHints(smithy.api.HttpPayload()),
   )(make).withId(id).addHints(hints)
 }

@@ -18,7 +18,7 @@ object Patchable extends ShapeTag.Companion[Patchable] {
   // constructor using the original order from the spec
   private def make(allowExplicitNull: Option[Nullable[Int]]): Patchable = Patchable(allowExplicitNull)
 
-  implicit val schema: Schema[Patchable] = struct(
+  implicit val schema: Schema[Patchable] = struct[Patchable](
     int.nullable.optional[Patchable]("allowExplicitNull", _.allowExplicitNull),
   )(make).withId(id).addHints(hints)
 }

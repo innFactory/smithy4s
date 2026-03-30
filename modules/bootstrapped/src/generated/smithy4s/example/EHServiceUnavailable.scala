@@ -23,7 +23,7 @@ object EHServiceUnavailable extends ShapeTag.Companion[EHServiceUnavailable] {
   // constructor using the original order from the spec
   private def make(message: Option[String]): EHServiceUnavailable = EHServiceUnavailable(message)
 
-  implicit val schema: Schema[EHServiceUnavailable] = struct(
+  implicit val schema: Schema[EHServiceUnavailable] = struct[EHServiceUnavailable](
     string.optional[EHServiceUnavailable]("message", _.message),
   )(make).withId(id).addHints(hints)
 }

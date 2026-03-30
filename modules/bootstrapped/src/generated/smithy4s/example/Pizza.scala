@@ -17,7 +17,7 @@ object Pizza extends ShapeTag.Companion[Pizza] {
   // constructor using the original order from the spec
   private def make(name: String, base: PizzaBase, toppings: List[Ingredient]): Pizza = Pizza(name, base, toppings)
 
-  implicit val schema: Schema[Pizza] = struct(
+  implicit val schema: Schema[Pizza] = struct[Pizza](
     string.required[Pizza]("name", _.name),
     PizzaBase.schema.required[Pizza]("base", _.base),
     Ingredients.underlyingSchema.required[Pizza]("toppings", _.toppings),
