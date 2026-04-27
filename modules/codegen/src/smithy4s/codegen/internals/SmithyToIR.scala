@@ -160,6 +160,27 @@ private[codegen] class SmithyToIR(
   private val smithy4sBinCompatHintNamespacePatterns: Set[NamespacePattern] =
     smithy4sDefaultBinCompatHintNamespacePatterns
 
+  private val stdlibBincompatAddedShapes: Map[ShapeId, Hint.BincompatAdded] =
+    model
+      .getMetadata()
+      .asScala
+      .get("smithy4sBincompatPreludeAdditions")
+      .toSet
+      .flatMap((n: Node) => n.asArrayNode().asScala)
+      .flatMap(_.getElements().asScala)
+      .flatMap { (n: Node) =>
+        n.asObjectNode().asScala.flatMap { obj =>
+          for {
+            shapeIdStr <- obj.getStringMember("shape").asScala
+            versionStr <- obj.getStringMember("version").asScala
+          } yield (
+            ShapeId.from(shapeIdStr.getValue),
+            Hint.BincompatAdded(VersionNumber.parse(versionStr.getValue))
+          )
+        }
+      }
+      .toMap
+
   private def fieldModifier(member: MemberShape): Field.Modifier = {
     val hasRequired = member.hasTrait(classOf[RequiredTrait])
     val hasNullable = member.hasTrait(classOf[alloy.NullableTrait])
@@ -1169,6 +1190,8 @@ private[codegen] class SmithyToIR(
         // traits from the synthetic namespace, e.g. smithy.synthetic.enum
         // don't have shapes in the model - so we can't generate hints for them.
         .filterNot(_.toShapeId().getNamespace() == "smithy.synthetic")
+        // smithy.rules traits contain massive endpoint routing JSON and aren't used at runtime
+        .filterNot(_.toShapeId().getNamespace() == "smithy.rules")
         // enumValue can be derived from enum schemas anyway, so we're removing it from hints
         .filterNot(_.toShapeId() == EnumValueTrait.ID)
         // remove box trait
@@ -1190,8 +1213,13 @@ private[codegen] class SmithyToIR(
       } else None
     }
 
+    val stdlibBincompatAddedHint = stdlibBincompatAddedShapes.get(
+      shape.getId()
+    )
+
     allTraits.collect(traitToHint(shape)) ++
       stdlibBincompatFriendlyTrait ++
+      stdlibBincompatAddedHint ++
       documentationHint(shape) ++
       nonConstraintNonMetaTraits
         .filter(tr =>
