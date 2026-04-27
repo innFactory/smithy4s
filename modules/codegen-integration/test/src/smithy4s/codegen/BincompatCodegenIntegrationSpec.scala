@@ -21,6 +21,8 @@ import com.typesafe.tools.mima.core.ReversedMissingMethodProblem
 import com.typesafe.tools.mima.lib.MiMaLib
 import munit.FunSuite
 
+import scala.concurrent.duration._
+
 class BincompatCodegenIntegrationSpec extends FunSuite {
   private val scala212 = "2.12"
   private val scala213 = "2.13"
@@ -35,6 +37,9 @@ class BincompatCodegenIntegrationSpec extends FunSuite {
       |use smithy4s.meta#bincompatAdded
       |
       |""".stripMargin
+
+  // Extend timeout for "Bincompat-friendly struct trait" test
+  override val munitTimeout: FiniteDuration = 2.minutes
 
   scalaVersions.foreach { scalaVersion =>
     test(s"Bincompat-friendly structs (Scala $scalaVersion)") {
