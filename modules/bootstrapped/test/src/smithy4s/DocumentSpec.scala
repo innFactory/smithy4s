@@ -1530,7 +1530,7 @@ class DocumentSpec() extends ScalaCheckSuite {
       LocalTimeStructure(
         LocalTime(13, 30, 9),
         smithy4s.example.MyLocalTime(LocalTime(18, 9, 10)),
-        LocalTime(14, 20, 4),
+        LocalTime(14, 20, 4)
       )
 
     val document =
@@ -1548,13 +1548,13 @@ class DocumentSpec() extends ScalaCheckSuite {
       OffsetDateTimeStructure(
         OffsetDateTime(2025, 7, 8, 13, 30, 9, 0, ZoneOffset.hours(-7)),
         smithy4s.example.MyOffsetDateTime(OffsetDateTime(2025, 9, 10, 18, 9, 10, 0, ZoneOffset.hours(6))),
-        OffsetDateTime(2025, 7, 8, 13, 30, 9, 0, ZoneOffset.hours(0)),
+        OffsetDateTime(2025, 7, 8, 13, 30, 9, 0, ZoneOffset.hours(0))
       )
 
     val document = Document.obj(
       "offsetDateTime" -> Document.fromString("2025-07-08T13:30:09-07:00"),
       "offsetDateTime2" -> Document.fromString("2025-09-10T18:09:10+06:00"),
-      "offsetDateTime3" -> Document.fromString("2025-07-08T13:30:09Z"),
+      "offsetDateTime3" -> Document.fromString("2025-07-08T13:30:09Z")
     )
 
     testRoundtrip(structure, document)
