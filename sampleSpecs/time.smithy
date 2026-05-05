@@ -10,14 +10,6 @@ use alloy#dateFormat
 use alloy#offsetDateTimeFormat
 use alloy#localTimeFormat
 use alloy#durationSecondsFormat
-use alloy#localDateTimeFormat
-use alloy#offsetTimeFormat
-use alloy#zoneIdFormat
-use alloy#zoneOffsetFormat
-use alloy#zonedDateTimeFormat
-use alloy#yearFormat
-use alloy#yearMonthFormat
-use alloy#monthDayFormat
 
 @dateFormat
 string MyLocalDate
@@ -37,6 +29,9 @@ structure LocalDateStructure {
     localDate: LocalDate
     @required
     localDate2: MyLocalDate
+    @dateFormat
+    @required
+    localDate3: String
 }
 
 structure LocalTimeStructure {
@@ -44,6 +39,9 @@ structure LocalTimeStructure {
     localTime: LocalTime
     @required
     localTime2: MyLocalTime
+    @localTimeFormat
+    @required
+    localTime3: String
 }
 
 
@@ -52,6 +50,9 @@ structure DurationStructure {
     duration: Duration
     @required
     duration2: MyDuration
+    @durationSecondsFormat
+    @required
+    duration3: Duration
 }
 
 structure OffsetDateTimeStructure {
@@ -59,32 +60,8 @@ structure OffsetDateTimeStructure {
     offsetDateTime: OffsetDateTime
     @required
     offsetDateTime2: MyOffsetDateTime
-}
-
-structure TimeStructure {
-    @dateFormat
-    localDate: String
-    @localDateTimeFormat
-    localDateTime: String
-    @localTimeFormat
-    localTime: String
     @offsetDateTimeFormat
     @timestampFormat("date-time")
-    offsetDateTime: Timestamp
-    @offsetTimeFormat
-    offsetTime: String
-    @zoneIdFormat
-    zoneId: String
-    @zoneOffsetFormat
-    zoneOffset: String
-    @zonedDateTimeFormat
-    zonedDateTime: String
-    @yearFormat
-    year: Integer
-    @yearMonthFormat
-    yearMonth: String
-    @monthDayFormat
-    monthDay: String
-    @durationSecondsFormat
-    duration: BigDecimal
+    @required
+    offsetDateTime3: Timestamp
 }
