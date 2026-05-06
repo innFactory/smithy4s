@@ -22,13 +22,16 @@ bigDecimal MyDuration
 
 @offsetDateTimeFormat
 @timestampFormat("date-time")
-timestamp MyOffsetDateTime 
+timestamp MyOffsetDateTime
 
 structure LocalDateStructure {
     @required
     localDate: LocalDate
     @required
     localDate2: MyLocalDate
+    @dateFormat
+    @required
+    localDate3: String
 }
 
 structure LocalTimeStructure {
@@ -36,6 +39,9 @@ structure LocalTimeStructure {
     localTime: LocalTime
     @required
     localTime2: MyLocalTime
+    @localTimeFormat
+    @required
+    localTime3: String
 }
 
 
@@ -44,6 +50,9 @@ structure DurationStructure {
     duration: Duration
     @required
     duration2: MyDuration
+    @durationSecondsFormat
+    @required
+    duration3: Duration
 }
 
 structure OffsetDateTimeStructure {
@@ -51,4 +60,8 @@ structure OffsetDateTimeStructure {
     offsetDateTime: OffsetDateTime
     @required
     offsetDateTime2: MyOffsetDateTime
+    @offsetDateTimeFormat
+    @timestampFormat("date-time")
+    @required
+    offsetDateTime3: Timestamp
 }

@@ -1512,12 +1512,14 @@ class DocumentSpec() extends ScalaCheckSuite {
     val structure =
       LocalDateStructure(
         LocalDate(2025, 8, 9),
-        smithy4s.example.MyLocalDate(LocalDate(2024, 9, 10))
+        smithy4s.example.MyLocalDate(LocalDate(2024, 9, 10)),
+        LocalDate(2026, 5, 5)
       )
     val document =
       Document.obj(
         "localDate" -> Document.fromString("2025-08-09"),
-        "localDate2" -> Document.fromString("2024-09-10")
+        "localDate2" -> Document.fromString("2024-09-10"),
+        "localDate3" -> Document.fromString("2026-05-05")
       )
 
     testRoundtrip(structure, document)
@@ -1527,13 +1529,15 @@ class DocumentSpec() extends ScalaCheckSuite {
     val structure =
       LocalTimeStructure(
         LocalTime(13, 30, 9),
-        smithy4s.example.MyLocalTime(LocalTime(18, 9, 10))
+        smithy4s.example.MyLocalTime(LocalTime(18, 9, 10)),
+        LocalTime(14, 20, 4)
       )
 
     val document =
       Document.obj(
         "localTime" -> Document.fromString("13:30:09"),
-        "localTime2" -> Document.fromString("18:09:10")
+        "localTime2" -> Document.fromString("18:09:10"),
+        "localTime3" -> Document.fromString("14:20:04")
       )
 
     testRoundtrip(structure, document)
@@ -1543,12 +1547,14 @@ class DocumentSpec() extends ScalaCheckSuite {
     val structure =
       OffsetDateTimeStructure(
         OffsetDateTime(2025, 7, 8, 13, 30, 9, 0, ZoneOffset.hours(-7)),
-        smithy4s.example.MyOffsetDateTime(OffsetDateTime(2025, 9, 10, 18, 9, 10, 0, ZoneOffset.hours(6)))
+        smithy4s.example.MyOffsetDateTime(OffsetDateTime(2025, 9, 10, 18, 9, 10, 0, ZoneOffset.hours(6))),
+        OffsetDateTime(2025, 7, 8, 13, 30, 9, 0, ZoneOffset.hours(0))
       )
 
     val document = Document.obj(
       "offsetDateTime" -> Document.fromString("2025-07-08T13:30:09-07:00"),
-      "offsetDateTime2" -> Document.fromString("2025-09-10T18:09:10+06:00")
+      "offsetDateTime2" -> Document.fromString("2025-09-10T18:09:10+06:00"),
+      "offsetDateTime3" -> Document.fromString("2025-07-08T13:30:09Z")
     )
 
     testRoundtrip(structure, document)
@@ -1558,13 +1564,15 @@ class DocumentSpec() extends ScalaCheckSuite {
     val structure =
       DurationStructure(
         1.day,
-        smithy4s.example.MyDuration(1.day + 6.hours + 42.minutes + 500.nanos)
+        smithy4s.example.MyDuration(1.day + 6.hours + 42.minutes + 500.nanos),
+        1.day + 6.hours + 42.minutes
       )
 
     val document =
       Document.obj(
         "duration" -> Document.fromBigDecimal(BigDecimal(86400)),
-        "duration2" -> Document.fromBigDecimal(BigDecimal(110520.0000005))
+        "duration2" -> Document.fromBigDecimal(BigDecimal(110520.0000005)),
+        "duration3" -> Document.fromBigDecimal(BigDecimal(110520))
       )
 
     testRoundtrip(structure, document)

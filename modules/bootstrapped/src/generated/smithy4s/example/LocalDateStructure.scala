@@ -8,7 +8,7 @@ import smithy4s.schema.Schema.localdate
 import smithy4s.schema.Schema.struct
 import smithy4s.time.LocalDate
 
-final case class LocalDateStructure(localDate: LocalDate, localDate2: MyLocalDate)
+final case class LocalDateStructure(localDate: LocalDate, localDate2: MyLocalDate, localDate3: LocalDate)
 
 object LocalDateStructure extends ShapeTag.Companion[LocalDateStructure] {
   val id: ShapeId = ShapeId("smithy4s.example", "LocalDateStructure")
@@ -16,10 +16,11 @@ object LocalDateStructure extends ShapeTag.Companion[LocalDateStructure] {
   val hints: Hints = Hints.empty
 
   // constructor using the original order from the spec
-  private def make(localDate: LocalDate, localDate2: MyLocalDate): LocalDateStructure = LocalDateStructure(localDate, localDate2)
+  private def make(localDate: LocalDate, localDate2: MyLocalDate, localDate3: LocalDate): LocalDateStructure = LocalDateStructure(localDate, localDate2, localDate3)
 
   implicit val schema: Schema[LocalDateStructure] = struct[LocalDateStructure](
     localdate.required[LocalDateStructure]("localDate", _.localDate),
     MyLocalDate.schema.required[LocalDateStructure]("localDate2", _.localDate2),
+    localdate.required[LocalDateStructure]("localDate3", _.localDate3).addHints(Hints.dynamic(ShapeId("alloy", "dateFormat"), smithy4s.Document.obj())),
   )(make).withId(id).addHints(hints)
 }

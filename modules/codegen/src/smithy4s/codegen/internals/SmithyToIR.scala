@@ -855,14 +855,17 @@ private[codegen] class SmithyToIR(
         case shape if shape.getId() == durationShapeId =>
           Type.PrimitiveType(Primitive.Duration).some
         case T.durationSecondsFormat(_) =>
-          Type
-            .Alias(
-              x.namespace,
-              x.name,
-              Type.PrimitiveType(Primitive.Duration),
-              isUnwrapped = false
-            )
-            .some
+          if (x.getId() == ShapeId.from("smithy.api#BigDecimal"))
+            Type.PrimitiveType(Primitive.Duration).some
+          else
+            Type
+              .Alias(
+                x.namespace,
+                x.name,
+                Type.PrimitiveType(Primitive.Duration),
+                isUnwrapped = false
+              )
+              .some
         case _ =>
           primitive(x, "smithy.api#BigDecimal", Primitive.BigDecimal)
       }
@@ -888,32 +891,41 @@ private[codegen] class SmithyToIR(
         case shape if shape.getId() == localTimeShapeId =>
           Type.PrimitiveType(Primitive.LocalTime).some
         case T.uuidFormat(_) =>
-          Type
-            .Alias(
-              x.namespace,
-              x.name,
-              Type.PrimitiveType(Primitive.Uuid),
-              isUnwrapped = false
-            )
-            .some
+          if (x.getId() == ShapeId.from("smithy.api#String"))
+            Type.PrimitiveType(Primitive.Uuid).some
+          else
+            Type
+              .Alias(
+                x.namespace,
+                x.name,
+                Type.PrimitiveType(Primitive.Uuid),
+                isUnwrapped = false
+              )
+              .some
         case T.localDateFormat(_) =>
-          Type
-            .Alias(
-              x.namespace,
-              x.name,
-              Type.PrimitiveType(Primitive.LocalDate),
-              isUnwrapped = false
-            )
-            .some
+          if (x.getId() == ShapeId.from("smithy.api#String"))
+            Type.PrimitiveType(Primitive.LocalDate).some
+          else
+            Type
+              .Alias(
+                x.namespace,
+                x.name,
+                Type.PrimitiveType(Primitive.LocalDate),
+                isUnwrapped = false
+              )
+              .some
         case T.localTimeFormat(_) =>
-          Type
-            .Alias(
-              x.namespace,
-              x.name,
-              Type.PrimitiveType(Primitive.LocalTime),
-              isUnwrapped = false
-            )
-            .some
+          if (x.getId() == ShapeId.from("smithy.api#String"))
+            Type.PrimitiveType(Primitive.LocalTime).some
+          else
+            Type
+              .Alias(
+                x.namespace,
+                x.name,
+                Type.PrimitiveType(Primitive.LocalTime),
+                isUnwrapped = false
+              )
+              .some
         case _ =>
           primitive(x, "smithy.api#String", Primitive.String)
       }
@@ -945,14 +957,17 @@ private[codegen] class SmithyToIR(
         case shape if shape.getId() == offsetDateTimeShapeId =>
           Type.PrimitiveType(Primitive.OffsetDateTime).some
         case T.offsetDateTimeFormat(_) =>
-          Type
-            .Alias(
-              x.namespace,
-              x.name,
-              Type.PrimitiveType(Primitive.OffsetDateTime),
-              isUnwrapped = false
-            )
-            .some
+          if (x.getId() == ShapeId.from("smithy.api#Timestamp"))
+            Type.PrimitiveType(Primitive.OffsetDateTime).some
+          else
+            Type
+              .Alias(
+                x.namespace,
+                x.name,
+                Type.PrimitiveType(Primitive.OffsetDateTime),
+                isUnwrapped = false
+              )
+              .some
         case _ => primitive(x, "smithy.api#Timestamp", Primitive.Timestamp)
       }
 
