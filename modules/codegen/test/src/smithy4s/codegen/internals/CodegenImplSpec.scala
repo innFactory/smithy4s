@@ -77,8 +77,9 @@ final class CodegenImplSpec extends munit.FunSuite {
       .unwrap()
 
     def generateScalaCode(model: Model): Map[String, String] = {
+      val namespaces = CodegenImpl.filteredNamespaces(model, None, None)
       CodegenImpl
-        .generate(model, None, None)
+        .generate(model, namespaces)
         .map { case (_, result) =>
           s"${result.namespace}.${result.name}" -> result.content
         }
@@ -169,6 +170,86 @@ final class CodegenImplSpec extends munit.FunSuite {
     )
   }
 
+  test(
+    "metadata smithy4sCodegen.allowedNamespaces unions with CodegenArgs.allowedNS"
+  ) {
+    val metadataSpec =
+      """|$version: "2.0"
+         |
+         |metadata smithy4sCodegen = {
+         |  allowedNamespaces: ["from.metadata*"]
+         |}
+         |
+         |namespace from.metadata
+         |
+         |string Dummy
+         |""".stripMargin
+    val argsSpec =
+      """|$version: "2.0"
+         |
+         |namespace from.args
+         |
+         |string Dummy
+         |""".stripMargin
+    val ignoredSpec =
+      """|$version: "2.0"
+         |
+         |namespace ignored.ns
+         |
+         |string Dummy
+         |""".stripMargin
+
+    val model = Model
+      .assembler()
+      .discoverModels()
+      .addUnparsedModel("metadata.smithy", metadataSpec)
+      .addUnparsedModel("args.smithy", argsSpec)
+      .addUnparsedModel("ignored.smithy", ignoredSpec)
+      .assemble()
+      .unwrap()
+
+    val filtered =
+      CodegenImpl
+        .filteredNamespaces(model, Some(Set("from.args")), None)
+        .toSet
+    assertEquals(filtered, Set("from.metadata", "from.args"))
+  }
+
+  test(
+    "metadata smithy4sCodegen.allowedNamespaces alone restricts when CodegenArgs.allowedNS is None"
+  ) {
+    val metadataSpec =
+      """|$version: "2.0"
+         |
+         |metadata smithy4sCodegen = {
+         |  allowedNamespaces: ["only.this"]
+         |}
+         |
+         |namespace only.this
+         |
+         |string Dummy
+         |""".stripMargin
+    val otherSpec =
+      """|$version: "2.0"
+         |
+         |namespace other.ns
+         |
+         |string Dummy
+         |""".stripMargin
+
+    val model = Model
+      .assembler()
+      .discoverModels()
+      .addUnparsedModel("only.smithy", metadataSpec)
+      .addUnparsedModel("other.smithy", otherSpec)
+      .assemble()
+      .unwrap()
+
+    val filtered =
+      CodegenImpl.filteredNamespaces(model, None, None).toSet
+    assertEquals(filtered, Set("only.this"))
+  }
+
   private def namespaceFilterTest(
       inputNamespaces: List[String],
       allowedNamespaces: List[String] = Nil,
@@ -191,15 +272,14 @@ final class CodegenImplSpec extends munit.FunSuite {
         .unwrap()
     }
     val model = mkModel(inputNamespaces.map(mkSpec))
+    val allowedNS = Option(allowedNamespaces.toSet).filter(_.nonEmpty)
+    val excludedNS = Option(forbiddenNamespaces.toSet).filter(_.nonEmpty)
     val generatedNamespaces = CodegenImpl
       .generate(
         model,
-        Option(allowedNamespaces.toSet).filter(_.nonEmpty),
-        Option(forbiddenNamespaces.toSet).filter(_.nonEmpty)
+        CodegenImpl.filteredNamespaces(model, allowedNS, excludedNS)
       )
-      .map { case (_, result) =>
-        result.namespace
-      }
+      .map { case (_, result) => result.namespace }
       .toSet
     assertEquals(generatedNamespaces, expectedCodegenNamespaces)
 

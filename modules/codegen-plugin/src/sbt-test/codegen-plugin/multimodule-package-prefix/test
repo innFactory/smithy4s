@@ -1,0 +1,13 @@
+# Verify cross-module propagation of smithy4sGenerated metadata when the
+# upstream module uses a packagePrefix.
+> compile
+
+# Module A renders `com.example.first` under the `gen` package prefix.
+# Module B generates its own namespace and must NOT regenerate the upstream one.
+> a/checkLayout
+> b/checkLayout
+
+# Compiling + running B exercises the cross-namespace reference: B's generated
+# `Second` must import `gen.com.example.first.MyString` for the import in
+# BTest.scala (and the generated Second.scala) to resolve.
+> b/run
