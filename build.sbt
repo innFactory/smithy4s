@@ -1056,7 +1056,6 @@ lazy val complianceTests = projectMatrix
   .dependsOn(core)
   .settings(
     name := "compliance-tests",
-    Compile / allowedNamespaces := Seq("smithy.test"),
     Compile / smithy4sDependencies ++= Seq(Dependencies.Smithy.testTraits),
     Compile / sourceGenerators := Seq(genSmithyScala(Compile).taskValue),
     libraryDependencies ++= {
@@ -1114,6 +1113,7 @@ lazy val bootstrapped = projectMatrix
     ),
     smithy4sDependencies ++= Seq(
       Dependencies.Smithy.testTraits,
+      Dependencies.Smithy.smokeTestTraits,
       Dependencies.Smithy.awsTraits,
       Dependencies.Smithy.waiters
     ),

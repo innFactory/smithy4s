@@ -239,7 +239,7 @@ private[codegen] object CodegenImpl { self =>
       case None =>
         namespaces
           .filterNot(_.startsWith("aws."))
-          .filterNot(_.startsWith("smithy."))
+          .filterNot(_.startsWith("smithy.api"))
           .filterNot(ns => reserved.exists(ns.startsWith))
           .filterNot(namespace => excluded.exists(_.matches(namespace)))
           .filterNot(alreadyGenerated)
