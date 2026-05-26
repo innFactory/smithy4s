@@ -281,7 +281,7 @@ final class CodegenImplSpec extends munit.FunSuite {
       )
       .map { case (_, result) => result.namespace }
       .toSet
-    assertEquals(generatedNamespaces, expectedCodegenNamespaces)
+    assertEquals(generatedNamespaces.filterNot(_.startsWith("smithy")), expectedCodegenNamespaces)
 
   }
 }

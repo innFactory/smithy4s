@@ -53,6 +53,8 @@ object TestUtils {
       loc: Location
   ): Unit = {
     val scalaResults = generateScalaCode(smithySpec).values.toList
+      // filter out smithy dependencies for the sake of assertions
+      .filterNot(_.startsWith("package smithy"))
     Assertions.assertEquals(
       scalaResults.map(_.trim()).sorted,
       expectedScalaCode.map(_.trim()).toList.sorted
