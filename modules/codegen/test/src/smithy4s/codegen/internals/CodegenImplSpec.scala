@@ -281,8 +281,9 @@ final class CodegenImplSpec extends munit.FunSuite {
       )
       .map { case (_, result) => result.namespace }
       .toSet
+    val filterOut = Set("smithy.test", "smithy.protocols", "smithy.openapi")
     assertEquals(
-      generatedNamespaces.filterNot(_.startsWith("smithy")),
+      generatedNamespaces.filterNot(filterOut.contains(_)),
       expectedCodegenNamespaces
     )
 

@@ -5,13 +5,16 @@ When adding entries, please treat them as if they could end up in a release any 
 
 Thank you!
 
+# 0.19.6
+
+- Relax default filter in codegen module to allow generating namespaces that start with `smithy.` as long as they are not `smithy.api` in [#1968](https://github.com/disneystreaming/smithy4s/pull/1968)
+
 # 0.19.5 
 
 - Port of [#1950](https://github.com/disneystreaming/smithy4s/pull/1950) to 0.19 series
   codegen: Add `smithy4sCodegen` metadata key for render-time package remapping. Supports `packagePrefix` (prepend a prefix to all generated packages), `packageMappings` (per-namespace overrides), and `excludedNamespaces` (skip namespaces from codegen). See [Package Remapping](https://disneystreaming.github.io/smithy4s/docs/codegen/customisation/package-remapping) for details.
 - codegen: Add `allowedNamespaces` field to the `smithy4sCodegen` Smithy metadata key — restricts codegen to the listed namespace patterns. When the build-tool `allowedNamespaces` / `excludedNamespaces` settings are also set, the two sources are unioned.
 - codegen: Deprecate the build-tool `allowedNamespaces` / `excludedNamespaces` settings (sbt `smithy4sAllowedNamespaces` / `smithy4sExcludedNamespaces`, the equivalent mill targets, and the CLI `--allowed-ns` / `--excluded-ns` flags) in favor of the `smithy4sCodegen` Smithy metadata key.
-- Relax default filter in codegen module to allow generating namespaces that start with `smithy.` as long as they are not `smithy.api` in [#1968](https://github.com/disneystreaming/smithy4s/pull/1968)
 
 # 0.19.4
 
