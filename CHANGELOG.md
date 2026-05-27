@@ -5,6 +5,10 @@ When adding entries, please treat them as if they could end up in a release any 
 
 Thank you!
 
+# 0.19.6
+
+- Relax default filter in codegen module to allow generating namespaces that start with `smithy.` as long as they are not `smithy.api` in [#1968](https://github.com/disneystreaming/smithy4s/pull/1968)
+
 # 0.19.5 
 
 - Port of [#1950](https://github.com/disneystreaming/smithy4s/pull/1950) to 0.19 series
